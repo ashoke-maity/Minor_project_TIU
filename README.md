@@ -59,6 +59,4 @@ npm install
 cd client
 npm install
 ```
-## 🧠 Contributing
-We welcome contributions!
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+## **Thank you !**
