@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Alumni Association platform is designed to foster lifelong connections between alumni and Government Engineering College. Through both web and mobile applications, the platform facilitates networking, mentorship, donations, job opportunities, and community building — strengthening the bond between alumni and their alma mater.
+The Alumni Association platform is designed to foster lifelong connections between alumni and Colleges. Through the web, the platform facilitates networking, mentorship, donations, job opportunities, and community building, strengthening the bond between alumni and their alma mater.
 
 ---
 
@@ -58,3 +58,7 @@ npm install
 # Install frontend dependencies
 cd client
 npm install
+
+🧠 Contributing
+We welcome contributions!
+Please read CONTRIBUTING.md for guidelines.
