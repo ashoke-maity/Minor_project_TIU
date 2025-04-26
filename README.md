@@ -27,10 +27,10 @@ _(Coming soon)_
 
 ## 🛠 Tech Stack
 
-- **Frontend:** React.js, React Native
+- **Frontend:** React.js
 - **Backend:** Node.js, Express.js
-- **Database:** MongoDB
-- **Authentication:** JWT, OAuth
+- **Database:** MongoDB Atlas
+- **Authentication:** JWT
 - **Hosting:** AWS / Vercel / Firebase _(To be finalized)_
 
 ---
@@ -39,9 +39,8 @@ _(Coming soon)_
 
 ### Prerequisites
 - Node.js
-- npm or yarn
-- MongoDB (local or Atlas)
-- Android Studio/Xcode (for mobile app development)
+- npm
+- MongoDB Atlas
 
 ### Installation
 
@@ -50,12 +49,12 @@ _(Coming soon)_
 git clone https://github.com/yourusername/alumni-association-platform.git
 
 # Navigate into the project directory
-cd alumni-association-platform
+cd Minor_project_TIU
 
 # Install backend dependencies
-cd backend
+cd server
 npm install
 
 # Install frontend dependencies
-cd ../frontend
+cd client
 npm install
