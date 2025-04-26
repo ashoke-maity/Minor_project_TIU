@@ -46,7 +46,7 @@ _(Coming soon)_
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/alumni-association-platform.git
+git clone https://github.com/yourusername/Minor_project_TIU.git
 
 # Navigate into the project directory
 cd Minor_project_TIU
