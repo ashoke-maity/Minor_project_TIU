@@ -2,9 +2,9 @@ import { Link } from "react-router-dom"
 
 function Footer() {
   return (
-    <footer className="border-t bg-muted">
-      <div className="container py-8 md:py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+    <footer className="bg-muted pt-8 flex flex-col md:flex-row justify-between items-center bg-gradient-to-r from-[#8fbccd] to-[#d59b4b]">
+      <div className="container py-2 px-2 flex flex-col w-full ">
+        <div className="grid grid-cols-2 md:grid-cols-4 md:px-2 md:py-2 gap-8 md:gap-2">
           <div>
             <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">

@@ -8,29 +8,15 @@ function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full bg-black/30 backdrop-blur-md bg-gradient-to-l from-[#d59b4b]/40 to-[#8fbccd]/40 md:px-4">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-6 w-6 text-primary"
-          >
-            <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
-            <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"></path>
-          </svg>
+          <img src="/academia-1293362.svg" alt="Alumni Connect Logo" className="h-20 w-20 " ></img>
           <span className="text-xl font-bold">Alumni Connect</span>
         </div>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-6">
+        <nav className="hidden md:flex items-center gap-4">
           <Link to="/" className="text-sm font-medium hover:underline underline-offset-4">
             Home
           </Link>
@@ -69,7 +55,7 @@ function Header() {
         </button>
 
         <div className="hidden md:flex items-center gap-2">
-          <Button variant="outline" size="sm">
+          <Button size="sm">
             Log In
           </Button>
           <Button size="sm">Register</Button>

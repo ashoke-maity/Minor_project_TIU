@@ -1,10 +1,10 @@
 function Button({ children, variant = "default", size = "default", className = "", fullWidth = false, ...props }) {
     const baseStyles =
-      "inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background"
+      "inline-flex items-center justify-center rounded-3xl font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background cursor-pointer"
   
     const variantStyles = {
-      default: "bg-primary text-primary-foreground hover:bg-primary/90",
-      outline: "border border-input hover:bg-accent hover:text-accent-foreground",
+      default: "bg-amber-100/30 text-primary-foreground border border-amber-100/30 hover:primary/90 hover:shadow-xl hover:text-amber-200 text-black hover:border-amber-100 hover:bg-amber-100/20",
+      outline: "border border-primary hover:bg-accent hover:text-accent-foreground border-primary hover:shadow-xl hover:bg-amber-100 hover:border-amber-100",
       secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
       ghost: "hover:bg-accent hover:text-accent-foreground",
       link: "underline-offset-4 hover:underline text-primary",

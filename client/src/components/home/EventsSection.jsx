@@ -24,14 +24,14 @@ function EventsSection() {
   ]
 
   return (
-    <section className="container py-16">
-      <div className="flex flex-col items-center text-center mb-12">
+    <section className="py-16 flex flex-col items-center w-full h-full bg-gradient-to-l from-[#d59b4b] to-[#8fbccd] justify-center md:px-20 lg:px-24">
+      <div className="flex flex-col items-center text-center mb-12 px-4 md:px-12 lg:px-24">
         <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Upcoming Events</h2>
         <p className="mt-4 text-lg text-muted-foreground max-w-3xl">
           Join us for these exciting opportunities to connect, learn, and grow with fellow alumni.
         </p>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6">
         {events.map((event, index) => (
           <EventCard
             key={index}
