@@ -1,4 +1,4 @@
-# Alumni Association Platform - Government Engineering College
+# Alumni Association Platform
 
 ## Overview
 
