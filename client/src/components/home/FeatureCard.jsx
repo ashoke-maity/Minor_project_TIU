@@ -121,8 +121,8 @@ function FeatureCard({ icon, title, description, action }) {
   }
 
   return (
-    <Card>
-      <div className="p-6">
+    <Card className="w-full max-w-sm">
+      <div className="p-6 flex flex-col h-full">
         <div className="pb-2">
           {renderIcon()}
           <h3 className="text-lg font-semibold">{title}</h3>

@@ -93,7 +93,7 @@ function SuccessStoriesSection() {
     }
 
     return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {stories.map((story, index) => (
           <StoryCard
             key={index}
@@ -108,8 +108,8 @@ function SuccessStoriesSection() {
   }
 
   return (
-    <section className="bg-muted py-16">
-      <div className="container">
+    <section className="bg-muted py-16 w-full h-full bg-gradient-to-l from-[#d59b4b] to-[#8fbccd] flex flex-col items-center justify-center">
+      <div className="container px-4 md:px-12 lg:px-24 py-16 flex flex-col items-center w-full">
         <div className="flex flex-col items-center text-center mb-12">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Success Stories</h2>
           <p className="mt-4 text-lg text-muted-foreground max-w-3xl">
@@ -127,7 +127,7 @@ function SuccessStoriesSection() {
           onChange={setActiveTab}
         />
 
-        <div className="mt-8 space-y-4">
+        <div className="mt-8 space-y-4 gap-6">
           {renderStories()}
 
           <div className="flex justify-center mt-8">

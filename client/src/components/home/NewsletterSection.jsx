@@ -2,7 +2,7 @@ import Button from "../ui/Button"
 
 function NewsletterSection() {
   return (
-    <section className="container py-16">
+    <section className="py-16 px-4 md:px-12 lg:px-24 flex flex-col items-center w-full h-full bg-gradient-to-l from-[#d59b4b] to-[#8fbccd]">
       <div className="max-w-md mx-auto text-center">
         <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">Stay Updated</h2>
         <p className="text-lg text-muted-foreground mb-6">

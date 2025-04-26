@@ -2,9 +2,9 @@ import Button from "../ui/Button"
 
 function StatsSection() {
   return (
-    <section className="bg-primary text-primary-foreground py-16">
-      <div className="container">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+    <section className="w-full flex flex-col items-center h-full bg-primary text-primary-foreground py-16 bg-gradient-to-l from-[#d59b4b] to-[#8fbccd] ">
+      <div className="container ">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center px-4 md:px-12 lg:px-24 py-16 flex-col w-full">
           <div>
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">Join Our Growing Community</h2>
             <p className="text-lg mb-6">
@@ -28,14 +28,14 @@ function StatsSection() {
                 <p className="text-sm">Annual Events</p>
               </div>
             </div>
-            <Button variant="secondary" size="lg">
+            <Button size="lg">
               Register Now
             </Button>
           </div>
-          <div className="rounded-lg overflow-hidden shadow-xl">
+          <div className="rounded-lg overflow-hidden shadow-xl bg-amber-50 h-fit">
             <div
-              className="aspect-video bg-cover bg-center"
-              style={{ backgroundImage: "url('/placeholder.svg?height=400&width=600')" }}
+              className="aspect-video bg-cover bg-center object-fillss" 
+              style={{ backgroundImage: "url('https://www.jaspersoft.com/content/dam/jaspersoft/images/graphics/infographics/bar-chart-example.svg')" }}
             />
           </div>
         </div>
