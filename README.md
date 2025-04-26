@@ -58,7 +58,7 @@ npm install
 # Install frontend dependencies
 cd client
 npm install
-
+```
 🧠 Contributing
 We welcome contributions!
 Please read CONTRIBUTING.md for guidelines.
