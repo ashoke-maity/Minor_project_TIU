@@ -54,12 +54,14 @@ function Header() {
           </svg>
         </button>
 
+        {/* User Profile or dashboard avatar*/}
+{/*   
         <div className="hidden md:flex items-center gap-2">
           <Button size="sm">
             Log In
           </Button>
           <Button size="sm">Register</Button>
-        </div>
+        </div> */}
       </div>
 
       {/* Mobile Navigation */}

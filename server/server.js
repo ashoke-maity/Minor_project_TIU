@@ -7,12 +7,15 @@ const adminRoutes  = require('./routes/adminRoutes');
 const fetchRouter = require('./routes/fetchRoutes');
 const userDashboardRouters = require('./routes/userRoutes');
 const adminDashboardRouters = require('./routes/adminRoutes');
+const cors = require('cors');
+const corsOptions = require('./middlewares/Cors');
 
 // db connection
 const myDb = dbConnect(); 
 
 // middlewares
 app.use(express.json())
+app.use(cors(corsOptions));
 
 // general routes
 app.use(process.env.ADMIN_ROUTE, adminRoutes); // admin URL
