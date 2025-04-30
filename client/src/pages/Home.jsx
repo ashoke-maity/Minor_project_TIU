@@ -9,7 +9,7 @@ import NewsletterSection from "../components/home/NewsletterSection"
 
 function Home() {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col dark">
       <Header />
       <main className="flex-1">
         <HeroSection />

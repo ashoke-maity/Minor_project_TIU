@@ -2,10 +2,10 @@ import Button from "../ui/Button"
 
 function NewsletterSection() {
   return (
-    <section className="py-16 px-4 md:px-12 lg:px-24 flex flex-col items-center w-full h-full bg-gradient-to-l from-[#d59b4b] to-[#8fbccd]">
+    <section id="newsletter" className="py-16 px-4 md:px-12 lg:px-24 flex flex-col text-primary-200 items-center w-full h-full bg-primary-foreground">
       <div className="max-w-md mx-auto text-center">
         <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">Stay Updated</h2>
-        <p className="text-lg text-muted-foreground mb-6">
+        <p className="text-lg text-primary-100 mb-6">
           Subscribe to our newsletter to receive the latest updates on events, opportunities, and alumni achievements.
         </p>
         <div className="flex flex-col sm:flex-row gap-2">

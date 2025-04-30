@@ -121,7 +121,7 @@ function FeatureCard({ icon, title, description, action }) {
   }
 
   return (
-    <Card className="w-full max-w-sm">
+    <Card className="w-full max-w-sm ">
       <div className="p-6 flex flex-col h-full">
         <div className="pb-2">
           {renderIcon()}
@@ -129,7 +129,7 @@ function FeatureCard({ icon, title, description, action }) {
           <p className="text-sm text-muted-foreground mt-1">{description}</p>
         </div>
         <div className="mt-4">
-          <button className="inline-flex items-center text-sm font-medium text-primary hover:underline">
+          <button className="inline-flex items-center text-sm font-medium text-primary hover:underline hover:cursor-pointer">
             {action}
             <svg
               xmlns="http://www.w3.org/2000/svg"

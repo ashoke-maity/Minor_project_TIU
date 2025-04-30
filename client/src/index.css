@@ -163,6 +163,10 @@
     }
 }
 
+html {
+    scroll-behavior: smooth;
+  }
+
 @layer components {
     .btn-call {
         @apply inline-block px-7 py-3 font-bold text-sm leading-5 text-white transition-colors duration-150 bg-success-100 border border-transparent rounded-full shadow-sm focus:outline-none focus:shadow-2xl active:bg-success-200 hover:bg-success-200 min-w-28 cursor-pointer items-center justify-center overflow-visible;
@@ -337,3 +341,4 @@
         transform: translateY(0);
     }
 }
+
