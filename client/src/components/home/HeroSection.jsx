@@ -2,10 +2,51 @@
 
 import { motion } from "framer-motion";
 import Button from "../ui/Button";
+import { useEffect, useRef, useState } from "react";
 
 function HeroSection() {
+  const [text, setText] = useState("");
+  const fullText = "Connect with your Alumni Community";
+  const sectionRef = useRef(null);
+
+  // Typing animation function
+  const startTyping = () => {
+    let currentIndex = 0;
+    const interval = setInterval(() => {
+      if (currentIndex <= fullText.length) {
+        setText(fullText.slice(0, currentIndex));
+        currentIndex++;
+      } else {
+        clearInterval(interval);
+      }
+    }, 100);
+  };
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          startTyping();
+        }
+      },
+      {
+        threshold: 0.7, // Trigger when 70% of section is visible
+      }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => {
+      if (sectionRef.current) {
+        observer.unobserve(sectionRef.current);
+      }
+    };
+  }, []);
+
   return (
-    <section id="home" className="relative">
+    <section id="home" ref={sectionRef} className="relative">
       <div className="absolute inset-0 z-10 bg-primary-foreground" />
       <div
         className="h-[700px] bg-cover bg-center backdrop-blur-sm"
@@ -21,28 +62,27 @@ function HeroSection() {
               hidden: {},
               visible: {
                 transition: {
-                  staggerChildren: 0.25, // slightly faster
+                  staggerChildren: 0.25,
                 },
               },
             }}
           >
-            {/* Heading */}
             <motion.h1
               variants={{
-                hidden: { opacity: 0, y: 50 },
-                visible: { opacity: 1, y: 0 },
+                hidden: { opacity: 0 },
+                visible: { opacity: 1 },
               }}
-              transition={{
-                type: "spring",
-                stiffness: 80,  // springiness
-                damping: 20,     // less vibration
-              }}
-              className="text-6xl font-bold tracking-tighter text-primary-200 justify-evenly"
+              transition={{ duration: 0.5 }}
+              className="text-7xl font-bold tracking-tighter text-primary-200 min-h-[160px]"
             >
-              Connect with your Alumni Community
+              {text}
+              <motion.span
+                animate={{ opacity: [0, 1, 0] }}
+                transition={{ repeat: Infinity, duration: 0.8 }}
+                className="inline-block ml-1 w-1 h-12 bg-primary-200"
+              />
             </motion.h1>
 
-            {/* Paragraph */}
             <motion.p
               variants={{
                 hidden: { opacity: 0, y: 50 },
@@ -54,13 +94,12 @@ function HeroSection() {
                 damping: 18,
                 delay: 0.1,
               }}
-              className="text-lg text-primary-100 justify-evenly"
+              className="text-lg text-primary-100"
             >
               Join thousands of graduates in our vibrant network. Reconnect with classmates, advance your career, and
               give back to your alma mater.
             </motion.p>
 
-            {/* Buttons */}
             <motion.div
               variants={{
                 hidden: { opacity: 0, y: 50 },
@@ -77,7 +116,6 @@ function HeroSection() {
               <Button size="lg">Join the Network</Button>
               <Button size="lg">Explore Benefits</Button>
             </motion.div>
-
           </motion.div>
         </div>
       </div>
