@@ -53,14 +53,13 @@ function Header() {
         </button>
 
         {/* User Profile or dashboard avatar*/}
-{/*   
         <div className="hidden md:flex items-center gap-2">
           <Button size="sm">
             Sign In
           </Button>
           <Button size="sm">Sign Up</Button>
         </div>
-
+      </div>
       {/* Mobile Navigation */}
       {mobileMenuOpen && (
         <div className="md:hidden py-4 px-4 bg-background border-b">
