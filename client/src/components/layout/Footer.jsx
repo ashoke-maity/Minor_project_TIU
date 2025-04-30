@@ -2,12 +2,12 @@ import { Link } from "react-router-dom"
 
 function Footer() {
   return (
-    <footer className="bg-muted pt-8 flex flex-col md:flex-row justify-between items-center bg-gradient-to-r from-[#8fbccd] to-[#d59b4b]">
+    <footer className="bg-muted pt-8 flex flex-col md:flex-row justify-between items-center bg-primary-foreground">
       <div className="container py-2 px-2 flex flex-col w-full ">
         <div className="grid grid-cols-2 md:grid-cols-4 md:px-2 md:py-2 gap-8 md:gap-2">
-          <div>
+          <div className=" text-primary-200">
             <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
-            <ul className="space-y-2">
+            <ul className="space-y-2 text-primary-100">
               <li>
                 <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
                   Home
