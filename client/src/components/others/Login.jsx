@@ -30,7 +30,7 @@ function Login() {
   };
   
   return (
-    <div className="min-h-screen flex justify-center items-center bg-gray-100">
+    <div className="min-h-screen flex justify-center items-center bg-black">
       <div className="card-border lg:min-w-[566px]">
         <div className="flex flex-col card gap-6 py-14 px-10">
           <div className="flex flex-row gap-2 justify-center">
