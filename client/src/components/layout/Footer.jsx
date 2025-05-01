@@ -2,9 +2,9 @@ import { Link } from "react-router-dom"
 
 function Footer() {
   return (
-    <footer className="bg-muted pt-8 flex flex-col md:flex-row justify-between items-center bg-primary-foreground">
+    <footer className="pt-8 flex flex-col md:flex-row justify-center content-center items-center bg-primary-foreground">
       <div className="container py-2 px-2 flex flex-col w-full ">
-        <div className="grid grid-cols-2 md:grid-cols-4 md:px-2 md:py-2 gap-8 md:gap-2">
+        <div className="grid grid-cols-2 md:grid-cols-4 md:px-2 md:py-2 gap-8 md:gap-2 ">
           <div className=" text-primary-100">
             <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2 text-primary-100">
@@ -137,7 +137,7 @@ function Footer() {
             <span className="text-lg font-bold text-white shadow-md">Alumni Connect</span>
           </div>
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} University Alumni Association. All rights reserved.
+            © {new Date().getFullYear()} AlumniConnect. All rights reserved.
           </p>
         </div>
       </div>

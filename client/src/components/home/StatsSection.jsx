@@ -6,7 +6,7 @@ function StatsSection() {
       <div className="container ">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center px-4 md:px-12 lg:px-24 py-16 flex-col w-full">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4 text-primary-100">Join Our Growing Community</h2>
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4 text-primary-100 animate-colorShift">Join Our Growing Community</h2>
             <p className="text-lg mb-6 text-muted-foreground">
               Be part of a thriving network of professionals who share your educational background and values.
             </p>
