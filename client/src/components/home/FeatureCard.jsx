@@ -15,7 +15,7 @@ function FeatureCard({ icon, title, description, action }) {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="h-6 w-6 text-primary mb-2"
+            className="h-6 w-6 animate-colorShift  mb-2"
           >
             <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
             <circle cx="9" cy="7" r="4"></circle>
@@ -35,7 +35,7 @@ function FeatureCard({ icon, title, description, action }) {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="h-6 w-6 text-primary mb-2"
+            className="h-6 w-6 animate-colorShift  mb-2"
           >
             <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
             <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
@@ -53,7 +53,7 @@ function FeatureCard({ icon, title, description, action }) {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="h-6 w-6 text-primary mb-2"
+            className="h-6 w-6 animate-colorShift  mb-2"
           >
             <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
           </svg>
@@ -70,7 +70,7 @@ function FeatureCard({ icon, title, description, action }) {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="h-6 w-6 text-primary mb-2"
+            className="h-6 w-6 animate-colorShift  mb-2"
           >
             <circle cx="12" cy="12" r="10"></circle>
             <line x1="2" x2="22" y1="12" y2="12"></line>
@@ -89,7 +89,7 @@ function FeatureCard({ icon, title, description, action }) {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="h-6 w-6 text-primary mb-2"
+            className="h-6 w-6 animate-colorShift  mb-2"
           >
             <circle cx="12" cy="8" r="7"></circle>
             <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
@@ -107,7 +107,7 @@ function FeatureCard({ icon, title, description, action }) {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="h-6 w-6 text-primary mb-2"
+            className="h-6 w-6 animate-colorShift  mb-2"
           >
             <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
             <line x1="16" x2="16" y1="2" y2="6"></line>
@@ -125,11 +125,11 @@ function FeatureCard({ icon, title, description, action }) {
       <div className="p-6 flex flex-col h-full">
         <div className="pb-2">
           {renderIcon()}
-          <h3 className="text-lg font-semibold">{title}</h3>
+          <h3 className="text-lg text-primary-100 font-semibold">{title}</h3>
           <p className="text-sm text-muted-foreground mt-1">{description}</p>
         </div>
         <div className="mt-4">
-          <button className="inline-flex items-center text-sm font-medium text-primary hover:underline hover:cursor-pointer">
+          <button className="inline-flex items-center text-sm font-medium text-primary-100 hover:text-primary-100/80 hover:cursor-pointer">
             {action}
             <svg
               xmlns="http://www.w3.org/2000/svg"

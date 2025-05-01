@@ -4,7 +4,7 @@ function Button({ children, variant = "default", size = "default", className = "
   
     const variantStyles = {
       default: "w-full !bg-primary-100 !text-dark-100 !shadow-md hover:!bg-primary-100/80 !rounded-md !min-h-10 !font-medium !px-5 cursor-pointer",
-      outline: "border border-primary hover:bg-accent hover:text-accent-foreground border-primary hover:shadow-xl hover:bg-amber-100 hover:border-amber-100     w-full !bg-primary-100 !text-dark-100 hover:!bg-primary-200/80 !rounded-md !min-h-10 !font-bold !px-5 cursor-pointer",
+      outline: "border border-primary hover:bg-accent hover:text-accent-foreground border-primary hover:shadow-xl hover:bg-amber-100 hover:border-amber-100     w-full !bg-primary-100 !text-dark-100 hover:!bg-primary-100/80 !rounded-md !min-h-10 !font-bold !px-5 cursor-pointer",
       secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80    w-full !bg-primary-100 !text-dark-100 hover:!bg-primary-100/80 !rounded-md !min-h-10 !font-bold !px-5 cursor-pointer",
       ghost: "hover:bg-accent hover:text-accent-foreground    w-full !bg-primary-100 !text-dark-100 hover:!bg-primary-100/80 !rounded-md !min-h-10 !font-bold !px-5 cursor-pointer",
       link: "underline-offset-4 hover:underline text-primary    w-full !bg-primary-100 !text-dark-100 hover:!bg-primary-100/80 !rounded-md !min-h-10 !font-bold !px-5 cursor-pointer",

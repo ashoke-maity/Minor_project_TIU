@@ -127,14 +127,14 @@ function Footer() {
           </div>
         </div>
         <div className="border-t mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <div className="flex items-center gap-2 mb-4 md:mb-0">
+          <div className="flex items-center gap-2 mb-4 md:mb-0 mr-10">
            <img
             src="/logo2.png"
             alt="Logo"
             height="50"
             width="50"
            />
-            <span className="text-lg font-bold text-white shadow-md">Alumni Connect</span>
+            <span className="text-lg font-bold text-white shadow-md">AlumniConnect</span>
           </div>
           <p className="text-sm text-muted-foreground">
             © {new Date().getFullYear()} AlumniConnect. All rights reserved.
