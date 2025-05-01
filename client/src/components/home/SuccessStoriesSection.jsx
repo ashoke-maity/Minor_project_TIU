@@ -108,11 +108,11 @@ function SuccessStoriesSection() {
   }
 
   return (
-    <section id="success-stories" className="py-16 w-full h-full  text-primary-foreground bg-primary-foreground flex flex-col items-center justify-center">
+    <section id="success-stories" className="py-16 w-full h-full  text-primary-foreground bg-primary-foreground flex flex-col items-center justify-center min-h-screen">
       <div className="container px-4 md:px-12 lg:px-24 py-16 flex flex-col items-center w-full">
         <div className="flex flex-col items-center text-center mb-12">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-primary-200">Success Stories</h2>
-          <p className="mt-4 text-lg max-w-3xl text-primary-100">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-primary-100">Success Stories</h2>
+          <p className="mt-4 text-lg max-w-3xl text-muted-foreground">
             Our alumni are making remarkable contributions across various fields. Get inspired by their journeys.
           </p>
         </div>
@@ -127,10 +127,10 @@ function SuccessStoriesSection() {
           onChange={setActiveTab}
         />
 
-        <div className="mt-8 space-y-4 gap-6">
+        <div className="mt-4 space-y-4 gap-6">
           {renderStories()}
 
-          <div className="flex justify-center mt-8">
+          <div className="flex justify-center mt-4">
             <Button variant="outline">View All Success Stories</Button>
           </div>
         </div>

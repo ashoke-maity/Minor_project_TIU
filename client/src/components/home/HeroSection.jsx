@@ -46,12 +46,16 @@ function HeroSection() {
   }, []);
 
   return (
-    <section id="home" ref={sectionRef} className="relative">
-      <div className="absolute inset-0 z-10 bg-primary-foreground" />
-      <div
-        className="h-[700px] bg-cover bg-center backdrop-blur-sm"
-        style={{ backgroundImage: "url('/bg_home.jpg')" }}
+    <section id="home" ref={sectionRef} className="relative min-h-screen overflow-hidden">
+      <video
+          className="absolute inset-0 w-full h-full object-cover"
+          src="/videos/background.mp4" // replace this with your own video URL
+          autoPlay
+          muted
+          loop
+          playsInline
       />
+
       <div className="absolute inset-0 flex items-center z-20 flex-col justify-center w-full h-full">
         <div className="container text-center px-4">
           <motion.div
@@ -94,7 +98,7 @@ function HeroSection() {
                 damping: 18,
                 delay: 0.1,
               }}
-              className="text-lg text-primary-100"
+              className="text-lg text-muted-foreground"
             >
               Join thousands of graduates in our vibrant network. Reconnect with classmates, advance your career, and
               give back to your alma mater.

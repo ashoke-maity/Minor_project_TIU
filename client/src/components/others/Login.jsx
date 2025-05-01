@@ -30,21 +30,21 @@ function Login() {
   };
   
   return (
-    <div className="min-h-screen flex justify-center items-center bg-black">
+    <div className="min-h-screen flex justify-center items-center bg-black auth-layout">
       <div className="card-border lg:min-w-[566px]">
         <div className="flex flex-col card gap-6 py-14 px-10">
           <div className="flex flex-row gap-2 justify-center">
             <img
-              src="/academia-1293362.svg"
+              src="/logo2.png"
               alt="logo"
               height={100}
               width={100}
-              className="invert"
+
             />
-            <h2 className="text-primary-100">AlumniConnect</h2>
+            <h2 className="text-white shadow-md font-medium">AlumniConnect</h2>
           </div>
 
-          <h3 className="text-light-100">Get connected with us</h3>
+          <h3 className="text-primary-100">Get connected with us</h3>
 
           <form onSubmit={handleSubmit} className="w-full space-y-6 mt-4 form">
             <label htmlFor="email" className="label">
@@ -80,9 +80,9 @@ function Login() {
               Login
             </button>
 
-            <p className="text-center">
+            <p className="text-center text-primary-200">
               Don't have an account?{" "}
-              <Link to="/register" className="font-bold text-user-primary ml-1">
+              <Link to="/register" className="font-bold text-user-primary text-primary-100 ml-1">
                 Register
               </Link>
             </p>

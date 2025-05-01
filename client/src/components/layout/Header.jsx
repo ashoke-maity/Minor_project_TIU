@@ -25,9 +25,9 @@ function Header() {
           <img
             src="/logo.png.jpg"
             alt="Logo"
-            className="h-8 w-8 rounded-full"
+            className="h-16 w-20 rounded-full"
           />
-          <span className="text-lg font-medium tracking-tight">
+          <span className="text-lg font-medium tracking-tight hover:text-neutral-400 transition">
             AlumniConnect
           </span>
         </a>
@@ -54,25 +54,31 @@ function Header() {
           <div className="h-6 w-px bg-neutral-600 mx-3" />
 
           {/* Avatar & Dropdown */}
-          <div className="relative">
+          <div className=" md:flex gap-2 relative">
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="flex items-center justify-center p-1 rounded-full hover:opacity-80 transition"
+              className="flex items-center justify-center p-1 rounded-full hover:opacity-80 transition cursor-pointer"
               title="User Menu"
             >
               <img
                 src="/users.svg"
                 alt="User Avatar"
-                className="h-8 w-8 rounded-full"
+                className="size-6 invert"
               />
             </button>
+            <button
+                onClick={handleLogout}
+                className="cursor-pointer"
+            >
+              <img src="/logout.svg" alt="logout" className="size-6 invert hover:opacity-80 transition" />
+            </button>
             {dropdownOpen && (
-              <div className="absolute  right-0 mt-2 w-40 rounded-xl shadow-lg bg-neutral-800 border border-neutral-700 z-50 overflow-hidden">
+              <div className="absolute  right-0 mt-10 w-40 rounded-xl shadow-lg bg-black border border-neutral-700 z-50 overflow-hidden">
                 <ul className="text-sm list-none text-white divide-y divide-neutral-700">
                   <li>
                     <a
                       href="/dashboard"
-                      className="block px-4 py-2 hover:bg-neutral-700 transition-colors"
+                      className="block  text-center text-white shadow-md px-4 py-2 hover:bg-neutral-700 transition-colors"
                     >
                       Dashboard
                     </a>
@@ -80,7 +86,7 @@ function Header() {
                   <li>
                     <a
                       href="/settings"
-                      className="block px-4 py-2 hover:bg-neutral-700 transition-colors"
+                      className="block  text-center text-white shadow-md px-4 py-2 hover:bg-neutral-700 transition-colors"
                     >
                       Settings
                     </a>
@@ -88,7 +94,7 @@ function Header() {
                   <li>
                     <button
                       onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 hover:bg-neutral-700 transition-colors"
+                      className="w-full text-center text-white shadow-md px-4 py-2 hover:bg-neutral-700 transition-colors"
                     >
                       Logout
                     </button>
@@ -147,21 +153,12 @@ function Header() {
             ))}
 
             <div className="flex gap-2 pt-4">
-              <Button
-                variant="outline"
-                size="sm"
-                fullWidth
-                className="rounded-md text-white border-white hover:bg-neutral-800"
+              <button
+                  onClick={handleLogout}
+                  className="cursor-pointer"
               >
-                Sign In
-              </Button>
-              <Button
-                size="sm"
-                fullWidth
-                className="rounded-md bg-white text-black hover:bg-neutral-200"
-              >
-                Sign Up
-              </Button>
+                <img src="/logout.svg" alt="logout" className="size-6 invert" />
+              </button>
             </div>
           </nav>
         </div>
