@@ -5,14 +5,31 @@
 
 @custom-variant dark (&:is(.dark *));
 
+html, body {
+    height: 100%;
+    overflow: auto;
+    scroll-behavior: smooth;
+}
+
+#home {
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+body {
+    background-color: black;
+}
+
+
+
 @theme {
     --color-success-100: #49de50;
     --color-success-200: #42c748;
     --color-destructive-100: #f75353;
     --color-destructive-200: #c44141;
 
-    --color-primary-100: #dddfff;
-    --color-primary-200: #cac5fe;
+    --color-primary-100: #7dd3fc;
+    --color-primary-200: #7dd3fccc;
 
     --color-light-100: #d6e0ff;
     --color-light-400: #6870a6;
@@ -163,10 +180,6 @@
     }
 }
 
-html {
-    scroll-behavior: smooth;
-  }
-
 @layer components {
     .btn-call {
         @apply inline-block px-7 py-3 font-bold text-sm leading-5 text-white transition-colors duration-150 bg-success-100 border border-transparent rounded-full shadow-sm focus:outline-none focus:shadow-2xl active:bg-success-200 hover:bg-success-200 min-w-28 cursor-pointer items-center justify-center overflow-visible;
@@ -206,15 +219,15 @@ html {
         @apply w-full;
 
         .label {
-            @apply !text-light-100 !font-normal;
+            @apply !text-primary-100 !font-normal;
         }
 
         .input {
-            @apply !bg-dark-200 !rounded-full !min-h-12 !px-5 placeholder:!text-light-100;
+            @apply !bg-dark-200 !rounded-full !min-h-12 !px-5 placeholder:!text-white text-sm;
         }
 
         .btn {
-            @apply !w-full !bg-primary-200 !text-dark-100 hover:!bg-primary-200/80 !rounded-full !min-h-10 !font-bold !px-5 cursor-pointer;
+            @apply !w-full !bg-primary-100 !text-black hover:!bg-primary-200/80 !rounded-full !min-h-10 !font-bold !px-5 cursor-pointer;
         }
     }
 
@@ -341,4 +354,23 @@ html {
         transform: translateY(0);
     }
 }
+@layer utilities {
+    @keyframes colorShift {
+        0% {
+            color: #7dd3fc; /* sky-300 */
+            text-shadow: 0 0 10px #7dd3fccc, 0 0 20px rgba(125, 211, 252, 0.6);
+        }
+        50% {
+            color: #38bdf8; /* sky-400 */
+            text-shadow: 0 0 20px rgba(56, 189, 248, 1), 0 0 30px rgba(56, 189, 248, 0.9);
+        }
+        100% {
+            color: #0ea5e9; /* sky-500 */
+            text-shadow: 0 0 10px rgba(14, 165, 233, 0.8), 0 0 20px rgba(14, 165, 233, 0.6);
+        }
+    }
 
+    .animate-colorShift {
+        animation: colorShift 5s ease-in-out infinite;
+    }
+}

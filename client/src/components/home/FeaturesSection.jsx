@@ -41,10 +41,10 @@ function FeaturesSection() {
   ]
 
   return (
-    <section id="discover" className="px-4 md:px-12 lg:px-24 py-16 flex flex-col items-center w-full text-primary-foreground bg-primary-foreground">
-      <div className="flex flex-col items-center text-center mb-12 text-primary-200">
+    <section id="discover" className="px-4 md:px-12 lg:px-24 py-16 flex flex-col items-center w-full text-primary-foreground bg-primary-foreground min-h-screen">
+      <div className="flex flex-col items-center text-center mb-12 text-primary-100">
         <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Discover What We Offer</h2>
-        <p className="mt-4 text-lg  max-w-3xl text-primary-100">
+        <p className="mt-4 text-lg  max-w-3xl text-muted-foreground">
           Our platform provides valuable resources and opportunities for alumni to stay connected, grow professionally,
           and give back.
         </p>
