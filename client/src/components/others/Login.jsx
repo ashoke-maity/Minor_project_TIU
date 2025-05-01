@@ -30,10 +30,10 @@ function Login() {
   };
   
   return (
-    <div className="min-h-screen flex justify-center items-center bg-black auth-layout">
-      <div className="card-border lg:min-w-[566px]">
-        <div className="flex flex-col card gap-6 py-14 px-10">
-          <div className="flex flex-row gap-2 justify-center">
+    <div className="min-h-screen flex justify-center items-center bg-black auth-layout ">
+      <div className="card-border lg:min-w-[566px] ">
+        <div className="flex flex-col card gap-6 py-14 px-10 ">
+          <div className="flex flex-row gap-2 justify-center content-center items-center">
             <img
               src="/logo2.png"
               alt="logo"
@@ -41,7 +41,7 @@ function Login() {
               width={100}
 
             />
-            <h2 className="text-white shadow-md font-medium">AlumniConnect</h2>
+            <h1 className="text-white text-3xl shadow-md font-medium animate-colorShift">AlumniConnect</h1>
           </div>
 
           <h3 className="text-primary-100">Get connected with us</h3>
@@ -75,7 +75,7 @@ function Login() {
 
             <button
               type="submit"
-              className="w-full !bg-primary-200 !text-dark-100 hover:!bg-primary-200/80 !rounded-full !min-h-10 !font-bold !px-5 cursor-pointer"
+              className="w-full !bg-primary-100 !text-dark-100 hover:!bg-primary-200/80 !rounded-full !min-h-10 !font-bold !px-5 cursor-pointer"
             >
               Login
             </button>

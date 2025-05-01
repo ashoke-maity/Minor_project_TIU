@@ -18,7 +18,7 @@ function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-black text-white shadow-md">
+    <header className="sticky -top-1.5 z-50 w-full h-full bg-black text-white shadow-md rounded-xl">
       <div className="max-w-6xl mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo */}
         <a href="#home" className="flex items-center gap-3">

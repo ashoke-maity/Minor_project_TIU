@@ -77,7 +77,7 @@ function HeroSection() {
                 visible: { opacity: 1 },
               }}
               transition={{ duration: 0.5 }}
-              className="text-7xl font-bold tracking-tighter text-primary-200 min-h-[160px]"
+              className="text-7xl  font-bold tracking-tighter text-primary-100 min-h-[160px]"
             >
               {text}
               <motion.span
