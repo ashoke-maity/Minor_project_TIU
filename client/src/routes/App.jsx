@@ -6,6 +6,7 @@ import AdminDashboard from '../pages/AdminDashboard';
 import AdminLogin from '../pages/AdminLogin';
 import AdminLayout from '../components/layout/AdminLayout';
 import AllUsers from '../pages/AllUsers';
+import UserSettings from '../pages/userSettings';
 
 // const adminRoute = import.meta.env.ALUMNI_CONNECT_ADMIN_ROUTE;
 
@@ -16,6 +17,7 @@ function App() {
       <Route path="/" element={<Login />} />
       <Route path="/register" element={<Register/>} />
       <Route path="/home" element={<Home/>} />
+      <Route path="/dashboard" element={<UserSettings/>} />
       {/* <Route path = {`/${adminRoute}`} element={<AdminLogin/>} /> */}
     </Routes>
     <Routes>

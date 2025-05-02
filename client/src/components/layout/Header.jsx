@@ -1,6 +1,6 @@
-"use client";
-
-import { useState } from "react";
+import * as jwt_decode from "jwt-decode";
+import axios from "axios";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../ui/Button";
 
@@ -8,9 +8,35 @@ function Header() {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        return;
+      }
+      try {
+        const res = await axios.post(
+          `${import.meta.env.VITE_API_URL}/user/dashboard`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        console.log(token); // debug statement
+        if (res.data?.status === 1) {
+          setUser(res.data.user);
+        }
+      } catch (error) {
+        console.error("Failed to fetch user dashboard:", error);
+      }
+    };
+    fetchUser();
+  }, []);
 
   const handleLogout = () => navigate("/");
-
   const handleLinkClick = (sectionId) => {
     setMobileMenuOpen(false);
     const element = document.getElementById(sectionId);
@@ -60,32 +86,24 @@ function Header() {
               className="flex items-center justify-center p-1 rounded-full hover:opacity-80 transition cursor-pointer"
               title="User Menu"
             >
-              <img
-                src="/icons/users.svg"
-                alt="User Avatar"
-                className="size-6 invert"
-              />
+              <div className="w-8 h-8 rounded-full bg-white text-black font-semibold flex items-center justify-center">
+                {user?.FirstName?.charAt(0)}
+                {user?.LastName?.charAt(0)}
+              </div>
+
+              {user && (
+                <span className="hidden md:inline text-sm font-medium ml-2">
+                  {user.FirstName} {user.LastName}
+                </span>
+              )}
             </button>
-            <button
-                onClick={handleLogout}
-                className="cursor-pointer"
-            >
-              <img src="/icons/logout.svg" alt="logout" className="size-6 invert hover:opacity-80 transition" />
-            </button>
+
             {dropdownOpen && (
-              <div className="absolute  right-0 mt-10 w-40 rounded-xl shadow-lg bg-black border border-neutral-700 z-50 overflow-hidden">
+              <div className="absolute top-2 right-[-4rem] mt-10 w-40 rounded-xl shadow-lg bg-black border border-neutral-700 z-50 overflow-hidden">
                 <ul className="text-sm list-none text-white divide-y divide-neutral-700">
                   <li>
                     <a
                       href="/dashboard"
-                      className="block  text-center text-white shadow-md px-4 py-2 hover:bg-neutral-700 transition-colors"
-                    >
-                      Dashboard
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="/settings"
                       className="block  text-center text-white shadow-md px-4 py-2 hover:bg-neutral-700 transition-colors"
                     >
                       Settings
@@ -96,7 +114,16 @@ function Header() {
                       onClick={handleLogout}
                       className="w-full text-center text-white shadow-md px-4 py-2 hover:bg-neutral-700 transition-colors"
                     >
-                      Logout
+                      <div className="flex justify-center items-center gap-2">
+                        <div>Logout</div>
+                        <div>
+                          <img
+                            src="/logout.svg"
+                            alt="logout"
+                            className="size-6 invert hover:opacity-80 transition"
+                          />
+                        </div>
+                      </div>
                     </button>
                   </li>
                 </ul>
@@ -153,11 +180,8 @@ function Header() {
             ))}
 
             <div className="flex gap-2 pt-4">
-              <button
-                  onClick={handleLogout}
-                  className="cursor-pointer"
-              >
-                <img src="/icons/logout.svg" alt="logout" className="size-6 invert" />
+              <button onClick={handleLogout} className="cursor-pointer">
+                <img src="/logout.svg" alt="logout" className="size-6 invert" />
               </button>
             </div>
           </nav>

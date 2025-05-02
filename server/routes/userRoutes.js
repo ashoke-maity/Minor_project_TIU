@@ -10,6 +10,6 @@ router.post("/login", userLogin);
 router.post("/register", userRegister);
 
 // user dashboard (profile section)
-router.get("/dashboard", verifyUserToken, userDashboard);
+router.post("/dashboard", verifyUserToken, userDashboard);
 
 module.exports = router;
