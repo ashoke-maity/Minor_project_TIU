@@ -15,7 +15,7 @@ function Register() {
     e.preventDefault();
     try {
       const response = await axios.post(
-        `http://localhost:5000/alumniConnect/user/register`,
+        `${import.meta.env.VITE_USER_API_URL}/user/register`,
         {
           FirstName,
           LastName,

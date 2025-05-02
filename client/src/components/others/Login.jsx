@@ -10,7 +10,7 @@ function Login() {
     e.preventDefault();
     try {
       const response = await axios.post(
-        `http://localhost:5000/alumniConnect/user/login`,
+        `${import.meta.env.VITE_USER_API_URL}/user/login`,
         { Email, Password }
       );
       if (response.status === 200) {
