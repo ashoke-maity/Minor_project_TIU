@@ -2,11 +2,11 @@ import Button from "../ui/Button"
 
 function StatsSection() {
   return (
-    <section id="community" className="w-full flex flex-col items-center justify-center content-center h-full text-primary-foreground py-16 bg-primary-foreground min-h-screen">
+    <section id="community" className="px-4 md:px-12 lg:px-24 py-16 flex flex-col items-center w-full text-primary-foreground bg-slate-950 min-h-screen">
       <div className="container ">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center px-4 md:px-12 lg:px-24 py-16 flex-col w-full">
           <div>
-            <h1 className="md:text-7xl  text-3xl font-bold tracking-tight  mb-4 text-primary-100 animate-colorShift">Join Our Growing Community</h1>
+            <h1 className="md:text-7xl  text-3xl font-bold tracking-tight  mb-4 text-primary-100 ">Join Our Growing Community</h1>
             <p className="text-lg mb-6 text-muted-foreground">
               Be part of a thriving network of professionals who share your educational background and values.
             </p>

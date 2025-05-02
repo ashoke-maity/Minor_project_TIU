@@ -49,9 +49,9 @@ function Header() {
         {/* Logo */}
         <a href="#home" className="flex items-center gap-3">
           <img
-            src="/icons/logo2.png"
+            src="/icons/logo3.png"
             alt="Logo"
-            className="h-16 w-20 rounded-full"
+            className="h-16 w-16 rounded-full"
           />
           <span className="text-lg font-medium tracking-tight hover:text-neutral-400 transition">
             AlumniConnect
@@ -86,16 +86,18 @@ function Header() {
               className="flex items-center justify-center p-1 rounded-full hover:opacity-80 transition cursor-pointer"
               title="User Menu"
             >
-              <div className="w-8 h-8 rounded-full bg-white text-black font-semibold flex items-center justify-center">
-                {user?.FirstName?.charAt(0)}
-                {user?.LastName?.charAt(0)}
-              </div>
+              <img
+                src="/icons/student.png"
+                alt="User Avatar"
+                className="size-6 invert rounded-xl "
+              />
+            </button>
+            <button
+                onClick={handleLogout}
+                className="cursor-pointer"
+            >
+              <img src="/icons/logout.svg" alt="logout" className="size-6 invert hover:opacity-80 transition" />
 
-              {user && (
-                <span className="hidden md:inline text-sm font-medium ml-2">
-                  {user.FirstName} {user.LastName}
-                </span>
-              )}
             </button>
 
             {dropdownOpen && (

@@ -24,9 +24,9 @@ function EventsSection() {
   ]
 
   return (
-    <section id="events" className="py-16 flex flex-col items-center w-full h-full text-primary-foreground bg-primary-foreground min-h-screen">
+    <section id="events" className="px-4 md:px-12 lg:px-24 py-16 flex flex-col items-center w-full text-primary-foreground bg-slate-950 min-h-screen">
       <div className="flex flex-col items-center text-center mb-12 px-4 md:px-12 lg:px-24 mt-20">
-        <h1 className="md:text-7xl  text-4xl font-bold tracking-tight text-primary-100 animate-colorShift">Upcoming Events</h1>
+        <h1 className="md:text-7xl  text-4xl font-bold tracking-tight text-primary-100 ">Upcoming Events</h1>
         <p className="mt-4 text-lg max-w-3xl text-muted-foreground">
           Join us for these exciting opportunities to connect, learn, and grow with fellow alumni.
         </p>
