@@ -44,12 +44,12 @@ function Header() {
   };
 
   return (
-    <header className="sticky -top-1.5 z-50 w-full h-full bg-black text-white shadow-md rounded-xl">
-      <div className="max-w-6xl mx-auto flex h-16 items-center justify-between px-4">
+    <header className="sticky top-0 z-50 w-full h-full bg-black text-white shadow-md rounded-b-xl">
+      <div className="max-w-6xl mx-auto flex h-16 items-center justify-between bg-black px-4">
         {/* Logo */}
         <a href="#home" className="flex items-center gap-3">
           <img
-            src="/logo.png.jpg"
+            src="/icons/logo2.png"
             alt="Logo"
             className="h-16 w-20 rounded-full"
           />
