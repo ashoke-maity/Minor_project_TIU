@@ -33,15 +33,15 @@ function Login() {
     <div className="min-h-screen flex justify-center items-center bg-black auth-layout ">
       <div className="card-border lg:min-w-[566px] ">
         <div className="flex flex-col card gap-6 py-14 px-10 ">
-          <div className="flex flex-row gap-2 justify-center content-center items-center">
+          <div className="flex flex-row gap-2 justify-center content-center items-center mr-10">
             <img
-              src="/logo2.png"
+              src="/icons/logo2.png"
               alt="logo"
               height={100}
               width={100}
 
             />
-            <h1 className="text-white text-3xl shadow-md font-medium animate-colorShift">AlumniConnect</h1>
+            <h1 className="text-white text-3xl shadow-md font-medium  animate-colorShift">AlumniConnect</h1>
           </div>
 
           <h3 className="text-primary-100">Get connected with us</h3>

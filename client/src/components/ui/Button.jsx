@@ -21,9 +21,12 @@ function Button({ children, variant = "default", size = "default", className = "
     const combinedClassName = `${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${widthStyle} ${className}`
   
     return (
-      <button className={combinedClassName} {...props}>
-        {children}
-      </button>
+     <button className="p-[3px] relative">
+  <div className="absolute inset-0 bg-gradient-to-r from-primary-100 to-primary-100/80 rounded-lg" />
+  <div className="px-8 py-2  bg-black rounded-[6px]  relative group transition duration-200 text-white hover:bg-transparent">
+    {children}
+  </div>
+</button>
     )
   }
   

@@ -18,12 +18,12 @@ function Header() {
   };
 
   return (
-    <header className="sticky -top-1.5 z-50 w-full h-full bg-black text-white shadow-md rounded-xl">
-      <div className="max-w-6xl mx-auto flex h-16 items-center justify-between px-4">
+    <header className="sticky top-0 z-50 w-full h-full bg-black text-white shadow-md rounded-b-xl">
+      <div className="max-w-6xl mx-auto flex h-16 items-center justify-between bg-black px-4">
         {/* Logo */}
         <a href="#home" className="flex items-center gap-3">
           <img
-            src="/logo.png.jpg"
+            src="/icons/logo2.png"
             alt="Logo"
             className="h-16 w-20 rounded-full"
           />
@@ -61,7 +61,7 @@ function Header() {
               title="User Menu"
             >
               <img
-                src="/users.svg"
+                src="/icons/users.svg"
                 alt="User Avatar"
                 className="size-6 invert"
               />
@@ -70,7 +70,7 @@ function Header() {
                 onClick={handleLogout}
                 className="cursor-pointer"
             >
-              <img src="/logout.svg" alt="logout" className="size-6 invert hover:opacity-80 transition" />
+              <img src="/icons/logout.svg" alt="logout" className="size-6 invert hover:opacity-80 transition" />
             </button>
             {dropdownOpen && (
               <div className="absolute  right-0 mt-10 w-40 rounded-xl shadow-lg bg-black border border-neutral-700 z-50 overflow-hidden">
@@ -157,7 +157,7 @@ function Header() {
                   onClick={handleLogout}
                   className="cursor-pointer"
               >
-                <img src="/logout.svg" alt="logout" className="size-6 invert" />
+                <img src="/icons/logout.svg" alt="logout" className="size-6 invert" />
               </button>
             </div>
           </nav>

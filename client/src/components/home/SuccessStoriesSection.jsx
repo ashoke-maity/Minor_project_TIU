@@ -10,21 +10,21 @@ function SuccessStoriesSection() {
 
   const featuredStories = [
     {
-      image: "/onboarding-img.png?height=200&width=400",
+      image: "/images/onboarding-img.png?height=200&width=400",
       name: "Dr. Sarah Johnson",
       class: "Class of 2010 | Medical Research",
       description:
         "Pioneering breakthrough research in cancer treatment, Dr. Johnson's work has been recognized internationally.",
     },
     {
-      image: "/james.webp?height=200&width=400",
+      image: "/images/james.webp?height=200&width=400",
       name: "James Wilson",
       class: "Class of 2008 | Technology",
       description:
         "Founded a successful tech startup that has revolutionized the way we approach sustainable energy solutions.",
     },
     {
-      image: "/maria.jpg?height=200&width=400",
+      image: "/images/maria.jpg?height=200&width=400",
       name: "Maria Rodriguez",
       class: "Class of 2015 | Education",
       description: "Developed innovative teaching methodologies that have been adopted by schools across the country.",
@@ -33,20 +33,20 @@ function SuccessStoriesSection() {
 
   const recentStories = [
     {
-      image: "/michael.webp?height=200&width=400",
+      image: "/images/michael.webp?height=200&width=400",
       name: "Michael Chen",
       class: "Class of 2018 | Tech Entrepreneur",
       description:
         "Founded a successful startup that's revolutionizing renewable energy solutions in developing countries.",
     },
     {
-      image: "/lee.jpg?height=200&width=400",
+      image: "/images/lee.jpg?height=200&width=400",
       name: "Jennifer Lee",
       class: "Class of 2019 | Healthcare",
       description: "Leading a team developing new medical devices that improve patient outcomes in rural areas.",
     },
     {
-      image: "/david.webp?height=200&width=400",
+      image: "/images/david.webp?height=200&width=400",
       name: "David Patel",
       class: "Class of 2020 | Finance",
       description:
@@ -56,20 +56,20 @@ function SuccessStoriesSection() {
 
   const popularStories = [
     {
-      image: "/priya.jpg?height=200&width=400",
+      image: "/images/priya.jpg?height=200&width=400",
       name: "Priya Patel",
       class: "Class of 2005 | Social Impact",
       description:
         "Leading a non-profit organization that has provided education to over 10,000 underprivileged children.",
     },
     {
-      image: "/robert.jpg?height=200&width=400",
+      image: "/images/robert.jpg?height=200&width=400",
       name: "Robert Johnson",
       class: "Class of 2007 | Engineering",
       description: "Developed sustainable infrastructure solutions that have been implemented in over 20 countries.",
     },
     {
-      image: "/lisa.png?height=200&width=400",
+      image: "/images/lisa.png?height=200&width=400",
       name: "Lisa Wong",
       class: "Class of 2010 | Arts",
       description: "Award-winning filmmaker whose documentaries have raised awareness about important social issues.",

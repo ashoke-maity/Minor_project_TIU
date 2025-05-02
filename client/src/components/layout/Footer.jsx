@@ -129,7 +129,7 @@ function Footer() {
         <div className="border-t mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center gap-2 mb-4 md:mb-0 mr-10">
            <img
-            src="/logo2.png"
+            src="/icons/logo2.png"
             alt="Logo"
             height="50"
             width="50"
