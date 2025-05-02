@@ -41,9 +41,9 @@ function FeaturesSection() {
   ]
 
   return (
-    <section id="discover" className="px-4 md:px-12 lg:px-24 py-16 flex flex-col items-center w-full text-primary-foreground bg-primary-foreground min-h-screen">
+    <section id="discover" className="px-4 md:px-12 lg:px-24 py-16 flex flex-col items-center w-full text-primary-foreground bg-slate-950 min-h-screen">
       <div className="flex flex-col items-center text-center mb-8 text-primary-100 mt-6">
-        <h1 className="md:text-7xl  text-4xl font-bold tracking-tight animate-colorShift">Discover What We Offer</h1>
+        <h1 className="md:text-7xl  text-4xl font-bold tracking-tight ">Discover What We Offer</h1>
         <p className="mt-4 text-lg  max-w-3xl text-muted-foreground">
           Our platform provides valuable resources and opportunities for alumni to stay connected, grow professionally,
           and give back.

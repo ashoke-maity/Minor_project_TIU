@@ -23,9 +23,9 @@ function Header() {
         {/* Logo */}
         <a href="#home" className="flex items-center gap-3">
           <img
-            src="/icons/logo2.png"
+            src="/icons/logo3.png"
             alt="Logo"
-            className="h-16 w-20 rounded-full"
+            className="h-16 w-16 rounded-full"
           />
           <span className="text-lg font-medium tracking-tight hover:text-neutral-400 transition">
             AlumniConnect
@@ -61,9 +61,9 @@ function Header() {
               title="User Menu"
             >
               <img
-                src="/icons/users.svg"
+                src="/icons/student.png"
                 alt="User Avatar"
-                className="size-6 invert"
+                className="size-6 invert rounded-xl "
               />
             </button>
             <button
