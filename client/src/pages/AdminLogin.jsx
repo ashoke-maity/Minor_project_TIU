@@ -1,22 +1,34 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from 'axios';
 
 function AdminLogin() {
+  const navigate = useNavigate();
   const [Email, setEmail] = useState("");
   const [Password, setPassword] = useState("");
   const [error, setError] = useState("");
-
-  const navigate = useNavigate();
-
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-
-    // TODO: Replace with real admin authentication later
-    if (Email === "admin@alumni.com" && Password === "admin123") {
-      localStorage.setItem("isAdmin", "true");
-      navigate("/admin");
-    } else {
-      setError("Invalid admin credentials. Please try again.");
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_ADMIN_API_URL}/admin/login`,
+        { Email, Password }
+      );
+      if (response.status === 200) {
+        const token = localStorage.setItem("authToken", response.data.token);
+        console.log(token) // debug statement
+        console.log(response.data.admin) // debug
+        navigate(`${import.meta.env.VITE_ADMIN_ROUTE}/admin/dashboard`);
+      }
+    } catch (error) {
+      console.log('Axios error:', error);
+      if (error.response) {
+        console.error('Error response:', error.response.data);
+        alert(error.response.data.msg || "Something went wrong, try again!");
+      } else {
+        console.error('Request error:', error);
+        alert("An error occurred. Please try again later.");
+      }
     }
   };
 
@@ -45,7 +57,7 @@ function AdminLogin() {
               <input
                 name="Email"
                 type="email"
-                placeholder="admin@alumni.com"
+                placeholder="Enter your Admin Email"
                 value={Email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
