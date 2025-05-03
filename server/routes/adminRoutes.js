@@ -4,12 +4,12 @@ const { adminLogin, adminRegistration, adminDashboard } = require('../controller
 const verifyToken = require('../middlewares/adminAuthMiddleware'); // your middleware
 
 // login
-router.post("/login", adminLogin);
+router.post("/admin/login", adminLogin);
 
 // register
-router.post("/register", adminRegistration)
+router.post("/admin/register", adminRegistration)
 
 // admin dashboard (profile section)
-router.get("/dashboard", verifyToken, adminDashboard);
+router.get("/admin/dashboard", verifyToken, adminDashboard);
 
 module.exports = router;
