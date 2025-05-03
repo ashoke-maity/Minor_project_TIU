@@ -9,7 +9,7 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
+      const response = await axios.get(
         `${import.meta.env.VITE_USER_API_URL}/user/login`,
         { Email, Password }
       );
