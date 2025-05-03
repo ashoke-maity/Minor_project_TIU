@@ -1,11 +1,16 @@
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/admin/Sidebar";
-import AdminStats from "../components/admin/AdminStats";
+import AdminStats, { dashboardStats } from "../components/admin/AdminStats";
 import RecentEvents from "../components/admin/RecentEvents";
 import AlumniList from "../components/admin/AlumniList";
+import MobileSidebar from "../components/admin/MobileSidebar";
+import AdminHeader from "../components/admin/AdminHeader";
+import Header from "../components/admin/Header";
 
 function AdminDashboard() {
   const navigate = useNavigate();
+
+  const user = { name: 'Jordan'}
 
 //   useEffect(() => {
 //     const isAdmin = localStorage.getItem("isAdmin");
@@ -15,18 +20,20 @@ function AdminDashboard() {
 //   }, [navigate]);
 
   return (
-    <main className="admin-layout bg-white">
+    <main className="admin-layout bg-gray-50 min-h-screen">
       <Sidebar />
-      <div className="flex flex-col flex-1">
-        <main className="flex-1 p-6 space-y-6">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome, Admin</h1>
-          <AdminStats />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <RecentEvents />
-            <AlumniList />
-          </div>
-        </main>
-      </div>
+      <MobileSidebar />
+      <main className='dashboard wrapper mt-5 content-center'>
+        <header className="header">
+          <article>
+          <Header 
+            title={`Welcome ${user?.name ?? 'Guest'} 👋`}
+            description="Track Activity, Trends and popular destinations in real time"
+        />
+          </article>
+        </header>
+        <AdminStats />
+    </main>
     </main>
   );
 }
