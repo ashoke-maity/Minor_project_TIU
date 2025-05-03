@@ -46,10 +46,10 @@ https://alumni-connect-client.vercel.app/
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/Minor_project_TIU.git
+https://github.com/your-username/AlumniConnect.git
 
 # Navigate into the project directory
-cd Minor_project_TIU
+cd AlumniConnect
 
 # Install backend dependencies
 cd server
