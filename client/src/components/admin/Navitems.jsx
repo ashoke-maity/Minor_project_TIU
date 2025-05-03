@@ -1,37 +1,67 @@
 import { Link, NavLink } from "react-router-dom";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 export default function Navitems() {
   const adminRoute = import.meta.env.VITE_ADMIN_ROUTE;
+  const [adminName, setAdminName] = useState("");
+  const [adminEmail, setAdminEmail] = useState("");
+
+  useEffect(() => {
+    const fetchAdminData = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        if (!token) return;
+
+        const res = await axios.get(
+          `${import.meta.env.VITE_ADMIN_API_URL}/admin/dashboard`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (res.status === 200) {
+          const admin = res.data.admin;
+          const first = admin.FirstName;
+          const last = admin.LastName;
+          const fullName = `${first} ${last}`.trim();
+
+          setAdminName(fullName);
+          setAdminEmail(admin.Email);
+        }
+      } catch (error) {
+        console.error("Error fetching admin data:", error);
+      }
+    };
+
+    fetchAdminData();
+  }, []);
 
   const sidebarItems = [
     {
       id: 1,
       icon: "/icons/home.svg",
       label: "Dashboard",
-      href: `${adminRoute}/admin/dashboard`, // Correct link for dashboard
-      exact: true, // Exact path matching for Dashboard
+      href: `${adminRoute}/admin/dashboard`,
+      exact: true,
     },
     {
       id: 2,
       icon: "/icons/users.svg",
       label: "All Users",
-      href: `${adminRoute}/admin/dashboard/allusers`, // Correct link for all users
-      exact: false, // Non-exact for All Users
+      href: `${adminRoute}/admin/dashboard/allusers`,
+      exact: false,
     },
     {
       id: 3,
       icon: "/icons/itinerary.svg",
       label: "AI Trips",
-      href: `${adminRoute}/admin/dashboard/trips`, // Correct link for AI Trips
-      exact: false, // Non-exact for AI Trips
+      href: `${adminRoute}/admin/dashboard/trips`,
+      exact: false,
     },
   ];
-
-  const user = {
-    name: 'Jordan',
-    email: 'jordan555@gmail.com',
-    imageUrl: '/images/david.webp'
-  };
 
   return (
     <section className="nav-items bg-white h-full flex flex-col justify-between">
@@ -46,7 +76,7 @@ export default function Navitems() {
             <NavLink
               key={id}
               to={href}
-              end={exact} // Ensure exact matching for dashboard
+              end={exact}
               className={({ isActive }) =>
                 `nav-item group flex items-center gap-2 px-4 py-2 rounded-md transition ${
                   isActive
@@ -75,15 +105,19 @@ export default function Navitems() {
       </div>
 
       <footer className="nav-footer px-4 py-4 flex items-center gap-2 border-t">
-        <img src={user?.imageUrl || '/images/david.webp'} alt={user?.name || 'David'} className="size-10 rounded-full"/>
+        <img src="/images/david.webp" alt={adminName} className="size-10 rounded-full" />
         <article className="flex-1">
-          <h2 className="text-sm font-medium">{user?.name}</h2>
-          <p className="text-xs text-gray-500">{user?.email}</p>
+          <h2 className="text-sm font-medium">{adminName}</h2>
+          <p className="text-xs text-gray-500">{adminEmail}</p>
         </article>
-        <button onClick={() => {
-          console.log('logout');
-        }} className="cursor-pointer">
-          <img src="/icons/logout.svg" alt="logout" className="size-6"/>
+        <button
+          onClick={() => {
+            localStorage.removeItem("authToken");
+            window.location.href = `${adminRoute}/admin/login`;
+          }}
+          className="cursor-pointer"
+        >
+          <img src="/icons/logout.svg" alt="logout" className="size-6" />
         </button>
       </footer>
     </section>
