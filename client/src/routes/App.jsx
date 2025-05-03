@@ -5,7 +5,7 @@ import Register from '../components/others/Register';
 import AdminDashboard from '../pages/AdminDashboard';
 import AdminLogin from '../pages/AdminLogin';
 import AdminRegister from '../pages/AdminRegister';
-import UserSettings from '../pages/userSettings';
+import UserSettings from '../pages/UserSettings';
 import AllUsers from '../pages/AllUsers';
 
 const adminRoute = import.meta.env.VITE_ADMIN_ROUTE;
