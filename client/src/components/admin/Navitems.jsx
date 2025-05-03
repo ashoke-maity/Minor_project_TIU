@@ -1,24 +1,29 @@
 import { Link, NavLink } from "react-router-dom";
 
 export default function Navitems() {
+  const adminRoute = import.meta.env.VITE_ADMIN_ROUTE;
+
   const sidebarItems = [
     {
       id: 1,
       icon: "/icons/home.svg",
       label: "Dashboard",
-      href: "/admin",
+      href: `${adminRoute}/admin/dashboard`, // Correct link for dashboard
+      exact: true, // Exact path matching for Dashboard
     },
     {
       id: 2,
       icon: "/icons/users.svg",
       label: "All Users",
-      href: "/users",
+      href: `${adminRoute}/admin/dashboard/allusers`, // Correct link for all users
+      exact: false, // Non-exact for All Users
     },
     {
       id: 3,
       icon: "/icons/itinerary.svg",
       label: "AI Trips",
-      href: "/trips",
+      href: `${adminRoute}/admin/dashboard/trips`, // Correct link for AI Trips
+      exact: false, // Non-exact for AI Trips
     },
   ];
 
@@ -37,10 +42,11 @@ export default function Navitems() {
         </Link>
 
         <nav className="mt-4 flex flex-col gap-2">
-          {sidebarItems.map(({ id, icon, label, href }) => (
+          {sidebarItems.map(({ id, icon, label, href, exact }) => (
             <NavLink
               key={id}
               to={href}
+              end={exact} // Ensure exact matching for dashboard
               className={({ isActive }) =>
                 `nav-item group flex items-center gap-2 px-4 py-2 rounded-md transition ${
                   isActive
