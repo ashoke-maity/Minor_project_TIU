@@ -17,13 +17,12 @@ const myDb = dbConnect();
 app.use(express.json())
 app.use(cors(corsOptions));
 
-// general routes
+// routes
 app.use(process.env.ADMIN_ROUTE, adminRoutes); // admin URL
 app.use(process.env.USER_ROUTE, userRouters); //user URL
 
 // protected routes
 app.use(process.env.USER_ROUTE, userDashboardRouters) //user profile
-app.use(process.env.ADMIN_ROUTE, adminDashboardRouters) // admin profile
 
 // fetching route
 app.use(process.env.ADMIN_ROUTE, fetchRouter); // admin can access user data
