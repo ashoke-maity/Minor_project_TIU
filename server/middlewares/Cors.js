@@ -1,6 +1,6 @@
 const dotenv = require('dotenv').config();
 const corsOptions = {
-    origin: `${process.env.CLIENT_ROUTE}`,
+    origin: process.env.CLIENT_ROUTE,
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     credentials: true
   }
