@@ -9,23 +9,21 @@ const user = { name: 'Jordan'}
 
 const AllUsers = () => {
   return (
-    <main className="admin-layout bg-gray-50 min-h-screen">
+    <div className="admin-layout bg-gray-50 min-h-screen flex">
       <Sidebar />
       <MobileSidebar/>
-      <main className='dashboard wrapper mt-5  content-center '>
-        <header className='header'>
-          <article>
+      <div className='dashboard wrapper mt-5 flex-1 px-4'>
+        <header className='header mb-4'>
           <Header 
-            title="All-Users"
+            title="All Users"
             description="Check out our current users in real time"
-        />
-          </article>
+          />
         </header>
        
 
         All User Page Contents
-    </main>
-     </main>
+    </div>
+     </div>
   )
 }
 

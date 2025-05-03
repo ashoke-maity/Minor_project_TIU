@@ -9,24 +9,26 @@ export default function Sidebar() {
     navigate(`${import.meta.env.VITE_ADMIN_ROUTE}/admin/login`);
   };
 
+  const adminRoute = import.meta.env.VITE_ADMIN_ROUTE;
+
   const sidebarItems = [
     {
       id: 1,
       icon: "/icons/home.svg",
       label: "Dashboard",
-      href: "/admin",
+      href: `${adminRoute}/admin/dashboard`,
     },
     {
       id: 2,
       icon: "/icons/users.svg",
       label: "All Users",
-      href: "/users",
+      href: `${adminRoute}/admin/dashboard/allusers`,
     },
     {
       id: 3,
       icon: "/icons/itinerary.svg",
       label: "AI Trips",
-      href: "/trips",
+      href: `${adminRoute}/admin/dashboard/trips`,
     },
   ];
 
@@ -48,9 +50,9 @@ export default function Sidebar() {
         );
 
         if (res.status === 200) {
-          setAdminName(res.data.admin.FirstName); // fetching the firstname
-          setAdminLastName(res.data.admin.LastName); // fetching the LastName
-          setAdminEmail(res.data.admin.Email); // fetching the email
+          setAdminName(res.data.admin.FirstName);
+          setAdminLastName(res.data.admin.LastName);
+          setAdminEmail(res.data.admin.Email);
         }
       } catch (error) {
         console.error("Error fetching admin data:", error);
@@ -75,6 +77,7 @@ export default function Sidebar() {
                 <NavLink
                   key={id}
                   to={href}
+                  end={href === `${adminRoute}/admin/dashboard`} // Exact match only for Dashboard
                   className={({ isActive }) =>
                     `nav-item group flex items-center gap-2 px-4 py-2 rounded-md transition ${
                       isActive
@@ -103,18 +106,14 @@ export default function Sidebar() {
 
             <footer className="nav-footer">
               <img
-                src='/images/david.webp' //its hardcoded will change later
+                src="/images/david.webp"
                 alt={adminName || 'Admin'}
               />
-
               <article>
-              <h2>{adminName} {adminLastName}</h2> {/* Display FirstName + LastName */}
+                <h2>{adminName} {adminLastName}</h2>
                 <p>{adminEmail}</p>
               </article>
-              <button
-                onClick={handleLogout}
-                className="cursor-pointer"
-              >
+              <button onClick={handleLogout} className="cursor-pointer">
                 <img src="/icons/logout.svg" alt="logout" className="size-6" />
               </button>
             </footer>
