@@ -53,7 +53,7 @@ function AdminDashboard() {
           <header className="header">
           <article>
           <Header 
-            title={Welcome {adminName} 👋}
+            title={`Welcome ${adminName} 👋`}
             description="Track Activity, Trends and popular destinations in real time"
         />
           </article>
