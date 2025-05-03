@@ -6,6 +6,7 @@ import AdminDashboard from '../pages/AdminDashboard';
 import AdminLogin from '../pages/AdminLogin';
 import AdminRegister from '../pages/AdminRegister';
 import UserSettings from '../pages/userSettings';
+import AllUsers from '../pages/AllUsers';
 
 const adminRoute = import.meta.env.VITE_ADMIN_ROUTE;
 
@@ -23,6 +24,7 @@ function App() {
         <Route path={`${adminRoute}/admin/login`} element={<AdminLogin />} />
         <Route path={`${adminRoute}/admin/register`} element={<AdminRegister />} />
         <Route path={`${adminRoute}/admin/dashboard`} element={<AdminDashboard />} />
+        <Route path={`${adminRoute}/admin/dashboard/allusers`} element={<AllUsers />} />
       </Routes>
     </BrowserRouter>
   );
