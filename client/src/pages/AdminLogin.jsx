@@ -38,7 +38,7 @@ function AdminLogin() {
         <div className="flex flex-col card gap-6 py-14 px-10">
           <div className="flex flex-row gap-2 justify-center content-center items-center mr-10">
             <img
-              src="/logo2.png"
+              src="/logo3.png"
               alt="logo"
               height={100}
               width={100}
