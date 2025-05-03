@@ -1,22 +1,34 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link} from "react-router-dom";
+import axios from "axios";
 
 function AdminLogin() {
+  const navigate = useNavigate();
   const [Email, setEmail] = useState("");
   const [Password, setPassword] = useState("");
   const [error, setError] = useState("");
-
-  const navigate = useNavigate();
-
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-
-    // TODO: Replace with real admin authentication later
-    if (Email === "admin@alumni.com" && Password === "admin123") {
-      localStorage.setItem("isAdmin", "true");
-      navigate("/admin");
-    } else {
-      setError("Invalid admin credentials. Please try again.");
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_ADMIN_API_URL}/admin/login`,
+        { Email, Password }
+      );
+      if (response.status === 200) {
+        const token = localStorage.setItem("authToken", response.data.token);
+        console.log(token); // debug statement
+        console.log(response.data.admin); // debug
+        navigate(`${import.meta.env.VITE_ADMIN_ROUTE}/admin/dashboard`);
+      }
+    } catch (error) {
+      console.log("Axios error:", error);
+      if (error.response) {
+        console.error("Error response:", error.response.data);
+        alert(error.response.data.msg || "Something went wrong, try again!");
+      } else {
+        console.error("Request error:", error);
+        alert("An error occurred. Please try again later.");
+      }
     }
   };
 
@@ -32,20 +44,26 @@ function AdminLogin() {
               width={100}
               className=""
             />
-            <h1 className="text-white text-3xl shadow-md font-medium animate-colorShift">AlumniConnect Admin</h1>
+            <h1 className="text-white text-3xl shadow-md font-medium animate-colorShift">
+              AlumniConnect Admin
+            </h1>
           </div>
 
           <h3 className="text-primary-100 text-center">Admin Access Only</h3>
 
           <form onSubmit={handleLogin} className="w-full space-y-6 mt-4 form">
-            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+            {error && (
+              <p className="text-red-500 text-sm text-center">{error}</p>
+            )}
 
             <div className="w-full">
-              <label htmlFor="Email" className="label">Admin Email</label>
+              <label htmlFor="Email" className="label">
+                Admin Email
+              </label>
               <input
                 name="Email"
                 type="email"
-                placeholder="admin@alumni.com"
+                placeholder="Enter your Admin Email"
                 value={Email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -54,7 +72,9 @@ function AdminLogin() {
             </div>
 
             <div className="w-full">
-              <label htmlFor="Password" className="label">Password</label>
+              <label htmlFor="Password" className="label">
+                Password
+              </label>
               <input
                 name="Password"
                 type="password"
@@ -72,6 +92,16 @@ function AdminLogin() {
             >
               Login
             </button>
+
+            <div className="text-white text-center">
+              New to admin?{" "}
+              <Link
+                to={`${import.meta.env.VITE_ADMIN_ROUTE}/admin/register`}
+                className="text-primary-100 underline hover:text-primary-200"
+              >
+                Admin Register
+              </Link>
+            </div>
           </form>
         </div>
       </div>

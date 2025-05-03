@@ -1,7 +1,14 @@
-import { Link, NavLink } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate, NavLink } from "react-router-dom";
 import { SidebarComponent } from "@syncfusion/ej2-react-navigations";
+import axios from 'axios';
 
 export default function Sidebar() {
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    navigate(`${import.meta.env.VITE_ADMIN_ROUTE}/admin/login`);
+  };
+
   const sidebarItems = [
     {
       id: 1,
@@ -23,11 +30,35 @@ export default function Sidebar() {
     },
   ];
 
-  const user = {
-    name: 'Jordan',
-    email: 'jordan555@gmail.com',
-    imageUrl: '/images/david.webp'
-  }
+  const [adminName, setAdminName] = useState("Admin");
+  const [adminEmail, setAdminEmail] = useState("");
+  const [adminLastName, setAdminLastName] = useState(""); 
+
+  useEffect(() => {
+    const fetchAdminData = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        const res = await axios.get(
+          `${import.meta.env.VITE_ADMIN_API_URL}/admin/dashboard`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (res.status === 200) {
+          setAdminName(res.data.admin.FirstName); // fetching the firstname
+          setAdminLastName(res.data.admin.LastName); // fetching the LastName
+          setAdminEmail(res.data.admin.Email); // fetching the email
+        }
+      } catch (error) {
+        console.error("Error fetching admin data:", error);
+      }
+    };
+
+    fetchAdminData();
+  }, []);
 
   return (
     <aside className="bg-white w-full max-w-[270px] hidden lg:block">
@@ -71,17 +102,20 @@ export default function Sidebar() {
             </nav>
 
             <footer className="nav-footer">
-              <img src={user?.imageUrl || '/images/david.webp'} alt={user?.name || 'David'} />
+              <img
+                src='/images/david.webp' //its hardcoded will change later
+                alt={adminName || 'Admin'}
+              />
 
               <article>
-                <h2>{user?.name}</h2>
-                <p>{user?.email}</p>
+              <h2>{adminName} {adminLastName}</h2> {/* Display FirstName + LastName */}
+                <p>{adminEmail}</p>
               </article>
-              <button onClick={() => {
-                console.log('logout')
-              }}
-              className="cursor-pointer">
-                <img src="icons/logout.svg" alt="logout" className="size-6"/>
+              <button
+                onClick={handleLogout}
+                className="cursor-pointer"
+              >
+                <img src="/icons/logout.svg" alt="logout" className="size-6" />
               </button>
             </footer>
           </div>
