@@ -20,9 +20,9 @@ The Alumni Association platform is designed to foster lifelong connections betwe
 ---
 
 ## 🌐 Live Demo
-
-_(Coming soon)_
-
+```
+https://alumni-connect-client.vercel.app/
+```
 ---
 
 ## 🛠 Tech Stack
