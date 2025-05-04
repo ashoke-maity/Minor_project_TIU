@@ -1,65 +1,69 @@
-import * as jwt_decode from "jwt-decode";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Button from "../ui/Button";
 
 
 function Header() {
   const navigate = useNavigate();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [user, setUser] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const token = localStorage.getItem("authToken");
-      if (!token) {
-        return;
-      }
+    const fetchProfile = async () => {
       try {
-        const res = await axios.post(
-          `${import.meta.env.VITE_API_URL}/user/dashboard`,
+        const response = await axios.get(
+          `${import.meta.env.VITE_USER_API_URL}/user/dashboard`,
           {
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${localStorage.getItem("authToken")}`,
             },
           }
         );
-        console.log(token); // debug statement
-        if (res.data?.status === 1) {
-          setUser(res.data.user);
-        }
-      } catch (error) {
-        console.error("Failed to fetch user dashboard:", error);
+        const { Email, FirstName, LastName } = response.data.user;
+        setEmail(Email);
+        setFirstName(FirstName);
+        setLastName(LastName);
+      } catch (err) {
+        console.log("Failed to fetch user info", err);
       }
     };
-    fetchUser();
+
+    fetchProfile();
   }, []);
 
-  const handleLogout = () => navigate("/");
-  const handleLinkClick = (sectionId) => {
-    setMobileMenuOpen(false);
-    const element = document.getElementById(sectionId);
-    if (element) element.scrollIntoView({ behavior: "smooth" });
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    navigate("/");
   };
 
+  const handleLinkClick = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) element.scrollIntoView({ behavior: "smooth" });
+    setMobileMenuOpen(false); // Close menu after link click
+  };
+
+  const initials = `${firstName?.[0] ?? ""}${
+    lastName?.[0] ?? ""
+  }`.toUpperCase();
+
   return (
-    <header className="sticky top-0 z-50 w-full h-14 bg-black text-white shadow-md rounded-b-sm">
-      <div className="max-w-6xl mx-auto flex h-full items-center justify-between px-4">
-        {/* Logo */}
+    <header className="sticky top-0 z-50 w-full h-full bg-black text-white shadow-md rounded-b-xl">
+      <div className="max-w-6xl mx-auto flex h-16 items-center justify-between bg-black px-4">
         <a href="#home" className="flex items-center gap-3">
           <img
             src="/icons/logo3.png"
             alt="Logo"
             className="h-16 w-16 rounded-full"
           />
-          <span className="text-lg font-medium tracking-tight hover:text-neutral-400 transition">
-            AlumniConnect
+          <span className="text-xl font-semibold text-white">
+            Alumni Connect
           </span>
         </a>
 
-        {/* Desktop Nav */}
+        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
           {[
             "discover",
@@ -77,62 +81,40 @@ function Header() {
             </a>
           ))}
 
-          {/* Divider */}
-          <div className="h-6 w-px bg-neutral-600 mx-3" />
+          {/* User Avatar + Dropdown */}
+          {firstName && lastName && (
+            <div className="relative">
+              <button
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                className="w-9 h-9 flex items-center justify-center rounded-full bg-neutral-700 hover:bg-neutral-600 text-white text-xs font-bold transition"
+              >
+                {initials}
+              </button>
 
-          {/* Avatar & Dropdown */}
-          <div className="md:flex gap-2 relative">
-            <button
-              onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="flex items-center justify-center p-1 rounded-full hover:opacity-80 transition cursor-pointer"
-              title="User Menu"
-            >
-              <img
-                src="/icons/student.png"
-                alt="User Avatar"
-                className="size-6 invert rounded-xl"
-              />
-            </button>
-            <button onClick={handleLogout} className="cursor-pointer">
-              <img
-                src="/icons/logout.svg"
-                alt="logout"
-                className="size-6 invert hover:opacity-80 transition"
-              />
-            </button>
-
-            {dropdownOpen && (
-              <div className="absolute top-2 right-[-4rem] mt-10 w-40 rounded-xl shadow-lg bg-black border border-neutral-700 z-50 overflow-hidden">
-                <ul className="text-sm list-none text-white divide-y divide-neutral-700">
-                  <li>
-                    <a
-                      href="/dashboard"
-                      className="block text-center text-white shadow-md px-4 py-2 hover:bg-neutral-700 transition-colors"
-                    >
-                      Settings
-                    </a>
-                  </li>
-                  <li>
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-center text-white shadow-md px-4 py-2 hover:bg-neutral-700 transition-colors"
-                    >
-                      <div className="flex justify-center items-center gap-2">
-                        <div>Logout</div>
-                        <div>
-                          <img
-                            src="/icons/logout.svg"
-                            alt="logout"
-                            className="size-6 invert hover:opacity-80 transition"
-                          />
-                        </div>
+              {dropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white text-black rounded shadow-lg py-2 z-50">
+                  <div className="px-4 py-2 text-sm border-b border-gray-200">
+                    <span>{email}</span>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                  >
+                    <div className="logout-head flex justify-center items-center gap-2">
+                      <div className="logout-text">Logout</div>
+                      <div className="logout-img">
+                        <img
+                          src="/icons/logout.svg"
+                          alt="Logo"
+                          className="w-6 rounded-full"
+                        />
                       </div>
-                    </button>
-                  </li>
-                </ul>
-              </div>
-            )}
-          </div>
+                    </div>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </nav>
 
         {/* Mobile Menu Toggle */}
@@ -153,40 +135,58 @@ function Header() {
             className="text-white"
           >
             {mobileMenuOpen ? (
-              <path d="M18 6 6 18M6 6l12 12"></path>
+              <path d="M18 6 6 18M6 6l12 12" />
             ) : (
-              <path d="M4 6h16M4 12h16M4 18h16"></path>
+              <path d="M4 6h16M4 12h16M4 18h16" />
             )}
           </svg>
         </button>
       </div>
 
-      {/* Mobile Navigation */}
       {mobileMenuOpen && (
         <div className="md:hidden px-4 py-4 bg-black border-t border-neutral-800 text-white">
+          {firstName && lastName && (
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-9 h-9 flex items-center justify-center rounded-full bg-neutral-700 text-white text-xs font-bold">
+                {initials}
+              </div>
+              <div className="text-sm">{email}</div>
+            </div>
+          )}
           <nav className="flex flex-col gap-3 text-sm">
             {[
-              "home",
               "discover",
               "success-stories",
               "events",
               "community",
-              "newsletter",
+              "newsletter"
+              
             ].map((item) => (
               <a
                 key={item}
                 onClick={() => handleLinkClick(item)}
-                className="hover:text-neutral-400 transition"
+                className="hover:text-neutral-400 transition cursor-pointer"
               >
                 {item.replace("-", " ")}
               </a>
             ))}
-
-            <div className="flex gap-2 pt-4">
-              <button onClick={handleLogout} className="cursor-pointer">
-                <img src="/icons/logout.svg" alt="logout" className="size-6 invert" />
+            {email && (
+              <button
+                onClick={handleLogout}
+                className="text-left pt-3 hover:text-neutral-400 transition text-sm"
+              >
+                 <div className="logout-head flex items-center gap-2">
+                      <div className="logout-text">Logout</div>
+                      <div className="logout-img">
+                        <img
+                          src="/icons/logout.svg"
+                          alt="Logo"
+                          className="w-6 rounded-full"
+                        />
+                      </div>
+                    </div>
               </button>
-            </div>
+            )}
           </nav>
         </div>
       )}

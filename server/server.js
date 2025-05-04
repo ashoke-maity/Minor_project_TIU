@@ -22,7 +22,7 @@ app.use(process.env.ADMIN_ROUTE, adminRoutes); // admin URL
 app.use(process.env.USER_ROUTE, userRouters); //user URL
 
 // protected routes
-app.use(process.env.USER_ROUTE, userDashboardRouters) //user profile
+// app.use(process.env.USER_ROUTE, userDashboardRouters) //user profile
 
 // fetching route
 app.use(process.env.ADMIN_ROUTE, fetchRouter); // admin can access user data

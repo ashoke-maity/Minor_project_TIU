@@ -20,9 +20,9 @@ The Alumni Association platform is designed to foster lifelong connections betwe
 ---
 
 ## 🌐 Live Demo
-
-_(Coming soon)_
-
+```
+https://alumni-connect-client.vercel.app/
+```
 ---
 
 ## 🛠 Tech Stack
@@ -31,7 +31,7 @@ _(Coming soon)_
 - **Backend:** Node.js, Express.js
 - **Database:** MongoDB Atlas
 - **Authentication:** JWT
-- **Hosting:** AWS / Vercel / Firebase _(To be finalized)_
+- **Hosting:** Vercel
 
 ---
 
@@ -46,10 +46,10 @@ _(Coming soon)_
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/Minor_project_TIU.git
+https://github.com/your-username/AlumniConnect.git
 
 # Navigate into the project directory
-cd Minor_project_TIU
+cd AlumniConnect
 
 # Install backend dependencies
 cd server

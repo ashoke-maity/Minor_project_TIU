@@ -18,7 +18,7 @@ function UserSettings() {
     const fetchUserData = async () => {
       try {
         const token = localStorage.getItem("authToken");
-        const response = await axios.post(
+        const response = await axios.get(
           `${import.meta.env.VITE_USER_API_URL}/user/dashboard`,
           {},
           {
