@@ -159,7 +159,7 @@ function Header() {
               "success-stories",
               "events",
               "community",
-              "newsletter",s
+              "newsletter"
               
             ].map((item) => (
               <a
