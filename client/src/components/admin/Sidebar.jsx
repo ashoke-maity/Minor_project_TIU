@@ -27,8 +27,20 @@ export default function Sidebar() {
     {
       id: 3,
       icon: "/icons/itinerary.svg",
-      label: "AI Trips",
-      href: `${adminRoute}/admin/dashboard/trips`,
+      label: "Events",
+      href: `${adminRoute}/admin/dashboard/events`,
+    },
+    {
+      id: 4,
+      icon: "/icons/itinerary.svg",
+      label: "Job Opening",
+      href: `${adminRoute}/admin/dashboard/jobs`,
+    },
+    {
+      id: 5,
+      icon: "/icons/itinerary.svg",
+      label: "Stories",
+      href: `${adminRoute}/admin/dashboard/stories`,
     },
   ];
 
