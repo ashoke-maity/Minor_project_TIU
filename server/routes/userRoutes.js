@@ -4,12 +4,12 @@ const { userLogin, userRegister, userDashboard } = require('../controllers/userC
 const verifyUserToken = require('../middlewares/userAuthMiddleware');
 
 // login
-router.post("/login", userLogin);
+router.post("/user/login", userLogin);
 
 // register
-router.post("/register", userRegister);
+router.post("/user/register", userRegister);
 
 // user dashboard (profile section)
-router.post("/dashboard", verifyUserToken, userDashboard);
+router.get("/user/dashboard", verifyUserToken, userDashboard);
 
 module.exports = router;

@@ -1,5 +1,3 @@
-"use client";
-
 import { motion } from "framer-motion";
 import Button from "../ui/Button";
 import { useEffect, useRef, useState } from "react";
