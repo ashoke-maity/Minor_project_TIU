@@ -6,6 +6,7 @@ import SuccessStoriesSection from "../components/home/SuccessStoriesSection"
 import EventsSection from "../components/home/EventsSection"
 import StatsSection from "../components/home/StatsSection"
 import NewsletterSection from "../components/home/NewsletterSection"
+import FloatingDockDemo from "../components/ui/FloatingDockDemo"
 
 function Home() {
   return (
@@ -19,6 +20,7 @@ function Home() {
         <StatsSection />
         <NewsletterSection />
       </main>
+      <FloatingDockDemo />
       <Footer />
     </div>
   )

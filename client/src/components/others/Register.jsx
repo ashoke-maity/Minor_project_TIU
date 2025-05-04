@@ -35,7 +35,8 @@ function Register() {
     }
   };
   return (
-    <div className="min-h-screen flex justify-center items-center bg-black auth-layout">
+    <div className="bg-black">
+      <div className="min-h-screen flex justify-center items-center bg-black auth-layout">
       <div className="card-border lg:min-w-[566px]">
         <div className="flex flex-col card gap-6 py-14 px-10">
           <div className="flex flex-row gap-2 justify-center content-center items-center mr-10">
@@ -168,6 +169,7 @@ function Register() {
           </form>
         </div>
       </div>
+    </div>
     </div>
   );
 }

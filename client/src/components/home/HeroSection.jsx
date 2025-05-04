@@ -47,7 +47,8 @@ function HeroSection() {
   }, []);
 
   return (
-    <section id="home" ref={sectionRef} className="relative min-h-screen overflow-hidden">
+    <div className="bg-black -mt-1">
+      <section id="home" ref={sectionRef} className="relative min-h-screen overflow-hidden bg-black">
       <LampContainer>
       <motion.h1
         initial={{ opacity: 0.5, y: 100 }}
@@ -63,6 +64,7 @@ function HeroSection() {
       </motion.h1>
     </LampContainer>
     </section>
+    </div>
   );
 }
 

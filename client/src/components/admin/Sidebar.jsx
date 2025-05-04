@@ -67,8 +67,8 @@ export default function Sidebar() {
       <SidebarComponent width={270} enableGestures={false}>
         <section className="nav-items bg-white">
           <Link to="/home" className="link-logo flex items-center gap-2 px-4 py-4">
-            <img src="/icons/logo3.png" alt="logo" className="size-[40px]" />
-            <h1 className="">AlumniConnect</h1>
+            <img src="/icons/logo3.png" alt="logo" className="size-[40px] -mr-3 -ml-3 items-center justify-center content-center" />
+            <h1>AlumniConnect</h1>
           </Link>
 
           <div className="container">

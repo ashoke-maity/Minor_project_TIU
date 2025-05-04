@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../ui/Button";
 
+
 function Header() {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -44,8 +45,8 @@ function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full h-full bg-black text-white shadow-md rounded-b-xl">
-      <div className="max-w-6xl mx-auto flex h-16 items-center justify-between bg-black px-4">
+    <header className="sticky top-0 z-50 w-full h-14 bg-black text-white shadow-md rounded-b-sm">
+      <div className="max-w-6xl mx-auto flex h-full items-center justify-between px-4">
         {/* Logo */}
         <a href="#home" className="flex items-center gap-3">
           <img
@@ -80,7 +81,7 @@ function Header() {
           <div className="h-6 w-px bg-neutral-600 mx-3" />
 
           {/* Avatar & Dropdown */}
-          <div className=" md:flex gap-2 relative">
+          <div className="md:flex gap-2 relative">
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
               className="flex items-center justify-center p-1 rounded-full hover:opacity-80 transition cursor-pointer"
@@ -89,15 +90,15 @@ function Header() {
               <img
                 src="/icons/student.png"
                 alt="User Avatar"
-                className="size-6 invert rounded-xl "
+                className="size-6 invert rounded-xl"
               />
             </button>
-            <button
-                onClick={handleLogout}
-                className="cursor-pointer"
-            >
-              <img src="/icons/logout.svg" alt="logout" className="size-6 invert hover:opacity-80 transition" />
-
+            <button onClick={handleLogout} className="cursor-pointer">
+              <img
+                src="/icons/logout.svg"
+                alt="logout"
+                className="size-6 invert hover:opacity-80 transition"
+              />
             </button>
 
             {dropdownOpen && (
@@ -106,7 +107,7 @@ function Header() {
                   <li>
                     <a
                       href="/dashboard"
-                      className="block  text-center text-white shadow-md px-4 py-2 hover:bg-neutral-700 transition-colors"
+                      className="block text-center text-white shadow-md px-4 py-2 hover:bg-neutral-700 transition-colors"
                     >
                       Settings
                     </a>
@@ -120,7 +121,7 @@ function Header() {
                         <div>Logout</div>
                         <div>
                           <img
-                            src="/logout.svg"
+                            src="/icons/logout.svg"
                             alt="logout"
                             className="size-6 invert hover:opacity-80 transition"
                           />
@@ -183,7 +184,7 @@ function Header() {
 
             <div className="flex gap-2 pt-4">
               <button onClick={handleLogout} className="cursor-pointer">
-                <img src="/logout.svg" alt="logout" className="size-6 invert" />
+                <img src="/icons/logout.svg" alt="logout" className="size-6 invert" />
               </button>
             </div>
           </nav>
