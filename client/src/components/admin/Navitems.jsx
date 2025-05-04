@@ -61,6 +61,18 @@ export default function Navitems() {
       href: `${adminRoute}/admin/dashboard/events`, // Correct link for AI Trips
       exact: false, // Non-exact for AI Trips
     },
+    {
+      id: 4,
+      icon: "/icons/itinerary.svg",
+      label: "Job Opening",
+      href: `${adminRoute}/admin/dashboard/jobs`,
+    },
+    {
+      id: 5,
+      icon: "/icons/itinerary.svg",
+      label: "Stories",
+      href: `${adminRoute}/admin/dashboard/stories`,
+    },
   ];
 
   return (

@@ -42,7 +42,7 @@
     --color-red-50: #fff4ed;
     --color-red-100: #ff543d;
 
-    --background-image-auth: url("/images/auth-img.webp");
+    --background-image-auth: url("/images/auth-img.jpeg");
     --background-image-hero: url("/images/hero-img.png");
     --background-image-card-1: url("/images/card-img-1.png");
     --background-image-card-2: url("/images/card-img-2.png");
@@ -114,7 +114,7 @@
         }
     }
     .auth {
-        @apply w-full h-screen flex bg-auth bg-cover bg-no-repeat;
+        @apply w-full h-screen flex bg-auth bg-cover bg-no-repeat bg-center;
     }
 
     .payment-success {
