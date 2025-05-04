@@ -2,6 +2,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+
 function Header() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -169,7 +170,6 @@ function Header() {
                 {item.replace("-", " ")}
               </a>
             ))}
-
             {email && (
               <button
                 onClick={handleLogout}
