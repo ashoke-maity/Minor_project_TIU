@@ -1,15 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/admin/Sidebar";
-import AdminStats, { dashboardStats } from "../components/admin/AdminStats";
-import RecentEvents from "../components/admin/RecentEvents";
-import AlumniList from "../components/admin/AlumniList";
+import AdminStats from "../components/admin/AdminStats";
 
 import MobileSidebar from "../components/admin/MobileSidebar";
-import AdminHeader from "../components/admin/AdminHeader";
 import Header from "../components/admin/Header";
 
 import axios from 'axios';
+
 
 
 function AdminDashboard() {
@@ -58,11 +56,7 @@ function AdminDashboard() {
         />
           </article>
         </header>
-          <AdminStats />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <RecentEvents />
-            <AlumniList />
-          </div>
+        <AdminStats />
         </main>
     </main>
   );

@@ -1,8 +1,49 @@
 import React from 'react'
+import { calculateTrendPercentage, cn } from '../lib/utils'
 
-const StatsCard = () => {
+const StatsCard = ({ 
+  headerTitle,
+  total,
+  lastMonthCount,
+  currentMonthCount
+}) => {
+
+  const { trend, percentage } = calculateTrendPercentage(currentMonthCount, lastMonthCount);
+  
+  const isDecrement = trend === 'decrement';
+
   return (
-    <div>StatsCard</div>
+    <article className='stats-card'>
+      <h3 className='text-base font-medium'>{headerTitle}</h3>
+
+      <div className="content">
+        <div className="flex flex-col gap-4">
+          <h2 className='text-4l font-semibold'>{total}</h2>
+          
+          <div className="flex items-center gap-2">
+            <figure className='flex items-center gap-1'>
+              <img 
+                src={`/icons/${isDecrement 
+                ? 'arrow-down-red.svg' 
+                : 'arrow-up-green.svg'}`} 
+                className='size-5' 
+                alt='arrow' 
+              />
+              <figcaption className={cn('text-sm font-medium', isDecrement ? 'text-red-500' : 'text-success-700')}>
+                {Math.round(percentage)}%
+              </figcaption>
+              <p className='text-sm font-medium text-gray-100 truncate'>vs last month</p>
+            </figure>
+          </div>
+        </div>
+
+        <img 
+          src={`/icons/${isDecrement ? 'decrement.svg' : 'increment.svg'}` }
+          className='xl:w-32 w-full h-full md:h-32 xl:h-full' 
+          alt='trend graph'
+        />
+      </div>
+    </article>
   )
 }
 

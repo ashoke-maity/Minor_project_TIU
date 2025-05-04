@@ -24,7 +24,20 @@ const AdminStats = () => {
         <StatsCard 
           headerTitle="Total Users"
           total={totalUsers}
-          
+          currentMonthCount={usersJoined.currentMonth}
+          lastMonthCount={usersJoined.lastMonth}
+        />
+        <StatsCard 
+          headerTitle="Total Admins"
+          total={totalUsers}
+          currentMonthCount={adminsCreated.currentMonth}
+          lastMonthCount={adminsCreated.lastMonth}
+        />
+        <StatsCard 
+          headerTitle="Active Users"
+          total={totalUsers}
+          currentMonthCount={usersJoined.currentMonth}
+          lastMonthCount={usersJoined.lastMonth}
         />
       </div>
     </section>

@@ -21,8 +21,8 @@ export default function Navitems() {
     {
       id: 3,
       icon: "/icons/itinerary.svg",
-      label: "AI Trips",
-      href: `${adminRoute}/admin/dashboard/trips`, // Correct link for AI Trips
+      label: "Events",
+      href: `${adminRoute}/admin/dashboard/events`, // Correct link for AI Trips
       exact: false, // Non-exact for AI Trips
     },
   ];

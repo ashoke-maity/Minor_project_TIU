@@ -558,10 +558,14 @@ html, body {
     min-height: 100vh;
     overflow: hidden;
 }
-
+/* 
 body {
-    /* background-color: #020617;  */
     background-color: black;
+  }
+  
+  In index.css or global.css */
+body {
+    @apply bg-gray-50;
   }
   
 
