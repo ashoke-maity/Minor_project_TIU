@@ -1,79 +1,82 @@
-import React, { useState } from 'react';
-import Sidebar from '../components/admin/Sidebar';
-import MobileSidebar from '../components/admin/MobileSidebar';
-import Header from '../components/admin/Header';
-import { ColumnDirective, ColumnsDirective, GridComponent, Inject, Page } from "@syncfusion/ej2-react-grids";
-import { cn, formatDate } from '../components/lib/utils';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import Sidebar from "../components/admin/Sidebar";
+import MobileSidebar from "../components/admin/MobileSidebar";
+import Header from "../components/admin/Header";
+import {
+  ColumnDirective,
+  ColumnsDirective,
+  GridComponent,
+  Inject,
+  Page,
+} from "@syncfusion/ej2-react-grids";
+import { cn, formatDate } from "../components/lib/utils";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { FaEdit, FaTrash } from "react-icons/fa"; // Importing icons
 
 const AllUsers = () => {
-  const [users, setUsers] = useState([
-    {
-      id: 1,
-      name: 'Jordan',
-      email: 'jordan@example.com',
-      joinedAt: '2024-12-01',
-      status: 'user',
-      imageUrl: 'https://i.pravatar.cc/150?img=1',
-      permissions: { create: true, read: true, update: false, delete: false }
-    },
-    {
-      id: 2,
-      name: 'Maya',
-      email: 'maya@example.com',
-      joinedAt: '2024-11-12',
-      status: 'admin',
-      imageUrl: 'https://i.pravatar.cc/150?img=2',
-      permissions: { create: true, read: true, update: true, delete: true }
-    },
-  ]);
-
+  const [users, setUsers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState(""); // Track search input
+  const [filteredUsers, setFilteredUsers] = useState([]); // Filtered users based on search
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const initialPage = Number(searchParams.get('page') || '1');
+  const initialPage = Number(searchParams.get("page") || "1");
   const [currentPage, setCurrentPage] = useState(initialPage);
   const pageSize = 10;
 
-  const togglePermission = (userId, permKey) => {
-    const updatedUsers = users.map(user => {
-      if (user.id === userId) {
-        return {
-          ...user,
-          permissions: {
-            ...user.permissions,
-            [permKey]: !user.permissions[permKey]
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_ADMIN_API_URL}/users`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            },
           }
-        };
+        );
+
+        if (response.data.status === 1) {
+          const formattedUsers = response.data.users.map((user) => ({
+            name: `${user.FirstName} ${user.LastName}`,
+            email: user.Email,
+            passoutYear: user.PassoutYear,
+            joinedAt: new Date(user.createdAt).toISOString().split("T")[0],
+            createdAt: user.createdAt,
+            status: user.Role || "user",
+            permissions: user.permissions || {
+              create: false,
+              read: true,
+              update: false,
+              delete: false,
+            },
+          }));
+
+          setUsers(formattedUsers);
+          setFilteredUsers(formattedUsers); // Initialize filtered users
+        } else {
+          console.error("Error:", response.data.msg);
+        }
+      } catch (err) {
+        console.error("Failed to fetch users:", err);
       }
-      return user;
-    });
-    setUsers(updatedUsers);
-  };
+    };
 
-  const handleRoleChange = (userId, newStatus) => {
-    const updatedUsers = users.map(user =>
-      user.id === userId ? { ...user, status: newStatus } : user
-    );
-    setUsers(updatedUsers);
-  };
+    fetchUsers();
+  }, []);
 
-  const renderPermissionToggles = (permissions, userId) => {
-    return (
-      <div className="flex gap-2 text-xs">
-        {['create', 'read', 'update', 'delete'].map((perm) => (
-          <button
-            key={perm}
-            className={cn(
-              'px-2 py-1 rounded-md border transition',
-              permissions[perm] ? 'bg-green-100 border-green-500 text-green-700' : 'bg-gray-100 border-gray-300 text-gray-500'
-            )}
-            onClick={() => togglePermission(userId, perm)}
-          >
-            {perm.charAt(0).toUpperCase()}
-          </button>
-        ))}
-      </div>
-    );
+  const handleSearch = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+
+    if (query) {
+      const result = users.filter((user) =>
+        user.email.toLowerCase().includes(query.toLowerCase())
+      );
+      setFilteredUsers(result);
+    } else {
+      setFilteredUsers(users); // Reset when search is cleared
+    }
   };
 
   const handlePageChange = (args) => {
@@ -82,22 +85,39 @@ const AllUsers = () => {
     navigate(`?page=${page}`);
   };
 
+  const handleDelete = (userId) => {
+    console.log(`Delete user with ID: ${userId}`);
+  };
+
+  const handleEdit = (userId) => {
+    console.log(`Edit user with ID: ${userId}`);
+  };
+
   return (
     <div className="admin-layout bg-gray-50 min-h-screen flex">
       <Sidebar />
       <MobileSidebar />
-      <main className='all-users wrapper mt-5 flex-1 px-4'>
-        <header className='header mb-4'>
-          <Header 
+      <main className="all-users wrapper mt-5 flex-1 px-4">
+        <header className="header mb-4">
+          <Header
             title="Manage Users"
             description="Filter, sort and access detailed user profiles"
           />
         </header>
-
+        {/* Search Bar */}
+        <div className="mb-4 flex justify-between items-center bg-white shadow-md p-2 rounded-lg">
+          <input
+            type="text"
+            placeholder="Search by Email..."
+            value={searchQuery}
+            onChange={handleSearch}
+            className="p-2 border rounded-md w-full"
+          />
+        </div>
         <div className="mb-4 rounded-xl bg-white shadow-md p-2">
           <GridComponent
-            dataSource={users}
-            gridLines='None'
+            dataSource={filteredUsers}
+            gridLines="None"
             allowPaging={true}
             pageSettings={{ pageSize, currentPage }}
             actionComplete={handlePageChange}
@@ -109,68 +129,119 @@ const AllUsers = () => {
                 width="200"
                 textAlign="Left"
                 template={(userData) => (
-                  <div className='flex items-center gap-1.5 px-4'>
+                  <div className="flex items-center gap-1.5 px-4">
                     <img
                       src={userData.imageUrl}
-                      alt='user'
-                      className='rounded-full size-8 aspect-square'
-                      referrerPolicy='no-referrer'
+                      alt="user"
+                      className="rounded-full size-8 aspect-square"
+                      referrerPolicy="no-referrer"
                     />
                     <span>{userData.name}</span>
                   </div>
                 )}
               />
-              <ColumnDirective 
-                field='email'
-                headerText='Email Address'
+              <ColumnDirective
+                field="email"
+                headerText="Email Address"
                 width="200"
-                textAlign='Left'
+                textAlign="Left"
               />
-              <ColumnDirective 
-                field='joinedAt'
-                headerText='Date Joined'
+              <ColumnDirective
+                field="PassoutYear"
+                headerText="Passout Year"
                 width="140"
-                textAlign='Left'
+                textAlign="Left"
+              />
+              <ColumnDirective
+                field="createdAt"
+                headerText="Account Created"
+                width="180"
+                textAlign="Left"
+                template={(data) => formatDate(data.createdAt)}
+              />
+              <ColumnDirective
+                field="Password"
+                headerText="Password"
+                width="180"
+                textAlign="Left"
+                template={() => (
+                  <span className="font-mono text-gray-600 text-xs italic">
+                    **Password is securely hashed**
+                  </span>
+                )}
+              />
+              <ColumnDirective
+                field="joinedAt"
+                headerText="Date Joined"
+                width="140"
+                textAlign="Left"
                 template={(data) => formatDate(data.joinedAt)}
               />
-              <ColumnDirective 
-                field='status'
-                headerText='Type'
+              <ColumnDirective
+                field="status"
+                headerText="Type"
                 width="100"
-                textAlign='Left'
+                textAlign="Left"
                 template={(data) => (
-                  <article className={cn('status-column', data.status === 'user' ? 'bg-success-50' : 'bg-light-300')}>
-                    <div className={cn('size-1.5 rounded-full', data.status === 'user' ? 'bg-success-500' : 'bg-gray-500')} />
-                    <h3 className={cn('font-inter text-xs font-medium', data.status === 'user' ? 'text-success-700' : 'text-green-500')}>
+                  <article
+                    className={cn(
+                      "status-column",
+                      data.status === "user" ? "bg-success-50" : "bg-light-300"
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "size-1.5 rounded-full",
+                        data.status === "user"
+                          ? "bg-success-500"
+                          : "bg-gray-500"
+                      )}
+                    />
+                    <h3
+                      className={cn(
+                        "font-inter text-xs font-medium",
+                        data.status === "user"
+                          ? "text-success-700"
+                          : "text-green-500"
+                      )}
+                    >
                       {data.status}
                     </h3>
                   </article>
                 )}
               />
-              <ColumnDirective 
-                field='permissions'
-                headerText='Permissions'
+              <ColumnDirective
+                field="permissions"
+                headerText="Permissions"
                 width="250"
-                textAlign='Left'
-                template={(data) => renderPermissionToggles(data.permissions, data.id)}
-              />
-             <ColumnDirective
-                field="roleSelector"
-                headerText="Change Role"
-                width="160"
                 textAlign="Left"
                 template={(data) => (
-                  <select
-                    className="text-xs px-3 py-1.5 rounded-md border border-gray-300 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
-                    value={data.status}
-                    onChange={(e) => handleRoleChange(data.id, e.target.value)}
-                  >
-                    <option value="user" className="text-gray-800">User</option>
-                    <option value="admin" className="text-green-800">Admin</option>
-                  </select>
+                  <div className="flex gap-2 text-xs">
+                    <button
+                      className={cn(
+                        "px-2 py-1 rounded-md border transition",
+                        data.permissions.update
+                          ? "bg-green-100 border-green-500 text-green-700"
+                          : "bg-gray-100 border-gray-300 text-gray-500"
+                      )}
+                      onClick={() => handleEdit(data.id)}
+                    >
+                      <FaEdit className="text-sm" />
+                    </button>
+                    <button
+                      className={cn(
+                        "px-2 py-1 rounded-md border transition",
+                        data.permissions.delete
+                          ? "bg-red-100 border-red-500 text-red-700"
+                          : "bg-gray-100 border-gray-300 text-gray-500"
+                      )}
+                      onClick={() => handleDelete(data.id)}
+                    >
+                      <FaTrash className="text-sm" />
+                    </button>
+                  </div>
                 )}
               />
-
             </ColumnsDirective>
             <Inject services={[Page]} />
           </GridComponent>

@@ -1,20 +1,34 @@
 const userDatabase = require("../models/userModel");
 
-const fetchUserData = async(req, res) =>{
+// Fetch single user by ID
+const fetchUserData = async (req, res) => {
     try {
-        const {userID} = req.params;
+        const { userID } = req.params;
         const user = await userDatabase.findById(userID);
 
-        if(!user){
-            return res.status(404).json({status: 0 ,msg:"User not found !"});
+        if (!user) {
+            return res.status(404).json({ status: 0, msg: "User not found!" });
         }
 
-        // return the user data to the admin
-        res.status(200).json({ status: 1 ,msg: "User data fetched successfully", user});
+        res.status(200).json({ status: 1, msg: "User data fetched successfully", user });
     } catch (error) {
         console.log(error);
-        res.status(500).json({status:0 ,msg:"Server error"});
+        res.status(500).json({ status: 0, msg: "Server error" });
     }
-}
+};
 
-module.exports = fetchUserData;
+// ✅ Fetch all users
+const fetchAllUsers = async (req, res) => {
+    try {
+        const users = await userDatabase.find();
+        res.status(200).json({ status: 1, msg: "All users fetched successfully", users });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ status: 0, msg: "Server error while fetching users" });
+    }
+};
+
+module.exports = {
+    fetchUserData,
+    fetchAllUsers
+};

@@ -8,10 +8,6 @@ import Header from "../components/admin/Header";
 
 import axios from 'axios';
 
-
-
-
-
 function AdminDashboard() {
   const navigate = useNavigate();
   const [adminName, setAdminName] = useState("Admin");
