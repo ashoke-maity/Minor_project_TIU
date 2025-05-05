@@ -63,13 +63,6 @@ const FloatingDockDemo = () => {
       ),
       href: "#newsletter",
     },
-    {
-      title: "Exit",
-      icon: (
-        <img src="/icons/logout.svg" className="h-full w-full invert" />
-      ),
-      href: "/",
-    },
   ];
 
   return (
