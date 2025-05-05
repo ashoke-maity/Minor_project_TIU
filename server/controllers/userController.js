@@ -1,6 +1,6 @@
 const userDatabase = require("../models/userModel");
-const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 
 // user login
 const userLogin = async (req, res) => {
@@ -121,4 +121,66 @@ const userDashboard = async (req, res) => {
 };
 
 
-module.exports = { userLogin, userRegister, userDashboard };
+// user delete (self-delete)
+const userDelete = async (req, res) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ status: 0, msg: "Unauthorized access" });
+    }
+
+    const deletedUser = await userDatabase.findOneAndDelete({Email: req.user.Email});
+
+    if (!deletedUser) {
+      return res.status(404).json({ status: 0, msg: "User not found" });
+    }
+
+    res.status(200).json({ status: 1, msg: "Account deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ status: 0, msg: "Server error" });
+  }
+};
+
+// user password update
+const userUpdate = async (req, res) => {
+  try {
+    if (!req.user || !req.user.Email) {
+      return res.status(401).json({ status: 0, msg: "Unauthorized access" });
+    }
+
+    const { oldPassword, newPassword, confirmNewPassword } = req.body;
+
+    if (!oldPassword || !newPassword || !confirmNewPassword) {
+      return res.status(400).json({ status: 0, msg: "All fields are required" });
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      return res.status(400).json({ status: 0, msg: "New passwords do not match" });
+    }
+
+    const user = await userDatabase.findOne({ Email: req.user.Email });
+
+    if (!user) {
+      return res.status(404).json({ status: 0, msg: "User not found" });
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword, user.Password);
+    if (!isMatch) {
+      return res.status(401).json({ status: 0, msg: "Old password is incorrect" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    user.Password = hashedPassword;
+    await user.save();
+
+    res.status(200).json({ status: 1, msg: "Password updated successfully" });
+  } catch (error) {
+    console.error("Password update error:", error);
+    res.status(500).json({ status: 0, msg: "Server error" });
+  }
+};
+
+
+
+module.exports = { userLogin, userRegister, userDashboard, userDelete, userUpdate};

@@ -31,7 +31,7 @@ https://alumni-connect-client.vercel.app/
 - **Backend:** Node.js, Express.js
 - **Database:** MongoDB Atlas
 - **Authentication:** JWT
-- **Hosting:** Vercel
+- **Hosting:** Vercel, Render
 
 ---
 
