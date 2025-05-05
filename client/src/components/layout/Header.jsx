@@ -50,7 +50,7 @@ function Header() {
   }`.toUpperCase();
 
   return (
-    <header className="sticky top-0 z-50 w-full h-full bg-black text-white shadow-md rounded-b-xl">
+    <header className="sticky top-0 z-50 w-full h-full bg-black text-white shadow-md">
       <div className="max-w-6xl mx-auto flex h-16 items-center justify-between bg-black px-4">
         <a href="#home" className="flex items-center gap-3">
           <img

@@ -2,6 +2,7 @@ import { Link, NavLink } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 
+
 export default function Navitems() {
   const adminRoute = import.meta.env.VITE_ADMIN_ROUTE;
   const [adminName, setAdminName] = useState("");
@@ -56,22 +57,28 @@ export default function Navitems() {
     },
     {
       id: 3,
-      icon: "/icons/itinerary.svg",
+      icon: "/icons/calendar.svg",
       label: "Events",
       href: `${adminRoute}/admin/dashboard/events`, // Correct link for AI Trips
       exact: false, // Non-exact for AI Trips
     },
     {
       id: 4,
-      icon: "/icons/itinerary.svg",
+      icon: "/icons/briefcase.png",
       label: "Job Opening",
       href: `${adminRoute}/admin/dashboard/jobs`,
     },
     {
       id: 5,
-      icon: "/icons/itinerary.svg",
+      icon: "/icons/story.png",
       label: "Stories",
       href: `${adminRoute}/admin/dashboard/stories`,
+    },
+    {
+      id: 5,
+      icon: "/icons/heart.png",
+      label: "Donations",
+      href: `${adminRoute}/admin/dashboard/donations`,
     },
   ];
 
