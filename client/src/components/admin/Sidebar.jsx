@@ -26,21 +26,27 @@ export default function Sidebar() {
     },
     {
       id: 3,
-      icon: "/icons/itinerary.svg",
+      icon: "/icons/calendar.svg",
       label: "Events",
       href: `${adminRoute}/admin/dashboard/events`,
     },
     {
       id: 4,
-      icon: "/icons/itinerary.svg",
+      icon: "/icons/briefcase.png",
       label: "Job Opening",
       href: `${adminRoute}/admin/dashboard/jobs`,
     },
     {
       id: 5,
-      icon: "/icons/itinerary.svg",
+      icon: "/icons/story.png",
       label: "Stories",
       href: `${adminRoute}/admin/dashboard/stories`,
+    },
+    {
+      id: 5,
+      icon: "/icons/heart.png",
+      label: "Donations",
+      href: `${adminRoute}/admin/dashboard/donations`,
     },
   ];
 
