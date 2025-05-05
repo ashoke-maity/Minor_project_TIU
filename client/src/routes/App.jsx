@@ -6,7 +6,7 @@ import AdminDashboard from '../pages/AdminDashboard';
 import AdminLogin from '../pages/AdminLogin';
 import AdminRegister from '../pages/AdminRegister';
 import UserSettings from '../pages/UserSettings';
-import AllUsers from '../pages/AllUsers';
+import AllUsers from '../pages/AdminAllUsers';
 import AdminEvents from '../pages/AdminEvents';
 import AdminStories from '../pages/AdminStories';
 import AdminJobPosting from '../pages/AdminJobPosting';
