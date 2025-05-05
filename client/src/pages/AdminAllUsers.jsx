@@ -12,7 +12,6 @@ import {
 import { cn, formatDate } from "../components/lib/utils";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { FaEdit, FaTrash } from "react-icons/fa"; // Importing icons
 
 const AllUsers = () => {
   const [users, setUsers] = useState([]);
@@ -38,11 +37,15 @@ const AllUsers = () => {
 
         if (response.data.status === 1) {
           const formattedUsers = response.data.users.map((user) => ({
+            id: user._id,
             name: `${user.FirstName} ${user.LastName}`,
             email: user.Email,
             passoutYear: user.PassoutYear,
             joinedAt: new Date(user.createdAt).toISOString().split("T")[0],
             createdAt: user.createdAt,
+            updatedAt: user.updatedAt
+              ? new Date(user.updatedAt).toISOString()
+              : null,
             status: user.Role || "user",
             permissions: user.permissions || {
               create: false,
@@ -51,7 +54,6 @@ const AllUsers = () => {
               delete: false,
             },
           }));
-
           setUsers(formattedUsers);
           setFilteredUsers(formattedUsers); // Initialize filtered users
         } else {
@@ -79,18 +81,113 @@ const AllUsers = () => {
     }
   };
 
+  // page change limit
   const handlePageChange = (args) => {
     const page = args.currentPage;
     setCurrentPage(page);
     navigate(`?page=${page}`);
   };
 
-  const handleDelete = (userId) => {
-    console.log(`Delete user with ID: ${userId}`);
+  // user delete
+  const handleDelete = async (userId) => {
+    if (!window.confirm("Are you sure you want to delete this user?")) return;
+
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_ADMIN_API_URL}/delete/user`,
+        { userID: userId },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+        }
+      );
+
+      if (response.data.status === 1) {
+        // Update user list in UI
+        const updatedUsers = users.filter((user) => user.id !== userId);
+        setUsers(updatedUsers);
+        setFilteredUsers(updatedUsers);
+        alert("User deleted successfully");
+      } else {
+        console.error("Delete failed:", response.data.msg);
+        alert("Failed to delete user");
+      }
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      alert("An error occurred while deleting the user.");
+    }
   };
 
-  const handleEdit = (userId) => {
-    console.log(`Edit user with ID: ${userId}`);
+  const handleEdit = async (userId) => {
+    const selectedUser = users.find((user) => user.id === userId);
+
+    // Prompt for first name, last name, and email
+    const firstName = prompt(
+      `Enter new First Name for ${selectedUser.name} (current: ${
+        selectedUser.name.split(" ")[0]
+      })`,
+      selectedUser.name.split(" ")[0]
+    );
+
+    const lastName = prompt(
+      `Enter new Last Name for ${selectedUser.name} (current: ${
+        selectedUser.name.split(" ")[1]
+      })`,
+      selectedUser.name.split(" ")[1]
+    );
+
+    const email = prompt(
+      `Enter new Email for ${selectedUser.name} (current: ${selectedUser.email})`,
+      selectedUser.email
+    );
+
+    // If any of the fields are unchanged, skip the update
+    if (
+      !firstName ||
+      !lastName ||
+      !email ||
+      (firstName === selectedUser.name.split(" ")[0] &&
+        lastName === selectedUser.name.split(" ")[1] &&
+        email === selectedUser.email)
+    ) {
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_ADMIN_API_URL}/update/user`,
+        {
+          userID: userId,
+          firstName: firstName,
+          lastName: lastName,
+          email: email,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+        }
+      );
+
+      if (response.data.status === 1) {
+        // Update the user list in the state with the new details
+        const updatedUsers = users.map((user) =>
+          user.id === userId
+            ? { ...user, name: `${firstName} ${lastName}`, email: email }
+            : user
+        );
+        setUsers(updatedUsers);
+        setFilteredUsers(updatedUsers);
+        alert("User details updated successfully.");
+      } else {
+        console.error("Update failed:", response.data.msg);
+        alert("Failed to update user.");
+      }
+    } catch (error) {
+      console.error("Error updating user:", error);
+      alert("An error occurred while updating the user.");
+    }
   };
 
   return (
@@ -166,14 +263,14 @@ const AllUsers = () => {
                 textAlign="Left"
                 template={() => (
                   <span className="font-mono text-gray-600 text-xs italic">
-                    **Password is securely hashed**
+                    **hashed**
                   </span>
                 )}
               />
               <ColumnDirective
                 field="joinedAt"
                 headerText="Date Joined"
-                width="140"
+                width="180"
                 textAlign="Left"
                 template={(data) => formatDate(data.joinedAt)}
               />
@@ -211,33 +308,46 @@ const AllUsers = () => {
                 )}
               />
               <ColumnDirective
+                field="updatedAt"
+                headerText="Last Admin Update"
+                width="180"
+                textAlign="Left"
+                template={(data) => {
+                  console.log("updatedAt:", data.updatedAt);
+                  return data.updatedAt ? formatDate(data.updatedAt) : "—";
+                }}
+              />
+              <ColumnDirective
                 field="permissions"
                 headerText="Permissions"
                 width="250"
                 textAlign="Left"
                 template={(data) => (
                   <div className="flex gap-2 text-xs">
+                    {/* Update Button */}
                     <button
                       className={cn(
-                        "px-2 py-1 rounded-md border transition",
+                        "px-4 py-2 rounded-md border transition",
                         data.permissions.update
-                          ? "bg-green-100 border-green-500 text-green-700"
-                          : "bg-gray-100 border-gray-300 text-gray-500"
+                          ? "bg-blue-500 border-blue-600 text-white"
+                          : "bg-blue-500 border-blue-600 text-white"
                       )}
                       onClick={() => handleEdit(data.id)}
                     >
-                      <FaEdit className="text-sm" />
+                      Update
                     </button>
+
+                    {/* Delete Button */}
                     <button
                       className={cn(
-                        "px-2 py-1 rounded-md border transition",
+                        "px-4 py-2 rounded-md border transition",
                         data.permissions.delete
-                          ? "bg-red-100 border-red-500 text-red-700"
-                          : "bg-gray-100 border-gray-300 text-gray-500"
+                          ? "bg-red-500 border-red-600 text-white"
+                          : "bg-red-500 border-red-600 text-white"
                       )}
                       onClick={() => handleDelete(data.id)}
                     >
-                      <FaTrash className="text-sm" />
+                      Delete
                     </button>
                   </div>
                 )}

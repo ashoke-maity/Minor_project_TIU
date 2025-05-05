@@ -7,7 +7,7 @@ export function cn(...inputs) {
 }
 
 export const formatDate = (dateString) => {
-  return dayjs(dateString).format("MMMM DD, YYYY");
+  return dayjs(dateString).format("MMMM DD, YYYY • HH:mm");
 };
 
 export function parseMarkdownToJson(markdownText) {
