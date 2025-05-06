@@ -5,8 +5,6 @@ const dbConnect = require('./config/db');
 const userRouters = require('./routes/userRoutes');
 const adminRoutes  = require('./routes/adminRoutes');
 const fetchRouter = require('./routes/fetchRoutes');
-const userDashboardRouters = require('./routes/userRoutes');
-const adminDashboardRouters = require('./routes/adminRoutes');
 const cors = require('cors');
 const corsOptions = require('./middlewares/Cors');
 

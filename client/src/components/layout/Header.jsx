@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 function Header() {
   const navigate = useNavigate();
@@ -100,17 +100,12 @@ function Header() {
 
                 {dropdownOpen && (
                   <div className="absolute mt-2 w-44 bg-white text-black rounded shadow-md z-50">
-                    <a
-                      href="/settings"
+                    <Link
+                      to="/usersetting"
                       className="flex justify-center items-center gap-2 py-3 text-sm hover:bg-gray-100"
                     >
-                      <img
-                        src="icons/users.svg"
-                        alt="Settings"
-                        className="w-4 h-4"
-                      />
                       Settings
-                    </a>
+                    </Link>
                   </div>
                 )}
               </div>
@@ -178,8 +173,8 @@ function Header() {
               </div>
 
               {/* Settings */}
-              <a
-                href="/settings"
+              <Link
+                to="/usersetting"
                 className="flex items-center gap-2 text-sm hover:text-neutral-400 transition"
               >
                 <img
@@ -188,7 +183,7 @@ function Header() {
                   className="w-5 h-5"
                 />
                 <span>Settings</span>
-              </a>
+              </Link>
 
               {/* Logout */}
               <button

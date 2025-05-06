@@ -10,9 +10,9 @@ router.get("/user/:userID", verifyAdminToken, fetchUserData);
 router.get("/users", verifyAdminToken, fetchAllUsers);
 
 // admin delete user
-router.post("/delete/user", verifyAdminToken, adminDeleteUser);
+router.delete("/delete/user", verifyAdminToken, adminDeleteUser);
 
 // admin updates user
-router.post("/update/user", verifyAdminToken, adminUpdateUser);
+router.put("/update/user", verifyAdminToken, adminUpdateUser);
 
 module.exports = router;

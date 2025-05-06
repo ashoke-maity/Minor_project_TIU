@@ -6,8 +6,19 @@ function Login() {
   const navigate = useNavigate();
   const [Email, setEmail] = useState("");
   const [Password, setPassword] = useState("");
+  const [error, setError] = useState(""); // State for error messages
+
+  // Password validation function
+  const validatePassword = (password) => {
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    return regex.test(password);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    setError(""); // Clear any previous error
+
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_USER_API_URL}/user/login`,
@@ -18,80 +29,89 @@ function Login() {
         navigate("/home");
       }
     } catch (error) {
-      console.log('Axios error:', error);
+      console.log("Axios error:", error);
       if (error.response) {
-        console.error('Error response:', error.response.data);
+        console.error("Error response:", error.response.data);
         alert(error.response.data.msg || "Something went wrong, try again!");
       } else {
-        console.error('Request error:', error);
+        console.error("Request error:", error);
         alert("An error occurred. Please try again later.");
       }
+      // reload the page to reset the form
+      window.location.reload();
     }
   };
-  
+
   return (
-   <div className="bg-black">
-     <div className="min-h-screen flex justify-center items-center bg-black auth-layout ">
-      <div className="card-border lg:min-w-[566px] ">
-        <div className="flex flex-col card gap-6 py-14 px-10 ">
-          <div className="flex flex-row gap-2 justify-center content-center items-center mr-10">
-            <img
-              src="/icons/logo3.png"
-              alt="logo"
-              height={100}
-              width={100}
+    <div className="bg-black">
+      <div className="min-h-screen flex justify-center items-center bg-black auth-layout">
+        <div className="card-border lg:min-w-[566px]">
+          <div className="flex flex-col card gap-6 py-14 px-10">
+            <div className="flex flex-row gap-2 justify-center content-center items-center mr-10">
+              <img
+                src="/icons/logo3.png"
+                alt="logo"
+                height={100}
+                width={100}
+              />
+              <h1 className="text-white text-3xl shadow-md font-medium animate-colorShift">
+                AlumniConnect
+              </h1>
+            </div>
 
-            />
-            <h1 className="text-white text-3xl shadow-md font-medium  animate-colorShift">AlumniConnect</h1>
+            <h3 className="text-primary-100">Get connected with us</h3>
+
+            <form onSubmit={handleSubmit} className="w-full space-y-6 mt-4 form">
+              <label htmlFor="email" className="label">
+                Email
+              </label>
+              <input
+                name="email"
+                type="email"
+                placeholder="Email"
+                value={Email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="input w-full"
+              />
+
+              <label htmlFor="password" className="label">
+                Password
+              </label>
+              <input
+                name="password"
+                type="password"
+                placeholder="Password"
+                value={Password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="input w-full"
+              />
+
+              {/* Show error message if password validation fails */}
+              {error && <p className="text-red-500 text-sm">{error}</p>}
+
+              <button
+                type="submit"
+                className="w-full !bg-primary-100 !text-dark-100 hover:!bg-primary-200/80 !rounded-full !min-h-10 !font-bold !px-5 cursor-pointer"
+              >
+                Login
+              </button>
+
+              <p className="text-center text-primary-200">
+                Don't have an account?{" "}
+                <Link
+                  to="/register"
+                  className="font-bold text-user-primary text-primary-100 ml-1"
+                >
+                  Register
+                </Link>
+              </p>
+            </form>
           </div>
-
-          <h3 className="text-primary-100">Get connected with us</h3>
-
-          <form onSubmit={handleSubmit} className="w-full space-y-6 mt-4 form">
-            <label htmlFor="email" className="label">
-              Email
-            </label>
-            <input
-              name="email"
-              type="email"
-              placeholder="Email"
-              value={Email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="input w-full"
-            />
-
-            <label htmlFor="password" className="label">
-              Password
-            </label>
-            <input
-              name="password"
-              type="password"
-              placeholder="Password"
-              value={Password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="input w-full"
-            />
-
-            <button
-              type="submit"
-              className="w-full !bg-primary-100 !text-dark-100 hover:!bg-primary-200/80 !rounded-full !min-h-10 !font-bold !px-5 cursor-pointer"
-            >
-              Login
-            </button>
-
-            <p className="text-center text-primary-200">
-              Don't have an account?{" "}
-              <Link to="/register" className="font-bold text-user-primary text-primary-100 ml-1">
-                Register
-              </Link>
-            </p>
-          </form>
         </div>
       </div>
     </div>
-   </div>
   );
 }
 

@@ -34,7 +34,7 @@ const fetchAllUsers = async (req, res) => {
   }
 };
 
-// Inside fetchUserDataController.js
+// admin deletes user
 const adminDeleteUser = async (req, res) => {
   try {
     const { userID } = req.body;
@@ -73,15 +73,18 @@ const adminUpdateUser = async (req, res) => {
         .json({ status: 0, msg: "Email is already in use by another user" });
     }
 
-    // Update the user with the new data
     const updatedUser = await userDatabase.findByIdAndUpdate(
       userID,
-      { FirstName: firstName, LastName: lastName, Email: email, 
-        updatedByAdminAt: new Date()
-      }, // Correcting the fields to be updated
-      { new: true } // This will return the updated document
-    );
-
+      {
+        $set: {
+          FirstName: firstName,
+          LastName: lastName,
+          Email: email,
+          updatedByAdminAt: new Date(),
+        },
+      },
+      { new: true }
+    ).select("-Password");
     if (!updatedUser) {
       return res.status(404).json({ status: 0, msg: "User not found" });
     }

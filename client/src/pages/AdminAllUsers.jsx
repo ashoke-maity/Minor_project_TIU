@@ -93,10 +93,10 @@ const AllUsers = () => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
 
     try {
-      const response = await axios.post(
+      const response = await axios.delete(
         `${import.meta.env.VITE_ADMIN_API_URL}/delete/user`,
-        { userID: userId },
         {
+          data: { userID: userId },
           headers: {
             Authorization: `Bearer ${localStorage.getItem("authToken")}`,
           },
@@ -119,6 +119,7 @@ const AllUsers = () => {
     }
   };
 
+  // user update
   const handleEdit = async (userId) => {
     const selectedUser = users.find((user) => user.id === userId);
 
@@ -155,7 +156,7 @@ const AllUsers = () => {
     }
 
     try {
-      const response = await axios.post(
+      const response = await axios.put(
         `${import.meta.env.VITE_ADMIN_API_URL}/update/user`,
         {
           userID: userId,

@@ -18,6 +18,15 @@ function AdminRegister() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+
+    // Password validation: check if it has at least 8 characters
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
+    if (!passwordRegex.test(formData.Password)) {
+      setError(
+        "Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, a number, and a special character."
+      );
+      return;
+    }
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_ADMIN_API_URL}/admin/register`,
@@ -38,32 +47,63 @@ function AdminRegister() {
   };
 
   return (
-   <div className="bg-black">
-     <div className="min-h-screen flex justify-center items-center bg-black auth-layout">
-      <div className="card-border lg:min-w-[566px]">
-        <div className="flex flex-col card gap-6 py-14 px-10">
-          <div className="flex flex-row gap-2 justify-center items-center mr-10">
-            <img src="/icons/logo3.png" alt="logo" height={100} width={100} />
-            <h1 className="text-white text-3xl mb-2 shadow-md font-medium animate-colorShift">
-              Admin Registration
-            </h1>
-          </div>
+    <div className="bg-black">
+      <div className="min-h-screen flex justify-center items-center bg-black auth-layout">
+        <div className="card-border lg:min-w-[566px]">
+          <div className="flex flex-col card gap-6 py-14 px-10">
+            <div className="flex flex-row gap-2 justify-center items-center mr-10">
+              <img src="/icons/logo3.png" alt="logo" height={100} width={100} />
+              <h1 className="text-white text-3xl mb-2 shadow-md font-medium animate-colorShift">
+                Admin Registration
+              </h1>
+            </div>
 
-          <h3 className="text-primary-100 text-center">Only for New Admins</h3>
+            <h3 className="text-primary-100 text-center">Only for New Admins</h3>
 
-          <form onSubmit={handleRegister} className="w-full space-y-6 mt-4 form">
-            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+            <form onSubmit={handleRegister} className="w-full space-y-6 mt-4 form">
+              {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
-            <div className="flex flex-col md:flex-row gap-4 w-full">
+              <div className="flex flex-col md:flex-row gap-4 w-full">
+                <div className="w-full">
+                  <label htmlFor="FirstName" className="label">
+                    First Name
+                  </label>
+                  <input
+                    type="text"
+                    name="FirstName"
+                    placeholder="Enter First Name"
+                    value={formData.FirstName}
+                    onChange={handleChange}
+                    required
+                    className="input w-full"
+                  />
+                </div>
+
+                <div className="w-full">
+                  <label htmlFor="LastName" className="label">
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    name="LastName"
+                    placeholder="Enter Last Name"
+                    value={formData.LastName}
+                    onChange={handleChange}
+                    required
+                    className="input w-full"
+                  />
+                </div>
+              </div>
+
               <div className="w-full">
-                <label htmlFor="FirstName" className="label">
-                  First Name
+                <label htmlFor="Email" className="label">
+                  Admin Email
                 </label>
                 <input
-                  type="text"
-                  name="FirstName"
-                  placeholder="Enter First Name"
-                  value={formData.FirstName}
+                  type="email"
+                  name="Email"
+                  placeholder="Enter your Admin Email"
+                  value={formData.Email}
                   onChange={handleChange}
                   required
                   className="input w-full"
@@ -71,118 +111,42 @@ function AdminRegister() {
               </div>
 
               <div className="w-full">
-                <label htmlFor="LastName" className="label">
-                  Last Name
+                <label htmlFor="Password" className="label">
+                  Password
                 </label>
                 <input
-                  type="text"
-                  name="LastName"
-                  placeholder="Enter Last Name"
-                  value={formData.LastName}
+                  type="password"
+                  name="Password"
+                  placeholder="••••••••"
+                  value={formData.Password}
                   onChange={handleChange}
                   required
                   className="input w-full"
                 />
               </div>
-            </div>
 
-            <div className="w-full">
-              <label htmlFor="Email" className="label">
-                Admin Email
-              </label>
-              <input
-                type="email"
-                name="Email"
-                placeholder="Enter your Admin Email"
-                value={formData.Email}
-                onChange={handleChange}
-                required
-                className="input w-full"
-              />
-            </div>
-
-            <div className="w-full">
-              <label htmlFor="Password" className="label">
-                Password
-              </label>
-              <input
-                type="password"
-                name="Password"
-                placeholder="••••••••"
-                value={formData.Password}
-                onChange={handleChange}
-                required
-                className="input w-full"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="w-full !bg-primary-100 !text-dark-100 hover:!bg-primary-200/80 !rounded-full !min-h-10 !font-bold !px-5 cursor-pointer"
-            >
-              Register
-            </button>
-
-            <div className="text-white text-center">
-              New to admin?{" "}
-              <Link
-                to={`${import.meta.env.VITE_ADMIN_ROUTE}/admin/login`}
-                className="text-primary-100  hover:text-primary-200"
+              <button
+                type="submit"
+                className="w-full !bg-primary-100 !text-dark-100 hover:!bg-primary-200/80 !rounded-full !min-h-10 !font-bold !px-5 cursor-pointer"
               >
-                Admin Login
-              </Link>
-            </div>
-          </form>
+                Register
+              </button>
+
+              <div className="text-white text-center">
+                New to admin?{" "}
+                <Link
+                  to={`${import.meta.env.VITE_ADMIN_ROUTE}/admin/login`}
+                  className="text-primary-100  hover:text-primary-200"
+                >
+                  Admin Login
+                </Link>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>
-   </div>
   );
 }
 
 export default AdminRegister;
-
-
-// import React from 'react'
-// import { Link } from 'react-router-dom';
-// import { ButtonComponent } from "@syncfusion/ej2-react-buttons"
-
-
-// const AdminRegister = () => {
-
-//   const handleSignIn = async () => {}
-
-//   return (
-//     <main className='auth'>
-//       <section className='size-full glassmorphism flex-center px-6'>
-//         <div className="sign-in-card">
-//           <header className='header'>
-//             <Link to="/home">
-//               <img src="/icons/logo3.png" alt="logo" className='size-[40px]' />
-//             </Link>
-//             <h1 className='p-28-bold'>AlumniConnect</h1>
-//           </header>
-
-//           <article>
-//             <h2 className='p-28-semibold text-dark-100 text-center'>Start Your Admin Journey</h2>
-//             <p className='p-18-regular text-center text-gray-100 !leading-7'>Sign in with Google to manage events, donations, and users activity with ease </p>
-//           </article>
-
-//           <ButtonComponent
-//           type='button'
-//           iconCss="e-search-icon"
-//           className='button-class !h-11 !w-full'
-//           onFocus={handleSignIn}
-//           >
-//             <img src="/icons/google.svg" 
-//               alt="google" 
-//             />
-//             <span className='p-18-semibold text-white'>Sign in with Google</span>
-//           </ButtonComponent>
-//         </div>
-//       </section>
-//     </main>
-//   )
-// }
-
-// export default AdminRegister
