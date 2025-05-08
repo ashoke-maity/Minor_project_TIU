@@ -21,7 +21,7 @@ The Alumni Association platform is designed to foster lifelong connections betwe
 
 ## 🌐 Live Demo
 ```
-https://alumni-connect-client.vercel.app/
+https://www.alumniconnect.info
 ```
 ---
 
