@@ -6,6 +6,7 @@ import axios from 'axios';
 export default function Sidebar() {
   const navigate = useNavigate();
   const handleLogout = () => {
+    localStorage.clear(); // clears everything
     navigate(`${import.meta.env.VITE_ADMIN_ROUTE}/admin/login`);
   };
 

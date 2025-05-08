@@ -1,11 +1,14 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from '../pages/Home';
 import Login from '../components/others/Login';
+import ForgotPassword from '../components/others/ForgotPass';
+import ResetPassword from '../components/others/ResetPass';
 import Register from '../components/others/Register';
+import UserSettings from '../pages/UserSettings';
+import UserPrivacyPolicy from '../pages/UserPrivacyPolicy';
 import AdminDashboard from '../pages/AdminDashboard';
 import AdminLogin from '../pages/AdminLogin';
 import AdminRegister from '../pages/AdminRegister';
-import UserSettings from '../pages/UserSettings';
 import AllUsers from '../pages/AdminAllUsers';
 import AdminEvents from '../pages/AdminEvents';
 import AdminStories from '../pages/AdminStories';
@@ -23,10 +26,13 @@ function App() {
       <Routes>
         {/* User Routes */}
         <Route path="/" element={<Login />} />
+        <Route path="/forgotpass" element={<ForgotPassword />} />
+        <Route path="/resetpass" element={<ResetPassword />} />
         <Route path="/register" element={<Register />} />
         <Route path="/home" element={<Home />} />
         <Route path="/usersetting" element={<UserSettings />} />
-
+        <Route path="/privacypolicy" element={<UserPrivacyPolicy />} />
+        
         {/* Admin Routes */}
         <Route path={`${adminRoute}/admin/login`} element={<AdminLogin />} />
         <Route path={`${adminRoute}/admin/register`} element={<AdminRegister />} />

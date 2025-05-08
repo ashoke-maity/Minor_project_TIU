@@ -10,7 +10,8 @@ function Login() {
 
   // Password validation function
   const validatePassword = (password) => {
-    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    const regex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     return regex.test(password);
   };
 
@@ -48,12 +49,7 @@ function Login() {
         <div className="card-border lg:min-w-[566px]">
           <div className="flex flex-col card gap-6 py-14 px-10">
             <div className="flex flex-row gap-2 justify-center content-center items-center mr-10">
-              <img
-                src="/icons/logo3.png"
-                alt="logo"
-                height={100}
-                width={100}
-              />
+              <img src="/icons/logo3.png" alt="logo" height={100} width={100} />
               <h1 className="text-white text-3xl shadow-md font-medium animate-colorShift">
                 AlumniConnect
               </h1>
@@ -61,7 +57,10 @@ function Login() {
 
             <h3 className="text-primary-100">Get connected with us</h3>
 
-            <form onSubmit={handleSubmit} className="w-full space-y-6 mt-4 form">
+            <form
+              onSubmit={handleSubmit}
+              className="w-full space-y-6 mt-4 form"
+            >
               <label htmlFor="email" className="label">
                 Email
               </label>
@@ -97,7 +96,14 @@ function Login() {
               >
                 Login
               </button>
-
+              <div className="forgot-password text-center mt-1">
+                <Link
+                  to="/forgotpass"
+                  className="text-sm text-primary-100 hover:underline"
+                >
+                  Forgot Password?
+                </Link>
+              </div>
               <p className="text-center text-primary-200">
                 Don't have an account?{" "}
                 <Link

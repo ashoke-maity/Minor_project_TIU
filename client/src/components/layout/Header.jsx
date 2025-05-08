@@ -34,7 +34,7 @@ function Header() {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("authToken");
+    localStorage.clear(); // clears everything including token
     navigate("/");
   };
 
@@ -105,6 +105,12 @@ function Header() {
                       className="flex justify-center items-center gap-2 py-3 text-sm hover:bg-gray-100"
                     >
                       Settings
+                    </Link>
+                    <Link
+                      to="/privacypolicy"
+                      className="flex justify-center items-center gap-2 py-3 text-sm hover:bg-gray-100"
+                    >
+                      Privacy Policy
                     </Link>
                   </div>
                 )}
@@ -184,7 +190,12 @@ function Header() {
                 />
                 <span>Settings</span>
               </Link>
-
+              <Link
+                to="/privacypolicy"
+                className="flex justify-center items-center gap-2 py-3 text-sm hover:bg-gray-100"
+              >
+                Privacy Policy
+              </Link>
               {/* Logout */}
               <button
                 onClick={handleLogout}
