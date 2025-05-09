@@ -33,7 +33,7 @@ function AdminRegister() {
         formData
       );
       if (response.status === 200) {
-        alert("Registration successful! You can now log in.");
+        alert("Registration successful! Admin ID and credentials have been sent to your email.");
         navigate(`${import.meta.env.VITE_ADMIN_ROUTE}/admin/login`);
       }
     } catch (err) {
