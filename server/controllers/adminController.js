@@ -1,16 +1,18 @@
 const adminDatabase = require("../models/adminModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { sendAdminCredentials } = require("../utils/emailService");
+const dotenv = require('dotenv').config();
 
 // login
 const adminLogin = async (req, res) => {
   try {
-    const { Email, Password } = req.body;
-    const admin = await adminDatabase.findOne({ Email });
+    const { AdminID, Password } = req.body;
+    const admin = await adminDatabase.findOne({ AdminID });
     
     if (!admin) {
       return res.status(404).json({
-        msg: "User not found !",
+        msg: "Admin not found !",
       });
     }
 
@@ -41,12 +43,22 @@ const adminRegistration = async (req, res) => {
     const adminEntity = { FirstName, LastName, Email, Password: hashedPassword};
     const admin = new adminDatabase(adminEntity);
     const adminData = await admin.save();
+
+        // Send credentials email
+    await sendAdminCredentials({
+      to: Email,
+      name: `${FirstName} ${LastName}`,
+      adminID: adminData.AdminID,
+      password: Password // plaintext password sent only on registration
+    });
+
     res.send({
-      msg: "Saved Successfully",
+      msg: "Admin registered successfully and credentials sent via email.",
       adminData,
     });
   } catch (error) {
     console.log(error);
+    res.status(500).send({ msg: "Registration failed." });
   }
 };
 
