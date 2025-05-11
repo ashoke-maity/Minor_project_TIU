@@ -96,6 +96,16 @@ function AdminLogin() {
               >
                 Login
               </button>
+              <div className="text-white text-center">
+                <Link
+                  to={`${
+                    import.meta.env.VITE_ADMIN_ROUTE
+                  }/admin/forgotpass`}
+                  className="text-primary-100 hover:text-primary-200"
+                >
+                  Forgot Password?
+                </Link>
+              </div>
 
               <div className="text-white text-center">
                 New to admin?{" "}

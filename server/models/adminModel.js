@@ -34,6 +34,14 @@ const Admin = new mongoose.Schema(
       type: String,
       default: "admin",
     },
+    ResetToken: {
+      type: String,
+      default: null,
+    },
+    ResetTokenExpiry: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -62,7 +70,6 @@ Admin.pre("save", async function (next) {
     next(err);
   }
 });
-
 
 const adminDatabase = new mongoose.model("Admin", Admin);
 module.exports = adminDatabase;
