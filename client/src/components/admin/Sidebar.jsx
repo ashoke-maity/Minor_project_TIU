@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, NavLink } from "react-router-dom";
 import { SidebarComponent } from "@syncfusion/ej2-react-navigations";
-import axios from 'axios';
+import axios from "axios";
 
 export default function Sidebar() {
   const navigate = useNavigate();
@@ -44,16 +44,22 @@ export default function Sidebar() {
       href: `${adminRoute}/admin/dashboard/stories`,
     },
     {
-      id: 5,
+      id: 6,
       icon: "/icons/heart.png",
       label: "Donations",
       href: `${adminRoute}/admin/dashboard/donations`,
     },
+      {
+    id: 7,
+    icon: "/icons/settings.svg", // Make sure this icon exists
+    label: "Settings",
+    href: `${adminRoute}/admin/dashboard/settings`,
+  },
   ];
 
   const [adminName, setAdminName] = useState("Admin");
   const [adminEmail, setAdminEmail] = useState("");
-  const [adminLastName, setAdminLastName] = useState(""); 
+  const [adminLastName, setAdminLastName] = useState("");
 
   useEffect(() => {
     const fetchAdminData = async () => {
@@ -85,8 +91,15 @@ export default function Sidebar() {
     <aside className="bg-white w-full max-w-[270px] hidden lg:block">
       <SidebarComponent width={270} enableGestures={false}>
         <section className="nav-items bg-white">
-          <Link to="/home" className="link-logo flex items-center gap-2 px-4 py-4">
-            <img src="/icons/logo3.png" alt="logo" className="size-[40px] -mr-3 -ml-3 items-center justify-center content-center" />
+          <Link
+            to="/home"
+            className="link-logo flex items-center gap-2 px-4 py-4"
+          >
+            <img
+              src="/icons/logo3.png"
+              alt="logo"
+              className="size-[40px] -mr-3 -ml-3 items-center justify-center content-center"
+            />
             <h1>AlumniConnect</h1>
           </Link>
 
@@ -116,21 +129,25 @@ export default function Sidebar() {
                             : "group-hover:brightness-0 group-hover:invert"
                         }`}
                       />
-                      <span className={`${isActive ? "text-white" : ""}`}>{label}</span>
+                      <span className={`${isActive ? "text-white" : ""}`}>
+                        {label}
+                      </span>
                     </>
                   )}
                 </NavLink>
               ))}
             </nav>
 
-            <footer className="nav-footer">
-              <img
-                src="/images/david.webp"
-                alt={adminName || 'Admin'}
-              />
-              <article>
-                <h2>{adminName} {adminLastName}</h2>
-                <p>{adminEmail}</p>
+            <footer className="nav-footer flex items-center gap-3 px-4 py-4 border-t mt-4">
+              <div className="bg-primary-100 text-white rounded-full w-10 h-10 flex items-center justify-center font-semibold text-lg">
+                {adminName.charAt(0)}
+                {adminLastName.charAt(0)}
+              </div>
+              <article className="flex-1">
+                <h2 className="font-semibold">
+                  {adminName} {adminLastName}
+                </h2>
+                <p className="text-sm text-gray-500">{adminEmail}</p>
               </article>
               <button onClick={handleLogout} className="cursor-pointer">
                 <img src="/icons/logout.svg" alt="logout" className="size-6" />
