@@ -8,7 +8,6 @@ function AdminRegister() {
     FirstName: "",
     LastName: "",
     Email: "",
-    Password: "",
   });
   const [error, setError] = useState("");
 
@@ -18,22 +17,16 @@ function AdminRegister() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    setError("");
 
-    // Password validation: check if it has at least 8 characters
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
-    if (!passwordRegex.test(formData.Password)) {
-      setError(
-        "Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, a number, and a special character."
-      );
-      return;
-    }
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_ADMIN_API_URL}/admin/register`,
         formData
       );
+
       if (response.status === 200) {
-        alert("Registration successful! You can now log in.");
+        alert("Registration successful! A one-time password has been sent to your email.");
         navigate(`${import.meta.env.VITE_ADMIN_ROUTE}/admin/login`);
       }
     } catch (err) {
@@ -110,21 +103,6 @@ function AdminRegister() {
                 />
               </div>
 
-              <div className="w-full">
-                <label htmlFor="Password" className="label">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  name="Password"
-                  placeholder="••••••••"
-                  value={formData.Password}
-                  onChange={handleChange}
-                  required
-                  className="input w-full"
-                />
-              </div>
-
               <button
                 type="submit"
                 className="w-full !bg-primary-100 !text-dark-100 hover:!bg-primary-200/80 !rounded-full !min-h-10 !font-bold !px-5 cursor-pointer"
@@ -133,10 +111,10 @@ function AdminRegister() {
               </button>
 
               <div className="text-white text-center">
-                New to admin?{" "}
+                Already registered?{" "}
                 <Link
                   to={`${import.meta.env.VITE_ADMIN_ROUTE}/admin/login`}
-                  className="text-primary-100  hover:text-primary-200"
+                  className="text-primary-100 hover:text-primary-200"
                 >
                   Admin Login
                 </Link>

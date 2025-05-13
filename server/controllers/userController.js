@@ -1,6 +1,11 @@
+const crypto = require("crypto");
 const userDatabase = require("../models/userModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const postmark = require("postmark");
+const postmarkClient = new postmark.ServerClient(process.env.POSTMARK_API_KEY);
+// const nodemailer = require("nodemailer");
+const dotenv = require('dotenv').config();
 
 // user login
 const userLogin = async (req, res) => {
@@ -41,6 +46,128 @@ const userLogin = async (req, res) => {
     res.status(200).json({ status: 1, msg: "Login successful", token });
   } catch (err) {
     console.error(err);
+    res.status(500).json({ status: 0, msg: "Server error" });
+  }
+};
+
+// user forgot password
+const userForgotPassword = async (req, res) => {
+  const { Email } = req.body;
+
+  if (!Email) {
+    return res.status(400).json({ status: 0, msg: "Email is required" });
+  }
+
+  try {
+    const user = await userDatabase.findOne({ Email });
+
+    if (!user) {
+      return res.status(404).json({ status: 0, msg: "User not found" });
+    }
+
+    // Create a reset token
+    const resetToken = crypto.randomBytes(20).toString("hex");
+
+    // Set token expiration (e.g., 1 hour)
+    const resetTokenExpiration = Date.now() + 3600000;
+
+    // Save token and expiration
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = resetTokenExpiration;
+    await user.save();
+
+    const resetURL = `${process.env.CLIENT_ROUTE}/resetpass?token=${resetToken}`;
+
+    // Send email via Postmark
+    await postmarkClient.sendEmail({
+      From: 'Alumni Connect <' + process.env.EMAIL_FROM + '>',
+      To: Email, // ✅ This should be the user's email, not yours
+      Subject: "Password Reset - AlumniConnect",
+      HtmlBody: `<p>Dear ${user.FirstName || 'User'},</p>
+
+    <p>We received a request to reset the password associated with your Alumni Connect account.</p>
+
+    <p>If you initiated this request, please click the button below to securely reset your password:</p>
+
+    <p>
+      <a href="${resetURL}" style="display: inline-block; padding: 10px 20px; background-color: #2563eb; color: #ffffff; text-decoration: none; border-radius: 5px;">
+        Reset Password
+      </a>
+    </p>
+
+    <p>This password reset link will remain valid for the next <strong>60 minutes</strong>.</p>
+
+    <p>If you did not request this reset, you can safely ignore this message. Your account is still secure, and no changes will be made.</p>
+
+    <p>Need help or have questions? Please reach out to our support team at <a href="mailto:${process.env.EMAIL_FROM}">${process.env.EMAIL_FROM}</a>.</p>
+
+    <p>Best regards,<br>
+    The Alumni Connect Team</p>
+  `,
+  TextBody: `
+Dear ${user.FirstName || 'User'},
+
+We received a request to reset the password for your Alumni Connect account.
+
+If you made this request, please use the link below to reset your password:
+${resetURL}
+
+This link will expire in 60 minutes.
+
+If you did not request this, you can ignore this email. Your account is safe.
+
+For any help, contact us at: ${process.env.EMAIL_FROM}
+
+Best regards,
+The Alumni Connect Team
+  `,
+      MessageStream: "outbound",
+    });
+
+    res.status(200).json({ status: 1, msg: "Password reset email sent" });
+
+  } catch (error) {
+    console.error("Postmark error:", error);
+    res.status(500).json({ status: 0, msg: "Server error" });
+  }
+};
+
+// password reset
+const userResetPassword = async (req, res) => {
+  const { resetToken, newPassword, confirmNewPassword } = req.body;
+
+  if (!resetToken || !newPassword || !confirmNewPassword) {
+    return res.status(400).json({ status: 0, msg: "All fields are required" });
+  }
+
+  if (newPassword !== confirmNewPassword) {
+    return res.status(400).json({ status: 0, msg: "Passwords do not match" });
+  }
+
+  try {
+    // Look for the user by reset token and check if the token hasn't expired
+    const user = await userDatabase.findOne({
+      resetPasswordToken: resetToken,
+      resetPasswordExpires: { $gt: Date.now() }, // token should be greater than the current date (i.e., valid)
+    });
+
+    if (!user) {
+      return res.status(400).json({ status: 0, msg: "Invalid or expired token" });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update user password and remove reset token
+    user.Password = hashedPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+
+    await user.save();
+
+    res.status(200).json({ status: 1, msg: "Password reset successful" });
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ status: 0, msg: "Server error" });
   }
 };
@@ -120,7 +247,6 @@ const userDashboard = async (req, res) => {
   }
 };
 
-
 // user delete (self-delete)
 const userDelete = async (req, res) => {
   try {
@@ -128,7 +254,9 @@ const userDelete = async (req, res) => {
       return res.status(401).json({ status: 0, msg: "Unauthorized access" });
     }
 
-    const deletedUser = await userDatabase.findOneAndDelete({Email: req.user.Email});
+    const deletedUser = await userDatabase.findOneAndDelete({
+      Email: req.user.Email,
+    });
 
     if (!deletedUser) {
       return res.status(404).json({ status: 0, msg: "User not found" });
@@ -151,11 +279,15 @@ const userUpdate = async (req, res) => {
     const { oldPassword, newPassword, confirmNewPassword } = req.body;
 
     if (!oldPassword || !newPassword || !confirmNewPassword) {
-      return res.status(400).json({ status: 0, msg: "All fields are required" });
+      return res
+        .status(400)
+        .json({ status: 0, msg: "All fields are required" });
     }
 
     if (newPassword !== confirmNewPassword) {
-      return res.status(400).json({ status: 0, msg: "New passwords do not match" });
+      return res
+        .status(400)
+        .json({ status: 0, msg: "New passwords do not match" });
     }
 
     const user = await userDatabase.findOne({ Email: req.user.Email });
@@ -166,7 +298,9 @@ const userUpdate = async (req, res) => {
 
     const isMatch = await bcrypt.compare(oldPassword, user.Password);
     if (!isMatch) {
-      return res.status(401).json({ status: 0, msg: "Old password is incorrect" });
+      return res
+        .status(401)
+        .json({ status: 0, msg: "Old password is incorrect" });
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -181,6 +315,12 @@ const userUpdate = async (req, res) => {
   }
 };
 
-
-
-module.exports = { userLogin, userRegister, userDashboard, userDelete, userUpdate};
+module.exports = {
+  userLogin,
+  userRegister,
+  userDashboard,
+  userDelete,
+  userUpdate,
+  userForgotPassword,
+  userResetPassword,
+};

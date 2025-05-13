@@ -4,7 +4,7 @@ import axios from "axios";
 
 function AdminLogin() {
   const navigate = useNavigate();
-  const [Email, setEmail] = useState("");
+  const [AdminID, setAdminID] = useState("");
   const [Password, setPassword] = useState("");
   const [error, setError] = useState("");
 
@@ -13,7 +13,7 @@ function AdminLogin() {
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_ADMIN_API_URL}/admin/login`,
-        { Email, Password }
+        { AdminID, Password }
       );
       if (response.status === 200) {
         localStorage.setItem("authToken", response.data.token);
@@ -22,14 +22,14 @@ function AdminLogin() {
     } catch (error) {
       console.log("Axios error:", error);
       let errorMessage = "An error occurred. Please try again later.";
-  
+
       if (error.response) {
         console.error("Error response:", error.response.data);
         errorMessage = error.response.data.msg || errorMessage;
       } else {
         console.error("Request error:", error);
       }
-  
+
       alert(errorMessage); // Show popup box
       window.location.reload(); // Then reload page
     }
@@ -49,7 +49,7 @@ function AdminLogin() {
                 className=""
               />
               <h1 className="text-white text-3xl shadow-md font-medium mb-2 animate-colorShift">
-                AlumniConnect 
+                AlumniConnect
               </h1>
             </div>
 
@@ -61,15 +61,15 @@ function AdminLogin() {
               )}
 
               <div className="w-full">
-                <label htmlFor="Email" className="label">
-                  Admin Email
+                <label htmlFor="AdminID" className="label">
+                  Admin ID
                 </label>
                 <input
-                  name="Email"
-                  type="email"
-                  placeholder="Enter your Admin Email"
-                  value={Email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  name="AdminID"
+                  type="text"
+                  placeholder="Enter your Admin ID"
+                  value={AdminID}
+                  onChange={(e) => setAdminID(e.target.value)}
                   required
                   className="input w-full"
                 />
@@ -96,6 +96,16 @@ function AdminLogin() {
               >
                 Login
               </button>
+              <div className="text-white text-center">
+                <Link
+                  to={`${
+                    import.meta.env.VITE_ADMIN_ROUTE
+                  }/admin/forgotpass`}
+                  className="text-primary-100 hover:text-primary-200"
+                >
+                  Forgot Password?
+                </Link>
+              </div>
 
               <div className="text-white text-center">
                 New to admin?{" "}
