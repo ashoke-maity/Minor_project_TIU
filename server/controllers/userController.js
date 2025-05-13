@@ -80,12 +80,47 @@ const userForgotPassword = async (req, res) => {
 
     // Send email via Postmark
     await postmarkClient.sendEmail({
-      From: process.env.EMAIL_FROM,
-      To: process.env.EMAIL_FROM, // ✅ This should be the user's email, not yours
+      From: 'Alumni Connect <' + process.env.EMAIL_FROM + '>',
+      To: Email, // ✅ This should be the user's email, not yours
       Subject: "Password Reset - AlumniConnect",
-      HtmlBody: `<p>Click <a href="${resetURL}">here</a> to reset your password.</p>
-                 <p>If you didn't request this, you can ignore this email.</p>`,
-      TextBody: `Click this link to reset your password: ${resetURL}`,
+      HtmlBody: `<p>Dear ${user.FirstName || 'User'},</p>
+
+    <p>We received a request to reset the password associated with your Alumni Connect account.</p>
+
+    <p>If you initiated this request, please click the button below to securely reset your password:</p>
+
+    <p>
+      <a href="${resetURL}" style="display: inline-block; padding: 10px 20px; background-color: #2563eb; color: #ffffff; text-decoration: none; border-radius: 5px;">
+        Reset Password
+      </a>
+    </p>
+
+    <p>This password reset link will remain valid for the next <strong>60 minutes</strong>.</p>
+
+    <p>If you did not request this reset, you can safely ignore this message. Your account is still secure, and no changes will be made.</p>
+
+    <p>Need help or have questions? Please reach out to our support team at <a href="mailto:${process.env.EMAIL_FROM}">${process.env.EMAIL_FROM}</a>.</p>
+
+    <p>Best regards,<br>
+    The Alumni Connect Team</p>
+  `,
+  TextBody: `
+Dear ${user.FirstName || 'User'},
+
+We received a request to reset the password for your Alumni Connect account.
+
+If you made this request, please use the link below to reset your password:
+${resetURL}
+
+This link will expire in 60 minutes.
+
+If you did not request this, you can ignore this email. Your account is safe.
+
+For any help, contact us at: ${process.env.EMAIL_FROM}
+
+Best regards,
+The Alumni Connect Team
+  `,
       MessageStream: "outbound",
     });
 
