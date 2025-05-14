@@ -5,6 +5,7 @@ const dbConnect = require('./config/db');
 const userRouters = require('./routes/userRoutes');
 const adminRoutes  = require('./routes/adminRoutes');
 const fetchRouter = require('./routes/fetchRoutes');
+const adminjobRouters = require('./routes/AdminJobRoutes');
 const cors = require('cors');
 const corsOptions = require('./middlewares/Cors');
 
@@ -18,6 +19,7 @@ app.use(cors(corsOptions));
 // routes
 app.use(process.env.ADMIN_ROUTE, adminRoutes); // admin URL
 app.use(process.env.USER_ROUTE, userRouters); //user URL
+app.use(process.env.ADMIN_ROUTE, adminjobRouters) // admin job URL
 
 // fetching route
 app.use(process.env.ADMIN_ROUTE, fetchRouter); // admin can access user data
