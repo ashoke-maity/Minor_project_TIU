@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import axios from 'axios';
 
 const JobForm = () => {
   const [jobData, setJobData] = useState({
@@ -13,7 +14,27 @@ const JobForm = () => {
     deadline: "",
   });
 
-  const [previewLogo, setPreviewLogo] = useState(null);
+  // const [previewLogo, setPreviewLogo] = useState(null);
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const response = await axios.post(`${import.meta.env.VITE_ADMIN_API_URL}/admin/jobs`, {
+      companyName: jobData.companyName,
+      jobTitle: jobData.jobTitle,
+      jobDescription: jobData.description,
+      jobRequirements: jobData.requirements,
+      jobType: jobData.jobType,
+      location: jobData.location,
+      salary: jobData.salary,
+      ApplicationDeadline: jobData.deadline,
+    });
+
+    console.log("Job posted successfully:", response.data);
+  } catch (error) {
+    console.log("Error posting job:", error);
+  }
+};
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -23,41 +44,23 @@ const JobForm = () => {
     }));
   };
 
-  const handleFileChange = (e) => {
-    const { name, files } = e.target;
-    const file = files[0];
+  // const handleFileChange = (e) => {
+  //   const { name, files } = e.target;
+  //   const file = files[0];
 
-    setJobData((prev) => ({
-      ...prev,
-      [name]: file,
-    }));
+  //   setJobData((prev) => ({
+  //     ...prev,
+  //     [name]: file,
+  //   }));
 
-    if (name === "logo" && file) {
-      setPreviewLogo(URL.createObjectURL(file));
-    }
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Submitted Job:", jobData);
-  };
+  //   if (name === "logo" && file) {
+  //     setPreviewLogo(URL.createObjectURL(file));
+  //   }
+  // };
 
   return (
     <div className="rounded-xl bg-white shadow-md p-6">
       <form onSubmit={handleSubmit} className="space-y-6 p-6">
-        {/* Job Title */}
-        <div>
-          <label className="text-lg font-medium text-gray-700">Job Title</label>
-          <input
-            type="text"
-            name="jobTitle"
-            value={jobData.jobTitle}
-            onChange={handleInputChange}
-            placeholder="Enter job title"
-            required
-            className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
 
         {/* Company Name */}
         <div>
@@ -72,67 +75,46 @@ const JobForm = () => {
             className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
           />
         </div>
+        {/* Company Logo */}
+        {/* <div>
+          <label className="text-lg font-medium text-gray-700">Company Logo</label>
+          <div className="relative">
+            <input
+              type="file"
+              name="logo"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="w-full p-3 mt-2 border border-gray-300 rounded-lg pl-12"
+            />
+            <img
+              src="/icons/upload.svg"
+              alt="Upload Icon"
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-6 h-6"
+            />
+          </div>
 
-        {/* Location */}
+          {previewLogo && (
+            <div className="mt-3 border border-gray-300 rounded-lg overflow-hidden w-full max-w-md">
+              <img src={previewLogo} alt="Company Logo" className="w-full h-auto object-cover" />
+            </div>
+          )}
+        </div> */}
+
+        {/* Job Title */}
         <div>
-          <label className="text-lg font-medium text-gray-700">Location</label>
+          <label className="text-lg font-medium text-gray-700">Job Title</label>
           <input
             type="text"
-            name="location"
-            value={jobData.location}
+            name="jobTitle"
+            value={jobData.jobTitle}
             onChange={handleInputChange}
-            placeholder="Enter location"
+            placeholder="Enter job title"
             required
             className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
-        {/* Job Type */}
-        <div>
-          <label className="text-lg font-medium text-gray-700">Job Type</label>
-          <select
-            name="jobType"
-            value={jobData.jobType}
-            onChange={handleInputChange}
-            required
-            className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Select job type</option>
-            <option value="Full-time">Full-time</option>
-            <option value="Part-time">Part-time</option>
-            <option value="Internship">Internship</option>
-            <option value="Contract">Contract</option>
-            <option value="Remote">Remote</option>
-          </select>
-        </div>
-
-        {/* Salary */}
-        <div>
-          <label className="text-lg font-medium text-gray-700">Salary (Optional)</label>
-          <input
-            type="text"
-            name="salary"
-            value={jobData.salary}
-            onChange={handleInputChange}
-            placeholder="e.g. $60,000/year"
-            className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:ring-2 "
-          />
-        </div>
-
-        {/* Deadline */}
-        <div>
-          <label className="text-lg font-medium text-gray-700">Application Deadline</label>
-          <input
-            type="date"
-            name="deadline"
-            value={jobData.deadline}
-            onChange={handleInputChange}
-            required
-            className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:ring-2 "
-          />
-        </div>
-
-        {/* Job Description */}
+         {/* Job Description */}
         <div>
           <label className="text-lg font-medium text-gray-700">Job Description</label>
           <textarea
@@ -159,30 +141,62 @@ const JobForm = () => {
             className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:ring-2 "
           />
         </div>
-
-        {/* Company Logo */}
+        
+        {/* Job Type */}
         <div>
-          <label className="text-lg font-medium text-gray-700">Company Logo</label>
-          <div className="relative">
-            <input
-              type="file"
-              name="logo"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="w-full p-3 mt-2 border border-gray-300 rounded-lg pl-12"
-            />
-            <img
-              src="/icons/upload.svg"
-              alt="Upload Icon"
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-6 h-6"
-            />
-          </div>
+          <label className="text-lg font-medium text-gray-700">Job Type</label>
+          <select
+            name="jobType"
+            value={jobData.jobType}
+            onChange={handleInputChange}
+            required
+            className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Select job type</option>
+            <option value="Full-time">Full-time (on-site)</option>
+            <option value="Internship">Internship (on-site)</option>
+            <option value="Internship">Remote Internship</option>
+          </select>
+        </div>
+        
+        {/* Location */}
+        <div>
+          <label className="text-lg font-medium text-gray-700">Location</label>
+          <input
+            type="text"
+            name="location"
+            value={jobData.location}
+            onChange={handleInputChange}
+            placeholder="Enter location"
+            required
+            className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
 
-          {previewLogo && (
-            <div className="mt-3 border border-gray-300 rounded-lg overflow-hidden w-full max-w-md">
-              <img src={previewLogo} alt="Company Logo" className="w-full h-auto object-cover" />
-            </div>
-          )}
+        {/* Salary */}
+        <div>
+          <label className="text-lg font-medium text-gray-700">Salary</label>
+          <input
+            type="text"
+            name="salary"
+            value={jobData.salary}
+            onChange={handleInputChange}
+            placeholder="e.g. $60,000/year"
+            className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:ring-2 "
+          />
+        </div>
+
+        {/* Deadline */}
+        <div>
+          <label className="text-lg font-medium text-gray-700">Application Deadline</label>
+          <input
+            type="date"
+            name="deadline"
+            value={jobData.deadline}
+            onChange={handleInputChange}
+            required
+            className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:ring-2 "
+          />
         </div>
 
         <button

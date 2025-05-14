@@ -6,6 +6,7 @@ import ResetPassword from '../components/others/ResetPass';
 import Register from '../components/others/Register';
 import UserSettings from '../pages/UserSettings';
 import UserPrivacyPolicy from '../pages/UserPrivacyPolicy';
+import UserJobPortal from '../pages/UserJobPortal';
 import AdminDashboard from '../pages/AdminDashboard';
 import AdminSettings from '../components/admin/AdminSettings';
 import AdminLogin from '../pages/AdminLogin';
@@ -37,6 +38,7 @@ function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/usersetting" element={<UserSettings />} />
         <Route path="/privacypolicy" element={<UserPrivacyPolicy />} />
+        <Route path="/home/jobportal" element={<UserJobPortal />} />
         
         {/* Admin Routes */}
         <Route path={`${adminRoute}/admin/login`} element={<AdminLogin />} />
