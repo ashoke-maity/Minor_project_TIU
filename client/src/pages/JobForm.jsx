@@ -14,55 +14,55 @@ const JobForm = () => {
     deadline: "",
   });
 
-  // const [previewLogo, setPreviewLogo] = useState(null);
+  const [previewLogo, setPreviewLogo] = useState(null);
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  try {
-    const token = localStorage.getItem("authToken");
-    if (!token) {
-      return alert("You must be logged in as admin to post a job.");
-    }
-
-    const response = await axios.post(
-      `${import.meta.env.VITE_ADMIN_API_URL}/admin/jobs`,
-      {
-        companyName: jobData.companyName,
-        jobTitle: jobData.jobTitle,
-        description: jobData.description,
-        requirements: jobData.requirements,
-        jobType: jobData.jobType,
-        location: jobData.location,
-        salary: jobData.salary,
-        deadline: jobData.deadline,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        return alert("You must be logged in as admin to post a job.");
       }
-    );
 
-    console.log("Job posted successfully:", response.data);
-    alert("Job posted successfully!");
-    // Optionally reset form:
-    setJobData({
-      jobTitle: "",
-      companyName: "",
-      location: "",
-      jobType: "",
-      salary: "",
-      description: "",
-      requirements: "",
-      logo: null,
-      deadline: "",
-    });
-  } catch (error) {
-    console.log("Error posting job:", error);
-    alert("Failed to post job. Check console for details.");
-  }
-};
+      const formData = new FormData();
+
+      for (let key in jobData) {
+        formData.append(key, jobData[key]);
+      }
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_ADMIN_API_URL}/admin/jobs`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      console.log("Job posted successfully:", response.data);
+      alert("Job posted successfully!");
+
+      setJobData({
+        jobTitle: "",
+        companyName: "",
+        location: "",
+        jobType: "",
+        salary: "",
+        description: "",
+        requirements: "",
+        logo: null,
+        deadline: "",
+      });
+      setPreviewLogo(null);
+
+    } catch (error) {
+      console.log("Error posting job:", error);
+      alert("Failed to post job. Check console for details.");
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -72,23 +72,23 @@ const handleSubmit = async (e) => {
     }));
   };
 
-  // const handleFileChange = (e) => {
-  //   const { name, files } = e.target;
-  //   const file = files[0];
+  const handleFileChange = (e) => {
+    const { name, files } = e.target;
+    const file = files[0];
 
-  //   setJobData((prev) => ({
-  //     ...prev,
-  //     [name]: file,
-  //   }));
+    setJobData((prev) => ({
+      ...prev,
+      [name]: file,
+    }));
 
-  //   if (name === "logo" && file) {
-  //     setPreviewLogo(URL.createObjectURL(file));
-  //   }
-  // };
+    if (name === "logo" && file) {
+      setPreviewLogo(URL.createObjectURL(file));
+    }
+  };
 
   return (
     <div className="rounded-xl bg-white shadow-md p-6">
-      <form onSubmit={handleSubmit} className="space-y-6 p-6">
+      <form onSubmit={handleSubmit} className="space-y-6 p-6" encType="multipart/form-data">
 
         {/* Company Name */}
         <div>
@@ -103,8 +103,9 @@ const handleSubmit = async (e) => {
             className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
           />
         </div>
+
         {/* Company Logo */}
-        {/* <div>
+        <div>
           <label className="text-lg font-medium text-gray-700">Company Logo</label>
           <div className="relative">
             <input
@@ -126,7 +127,7 @@ const handleSubmit = async (e) => {
               <img src={previewLogo} alt="Company Logo" className="w-full h-auto object-cover" />
             </div>
           )}
-        </div> */}
+        </div>
 
         {/* Job Title */}
         <div>
@@ -142,7 +143,7 @@ const handleSubmit = async (e) => {
           />
         </div>
 
-         {/* Job Description */}
+        {/* Job Description */}
         <div>
           <label className="text-lg font-medium text-gray-700">Job Description</label>
           <textarea
@@ -169,7 +170,7 @@ const handleSubmit = async (e) => {
             className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:ring-2 "
           />
         </div>
-        
+
         {/* Job Type */}
         <div>
           <label className="text-lg font-medium text-gray-700">Job Type</label>
@@ -183,10 +184,10 @@ const handleSubmit = async (e) => {
             <option value="">Select job type</option>
             <option value="Full-time">Full-time (on-site)</option>
             <option value="Internship">Internship (on-site)</option>
-            <option value="Internship">Remote Internship</option>
+            <option value="Remote Internship">Remote Internship</option>
           </select>
         </div>
-        
+
         {/* Location */}
         <div>
           <label className="text-lg font-medium text-gray-700">Location</label>

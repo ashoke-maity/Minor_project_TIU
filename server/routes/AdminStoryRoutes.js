@@ -1,12 +1,17 @@
 const express = require("express");
 const router = express.Router();
+const multer = require("multer");
 const { createStory, getAllStories } = require("../controllers/AdminStoryController");
-const verifyToken = require('../middlewares/adminAuthMiddleware'); // your middleware
+const verifyToken = require("../middlewares/adminAuthMiddleware");
 
-// admin post success stories
-router.post("/admin/write/stories", verifyToken ,createStory);
+// multer config to store files in memory (buffer)
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
-// admin can see the story posted by the admin (track how many stories have been posted)
-router.get("/admin/view/stories", verifyToken ,getAllStories);
+// Admin post success stories with media upload support
+router.post("/admin/write/stories", verifyToken, upload.single("media"), createStory);
+
+// Admin get all stories
+router.get("/admin/view/stories", verifyToken, getAllStories);
 
 module.exports = router;

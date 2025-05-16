@@ -1,19 +1,38 @@
-// controllers/StoryController.js
 const Story = require("../models/AdminStoryModel");
+const cloudinary = require("../config/cloudinary");
 
-// Create a new story
 const createStory = async (req, res) => {
   try {
     const { title, author, storyBody, tags } = req.body;
 
-    // Parse tags if they come in as a JSON string
+    // Parse tags if sent as a JSON string
     const parsedTags = typeof tags === "string" ? JSON.parse(tags) : tags;
+
+    let mediaUrl = null;
+
+    // If a media file is uploaded, upload it to Cloudinary
+    if (req.file) {
+      mediaUrl = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            resource_type: "auto", // automatically detect image/video
+            folder: "stories",     // optional folder name in Cloudinary
+          },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result.secure_url);
+          }
+        );
+        stream.end(req.file.buffer);
+      });
+    }
 
     const newStory = new Story({
       title,
       author,
       storyBody,
       tags: parsedTags,
+      mediaUrl, // This will be either Cloudinary URL or null
     });
 
     const savedStory = await newStory.save();
@@ -39,4 +58,4 @@ const getAllStories = async (req, res) => {
   }
 };
 
-module.exports = {createStory, getAllStories};
+module.exports = { createStory, getAllStories };

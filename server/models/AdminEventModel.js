@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const eventSchema = new mongoose.Schema({
-    eventName:{
+    eventName: {
         type: String,
         required: true
     },
@@ -21,7 +21,11 @@ const eventSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    createdAt:{
+    mediaUrl: {
+        type: String,  // URL of uploaded image or video on Cloudinary
+        default: null   // optional field, so default null if no media uploaded
+    },
+    createdAt: {
         type: Date,
         default: Date.now
     },
