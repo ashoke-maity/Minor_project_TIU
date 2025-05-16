@@ -5,12 +5,12 @@ const StoryForm = () => {
     title: "",
     author: "",
     storyBody: "",
-    media: null,
+    // media: null,
   });
 
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState([]);
-  const [previewMedia, setPreviewMedia] = useState(null);
+  // const [previewMedia, setPreviewMedia] = useState(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -20,18 +20,18 @@ const StoryForm = () => {
     }));
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
+  // const handleFileChange = (e) => {
+  //   const file = e.target.files[0];
 
-    setStoryData((prev) => ({
-      ...prev,
-      media: file,
-    }));
+  //   setStoryData((prev) => ({
+  //     ...prev,
+  //     media: file,
+  //   }));
 
-    if (file) {
-      setPreviewMedia(URL.createObjectURL(file));
-    }
-  };
+  //   if (file) {
+  //     setPreviewMedia(URL.createObjectURL(file));
+  //   }
+  // };
 
   const handleTagKeyDown = (e) => {
     if (e.key === "Enter" && tagInput.trim()) {
@@ -56,9 +56,9 @@ const StoryForm = () => {
     formData.append("author", storyData.author);
     formData.append("storyBody", storyData.storyBody);
     formData.append("tags", JSON.stringify(tags));
-    if (storyData.media) {
-      formData.append("media", storyData.media);
-    }
+    // if (storyData.media) {
+    //   formData.append("media", storyData.media);
+    // }
 
     // Simulate submission
     console.log("Submitted Story Data:", {
@@ -71,11 +71,11 @@ const StoryForm = () => {
       title: "",
       author: "",
       storyBody: "",
-      media: null,
+      // media: null,
     });
     setTags([]);
     setTagInput("");
-    setPreviewMedia(null);
+    // setPreviewMedia(null);
   };
 
   return (
@@ -155,7 +155,7 @@ const StoryForm = () => {
           />
         </div>
 
-        {/* Media Upload (optional) */}
+        {/* Media Upload (optional)
         <div>
           <label className="text-lg font-medium text-gray-700">Upload Image/Video (Optional)</label>
           <div className="relative">
@@ -171,9 +171,9 @@ const StoryForm = () => {
               alt="Upload Icon"
               className="absolute left-3 top-1/2 transform -translate-y-1/2 w-6 h-6"
             />
-          </div>
+          </div> */}
 
-          {previewMedia && (
+          {/* {previewMedia && (
             <div className="mt-3 border border-gray-300 rounded-lg overflow-hidden w-full max-w-md">
               {storyData.media?.type?.startsWith("video") ? (
                 <video controls src={previewMedia} className="w-full h-auto object-cover" />
@@ -182,7 +182,7 @@ const StoryForm = () => {
               )}
             </div>
           )}
-        </div>
+        </div> */}
 
         <button
           type="submit"

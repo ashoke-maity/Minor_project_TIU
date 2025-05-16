@@ -6,13 +6,13 @@ const EventForm = () => {
     eventDate: "",
     eventLocation: "",
     eventDescription: "",
-    eventImage: null,
+    // eventImage: null,
     eventSummary: "",
-    eventTrailer: null,
+    // eventTrailer: null,
   });
 
-  const [previewImage, setPreviewImage] = useState(null);
-  const [previewVideo, setPreviewVideo] = useState(null);
+  // const [previewImage, setPreviewImage] = useState(null);
+  // const [previewVideo, setPreviewVideo] = useState(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -31,13 +31,13 @@ const EventForm = () => {
       [name]: file,
     }));
 
-    if (name === "eventImage" && file) {
-      setPreviewImage(URL.createObjectURL(file));
-    }
+    // if (name === "eventImage" && file) {
+    //   setPreviewImage(URL.createObjectURL(file));
+    // }
 
-    if (name === "eventTrailer" && file) {
-      setPreviewVideo(URL.createObjectURL(file));
-    }
+    // if (name === "eventTrailer" && file) {
+    //   setPreviewVideo(URL.createObjectURL(file));
+    // }
   };
 
   const handleSubmit = (e) => {
@@ -104,7 +104,7 @@ const EventForm = () => {
           />
         </div>
 
-        {/* Event Image */}
+        {/* Event Image
         <div className="form-item">
           <label className="text-lg font-medium text-gray-700">Event Image</label>
           <div className="relative">
@@ -120,16 +120,16 @@ const EventForm = () => {
               alt="Upload Icon"
               className="absolute left-3 top-1/2 transform -translate-y-1/2 w-6 h-6"
             />
-          </div>
-
+          </div> */}
+{/* 
           {previewImage && (
             <div className="mt-3 border border-gray-300 rounded-lg overflow-hidden w-full max-w-md">
               <img src={previewImage} alt="Event" className="w-full h-auto object-cover" />
             </div>
           )}
-        </div>
+        </div> */}
 
-        {/* Event Trailer */}
+        {/* Event Trailer
         <div className="form-item">
           <label className="text-lg font-medium text-gray-700">Event Trailer</label>
           <div className="relative">
@@ -145,9 +145,9 @@ const EventForm = () => {
               alt="Upload Icon"
               className="absolute left-3 top-1/2 transform -translate-y-1/2 w-6 h-6"
             />
-          </div>
+          </div> */}
 
-          {previewVideo && (
+          {/* {previewVideo && (
             <div className="mt-3 border border-gray-300 rounded-lg overflow-hidden w-full max-w-md">
               <video
                 controls
@@ -156,7 +156,7 @@ const EventForm = () => {
               />
             </div>
           )}
-        </div>
+        </div> */}
 
         {/* Event Summary */}
         <div className="form-item">
