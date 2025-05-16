@@ -8,6 +8,8 @@ const fetchRouter = require('./routes/fetchRoutes');
 const adminjobRouter = require('./routes/AdminJobRoutes');
 const AdminEventRouter = require('./routes/AdminEventRoutes');
 const AdminStoryRouter = require('./routes/AdminStoryRoutes');
+const AdminImageUploadRouter = require('./routes/cloudinaryRoutes');
+const UserImageUploadRouter = require('./routes/cloudinaryRoutes');
 
 // cors
 const cors = require('cors');
@@ -29,6 +31,10 @@ app.use(process.env.ADMIN_ROUTE, AdminStoryRouter) // admin success story post
 
 // fetching route
 app.use(process.env.ADMIN_ROUTE, fetchRouter); // admin can access user data
+
+// image upload route
+app.use(process.env.ADMIN_ROUTE, AdminImageUploadRouter); // admin image upload
+app.use(process.env.USER_ROUTE, UserImageUploadRouter); // user image upload
 
 // start server
 app.listen(process.env.PORT, () => {

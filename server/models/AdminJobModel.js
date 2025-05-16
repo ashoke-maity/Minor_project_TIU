@@ -9,6 +9,8 @@ const adminJobSchema = new mongoose.Schema({
   description: { type: String, required: true },
   requirements: { type: String, required: true },
   deadline: { type: Date, required: true },
+  logo: { type: String }, // 🔥 Add this line to store logo path
+  postedByAdmin: { type: mongoose.Schema.Types.ObjectId, ref: "Admin" } // Optional: to track who posted
 }, { timestamps: true });
 
 module.exports = mongoose.model("AdminJob", adminJobSchema);

@@ -1,4 +1,6 @@
 const AdminJob = require("../models/AdminJobModel");
+const cloudinary = require("../config/cloudinary"); // Update path as needed
+const streamifier = require("streamifier");
 
 const postJobByAdmin = async (req, res) => {
   try {
@@ -10,11 +12,31 @@ const postJobByAdmin = async (req, res) => {
       salary,
       description,
       requirements,
-      deadline
+      deadline,
     } = req.body;
 
     if (!jobTitle || !companyName || !location || !jobType || !description || !requirements || !deadline) {
       return res.status(400).json({ status: 0, msg: "Required fields missing" });
+    }
+
+    let logoUrl = null;
+
+    if (req.file) {
+      // Upload image buffer to Cloudinary
+      const uploadFromBuffer = () => {
+        return new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            { folder: "job_logos" },
+            (error, result) => {
+              if (error) return reject(error);
+              resolve(result.secure_url);
+            }
+          );
+          streamifier.createReadStream(req.file.buffer).pipe(stream);
+        });
+      };
+
+      logoUrl = await uploadFromBuffer();
     }
 
     const newJob = new AdminJob({
@@ -26,7 +48,8 @@ const postJobByAdmin = async (req, res) => {
       description,
       requirements,
       deadline,
-      postedByAdmin: req.admin._id
+      logo: logoUrl,
+      postedByAdmin: req.admin._id,
     });
 
     await newJob.save();
@@ -37,6 +60,7 @@ const postJobByAdmin = async (req, res) => {
     res.status(500).json({ status: 0, msg: "Server error", error: err.message });
   }
 };
+
 
 const getJobsPostedByAdmin = async (req, res) => {
   try {

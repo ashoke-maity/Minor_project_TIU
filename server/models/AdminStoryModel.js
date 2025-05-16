@@ -20,6 +20,10 @@ const storySchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    mediaUrl: {
+      type: String,
+      default: null,
+    },
   },
   { timestamps: true }
 );
