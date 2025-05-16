@@ -26,7 +26,9 @@ function AdminRegister() {
       );
 
       if (response.status === 200) {
-        alert("Registration successful! A one-time password has been sent to your email.");
+        alert(
+          "Registration successful! A one-time password has been sent to your email."
+        );
         navigate(`${import.meta.env.VITE_ADMIN_ROUTE}/admin/login`);
       }
     } catch (err) {
@@ -51,10 +53,17 @@ function AdminRegister() {
               </h1>
             </div>
 
-            <h3 className="text-primary-100 text-center">Only for New Admins</h3>
+            <h3 className="text-primary-100 text-center">
+              Only for New Admins
+            </h3>
 
-            <form onSubmit={handleRegister} className="w-full space-y-6 mt-4 form">
-              {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+            <form
+              onSubmit={handleRegister}
+              className="w-full space-y-6 mt-4 form"
+            >
+              {error && (
+                <p className="text-red-500 text-sm text-center">{error}</p>
+              )}
 
               <div className="flex flex-col md:flex-row gap-4 w-full">
                 <div className="w-full">
