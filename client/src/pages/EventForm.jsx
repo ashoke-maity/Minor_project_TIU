@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import axios from "axios";
 
 const EventForm = () => {
   const [eventData, setEventData] = useState({
@@ -22,28 +23,60 @@ const EventForm = () => {
     }));
   };
 
-  const handleFileChange = (e) => {
-    const { name, files } = e.target;
-    const file = files[0];
+  // const handleFileChange = (e) => {
+  //   const { name, files } = e.target;
+  //   const file = files[0];
 
-    setEventData((prev) => ({
-      ...prev,
-      [name]: file,
-    }));
+  //   setEventData((prev) => ({
+  //     ...prev,
+  //     [name]: file,
+  //   }));
 
-    // if (name === "eventImage" && file) {
-    //   setPreviewImage(URL.createObjectURL(file));
-    // }
+  //   // if (name === "eventImage" && file) {
+  //   //   setPreviewImage(URL.createObjectURL(file));
+  //   // }
 
-    // if (name === "eventTrailer" && file) {
-    //   setPreviewVideo(URL.createObjectURL(file));
-    // }
-  };
+  //   // if (name === "eventTrailer" && file) {
+  //   //   setPreviewVideo(URL.createObjectURL(file));
+  //   // }
+  // };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Submission logic goes here
-    console.log("Submitted:", eventData);
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        return alert("You must be logged in as admin to post a job.");
+      }
+      const response = await axios.post(
+        `${import.meta.env.VITE_ADMIN_API_URL}/admin/event`,
+        {
+          eventName: eventData.eventName,
+          eventDate: eventData.eventDate,
+          eventLocation: eventData.eventLocation,
+          eventDescription: eventData.eventDescription,
+          eventSummary: eventData.eventSummary,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("event posted successfully:", response.data);
+      alert("event posted successfully!");
+      // refresh the form after posting the event
+      setEventData({
+        eventName: "",
+        eventDate: "",
+        eventLocation: "",
+        eventDescription: "",
+        eventSummary: "",
+      });
+    } catch (error) {
+      console.log("Error posting job:", error);
+      alert("Failed to post job. Check console for details.");
+    }
   };
 
   return (
@@ -51,7 +84,9 @@ const EventForm = () => {
       <form onSubmit={handleSubmit} className="space-y-6 p-6">
         {/* Event Name */}
         <div className="form-item">
-          <label className="text-lg font-medium text-gray-700">Event Name</label>
+          <label className="text-lg font-medium text-gray-700">
+            Event Name
+          </label>
           <input
             type="text"
             name="eventName"
@@ -65,7 +100,9 @@ const EventForm = () => {
 
         {/* Event Date */}
         <div className="form-item">
-          <label className="text-lg font-medium text-gray-700">Event Date</label>
+          <label className="text-lg font-medium text-gray-700">
+            Event Date
+          </label>
           <input
             type="date"
             name="eventDate"
@@ -78,7 +115,9 @@ const EventForm = () => {
 
         {/* Event Location */}
         <div className="form-item">
-          <label className="text-lg font-medium text-gray-700">Event Location</label>
+          <label className="text-lg font-medium text-gray-700">
+            Event Location
+          </label>
           <input
             type="text"
             name="eventLocation"
@@ -92,7 +131,9 @@ const EventForm = () => {
 
         {/* Event Description */}
         <div className="form-item">
-          <label className="text-lg font-medium text-gray-700">Event Description</label>
+          <label className="text-lg font-medium text-gray-700">
+            Event Description
+          </label>
           <textarea
             name="eventDescription"
             value={eventData.eventDescription}
@@ -121,7 +162,7 @@ const EventForm = () => {
               className="absolute left-3 top-1/2 transform -translate-y-1/2 w-6 h-6"
             />
           </div> */}
-{/* 
+        {/* 
           {previewImage && (
             <div className="mt-3 border border-gray-300 rounded-lg overflow-hidden w-full max-w-md">
               <img src={previewImage} alt="Event" className="w-full h-auto object-cover" />
@@ -147,7 +188,7 @@ const EventForm = () => {
             />
           </div> */}
 
-          {/* {previewVideo && (
+        {/* {previewVideo && (
             <div className="mt-3 border border-gray-300 rounded-lg overflow-hidden w-full max-w-md">
               <video
                 controls
@@ -160,7 +201,9 @@ const EventForm = () => {
 
         {/* Event Summary */}
         <div className="form-item">
-          <label className="text-lg font-medium text-gray-700">Event Summary</label>
+          <label className="text-lg font-medium text-gray-700">
+            Event Summary
+          </label>
           <textarea
             name="eventSummary"
             value={eventData.eventSummary}

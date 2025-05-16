@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import axios from "axios";
 
 const StoryForm = () => {
   const [storyData, setStoryData] = useState({
@@ -47,35 +48,43 @@ const StoryForm = () => {
     setTags(tags.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    try {
+      const token = localStorage.getItem("authToken");
 
-    // Example form data handling
-    const formData = new FormData();
-    formData.append("title", storyData.title);
-    formData.append("author", storyData.author);
-    formData.append("storyBody", storyData.storyBody);
-    formData.append("tags", JSON.stringify(tags));
-    // if (storyData.media) {
-    //   formData.append("media", storyData.media);
-    // }
+      const response = await axios.post(
+        `${import.meta.env.VITE_ADMIN_API_URL}/admin/write/stories`,
+        {
+          title: storyData.title,
+          author: storyData.author,
+          storyBody: storyData.storyBody,
+          tags: tags,
+          // media: storyData.media, // uncomment if adding media support
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("story posted successfully:", response.data);
+      alert("Story posted successfully!");
 
-    // Simulate submission
-    console.log("Submitted Story Data:", {
-      ...storyData,
-      tags,
-    });
-
-    // Reset form
-    setStoryData({
-      title: "",
-      author: "",
-      storyBody: "",
-      // media: null,
-    });
-    setTags([]);
-    setTagInput("");
-    // setPreviewMedia(null);
+      // ✅ Reset form after successful submission
+      setStoryData({
+        title: "",
+        author: "",
+        storyBody: "",
+        // media: null,
+      });
+      setTags([]);
+      setTagInput("");
+      // setPreviewMedia(null);
+    } catch (error) {
+      console.log("Something went wrong!", error);
+      alert("Something went wrong!");
+    }
   };
 
   return (
@@ -171,9 +180,9 @@ const StoryForm = () => {
               alt="Upload Icon"
               className="absolute left-3 top-1/2 transform -translate-y-1/2 w-6 h-6"
             />
-          </div> */}
+          </div>
 
-          {/* {previewMedia && (
+          {previewMedia && (
             <div className="mt-3 border border-gray-300 rounded-lg overflow-hidden w-full max-w-md">
               {storyData.media?.type?.startsWith("video") ? (
                 <video controls src={previewMedia} className="w-full h-auto object-cover" />
