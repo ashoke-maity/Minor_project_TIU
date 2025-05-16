@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect} from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 
@@ -7,6 +7,16 @@ function AdminLogin() {
   const [AdminID, setAdminID] = useState("");
   const [Password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [tempImage, setTempImage] = useState(null);
+
+ // Load temp image (profile pic) once if it exists
+  useEffect(() => {
+    const image = localStorage.getItem("tempProfilePic");
+    if (image) {
+      setTempImage(image);
+      localStorage.removeItem("tempProfilePic"); // clear after one use
+    }
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -40,6 +50,17 @@ function AdminLogin() {
       <div className="min-h-screen flex justify-center items-center bg-black auth-layout">
         <div className="card-border lg:min-w-[566px]">
           <div className="flex flex-col card gap-6 py-14 px-10">
+            {/* 🔽 Image Preview Section */}
+            {tempImage && (
+              <div className="text-center">
+                <img
+                  src={tempImage}
+                  alt="Updated Profile"
+                  className="w-24 h-24 rounded-full mx-auto object-cover border-2 border-primary-100 shadow"
+                />
+                <p className="text-sm text-gray-400 mt-2">Your new profile picture</p>
+              </div>
+            )}
             <div className="flex flex-row gap-2 justify-center content-center items-center mr-10">
               <img
                 src="/icons/logo3.png"
