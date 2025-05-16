@@ -3,6 +3,6 @@ const router = express.Router();
 const AdminCreateEvent= require('../controllers/AdminEventController');
 const verifyToken = require('../middlewares/adminAuthMiddleware'); // your middleware
 
-router.post('/admin/create', verifyToken, AdminCreateEvent);
+router.post('/admin/event', verifyToken, AdminCreateEvent);
 
 module.exports = router;

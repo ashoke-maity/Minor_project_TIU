@@ -27,15 +27,15 @@ export default function Sidebar() {
     },
     {
       id: 3,
-      icon: "/icons/calendar.svg",
-      label: "Events",
-      href: `${adminRoute}/admin/dashboard/events`,
-    },
-    {
-      id: 4,
       icon: "/icons/briefcase.png",
       label: "Job Opening",
       href: `${adminRoute}/admin/dashboard/jobs`,
+    },
+        {
+      id: 4,
+      icon: "/icons/calendar.svg",
+      label: "Events",
+      href: `${adminRoute}/admin/dashboard/events`,
     },
     {
       id: 5,

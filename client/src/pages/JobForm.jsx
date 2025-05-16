@@ -18,21 +18,49 @@ const JobForm = () => {
 
 const handleSubmit = async (e) => {
   e.preventDefault();
+
   try {
-    const response = await axios.post(`${import.meta.env.VITE_ADMIN_API_URL}/admin/jobs`, {
-      companyName: jobData.companyName,
-      jobTitle: jobData.jobTitle,
-      jobDescription: jobData.description,
-      jobRequirements: jobData.requirements,
-      jobType: jobData.jobType,
-      location: jobData.location,
-      salary: jobData.salary,
-      ApplicationDeadline: jobData.deadline,
-    });
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      return alert("You must be logged in as admin to post a job.");
+    }
+
+    const response = await axios.post(
+      `${import.meta.env.VITE_ADMIN_API_URL}/admin/jobs`,
+      {
+        companyName: jobData.companyName,
+        jobTitle: jobData.jobTitle,
+        description: jobData.description,
+        requirements: jobData.requirements,
+        jobType: jobData.jobType,
+        location: jobData.location,
+        salary: jobData.salary,
+        deadline: jobData.deadline,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
     console.log("Job posted successfully:", response.data);
+    alert("Job posted successfully!");
+    // Optionally reset form:
+    setJobData({
+      jobTitle: "",
+      companyName: "",
+      location: "",
+      jobType: "",
+      salary: "",
+      description: "",
+      requirements: "",
+      logo: null,
+      deadline: "",
+    });
   } catch (error) {
     console.log("Error posting job:", error);
+    alert("Failed to post job. Check console for details.");
   }
 };
 
