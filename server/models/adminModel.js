@@ -42,6 +42,10 @@ const Admin = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    ProfileImage: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,

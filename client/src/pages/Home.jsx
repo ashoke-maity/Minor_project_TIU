@@ -1,29 +1,36 @@
-import Header from "../components/layout/Header"
-import Footer from "../components/layout/Footer"
-import HeroSection from "../components/home/HeroSection"
-import FeaturesSection from "../components/home/FeaturesSection"
-import SuccessStoriesSection from "../components/home/SuccessStoriesSection"
-import EventsSection from "../components/home/EventsSection"
-import StatsSection from "../components/home/StatsSection"
-import NewsletterSection from "../components/home/NewsletterSection"
-import FloatingDockDemo from "../components/ui/FloatingDockDemo"
+import React, { useEffect, useState } from 'react';
+import Header from '../components/layout/Header';
+import MainLayout from '../components/Home/web/MainLayout';
+import SidebarSection from '../components/Home/web/SidebarSection';
+import axios from 'axios';
 
 function Home() {
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        const res = await axios.get(`${import.meta.env.VITE_USER_API_URL}/jobs`);
+        if (res.data.status === 1) {
+          setJobs(res.data.jobs);
+        }
+      } catch (err) {
+        console.error("Error fetching jobs:", err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJobs();
+  }, []);
+
   return (
-    <div className="flex min-h-screen flex-col dark">
+    <>
       <Header />
-      <main className="flex-1">
-        <HeroSection />
-        <FeaturesSection />
-        <SuccessStoriesSection />
-        <EventsSection />
-        <StatsSection />
-        <NewsletterSection />
-      </main>
-      <FloatingDockDemo />
-      <Footer />
-    </div>
-  )
+      <MainLayout jobs={jobs} loading={loading} />
+    </>
+  );
 }
 
-export default Home
+export default Home;

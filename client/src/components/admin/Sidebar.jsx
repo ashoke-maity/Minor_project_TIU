@@ -3,12 +3,12 @@ import { Link, useNavigate, NavLink } from "react-router-dom";
 import { SidebarComponent } from "@syncfusion/ej2-react-navigations";
 import axios from "axios";
 
-export default function Sidebar() {
+function Sidebar() {
   const navigate = useNavigate();
-  const handleLogout = () => {
-    localStorage.clear(); // clears everything
-    navigate(`${import.meta.env.VITE_ADMIN_ROUTE}/admin/login`);
-  };
+  // const handleLogout = () => {
+  //   localStorage.clear(); // clears everything
+  //   navigate(`${import.meta.env.VITE_ADMIN_ROUTE}/admin/login`);
+  // };
 
   const adminRoute = import.meta.env.VITE_ADMIN_ROUTE;
 
@@ -27,15 +27,15 @@ export default function Sidebar() {
     },
     {
       id: 3,
-      icon: "/icons/calendar.svg",
-      label: "Events",
-      href: `${adminRoute}/admin/dashboard/events`,
-    },
-    {
-      id: 4,
       icon: "/icons/briefcase.png",
       label: "Job Opening",
       href: `${adminRoute}/admin/dashboard/jobs`,
+    },
+    {
+      id: 4,
+      icon: "/icons/calendar.svg",
+      label: "Events",
+      href: `${adminRoute}/admin/dashboard/events`,
     },
     {
       id: 5,
@@ -48,18 +48,20 @@ export default function Sidebar() {
       icon: "/icons/heart.png",
       label: "Donations",
       href: `${adminRoute}/admin/dashboard/donations`,
+      isDisabled: true, // remove it when the work is done
     },
-      {
-    id: 7,
-    icon: "/icons/settings.svg", // Make sure this icon exists
-    label: "Settings",
-    href: `${adminRoute}/admin/dashboard/settings`,
-  },
+    {
+      id: 7,
+      icon: "/icons/settings.svg",
+      label: "Settings",
+      href: `${adminRoute}/admin/dashboard/settings`,
+    },
   ];
 
   const [adminName, setAdminName] = useState("Admin");
   const [adminEmail, setAdminEmail] = useState("");
   const [adminLastName, setAdminLastName] = useState("");
+  const [profilePicUrl, setProfilePicUrl] = useState(""); // New state
 
   useEffect(() => {
     const fetchAdminData = async () => {
@@ -75,9 +77,20 @@ export default function Sidebar() {
         );
 
         if (res.status === 200) {
-          setAdminName(res.data.admin.FirstName);
-          setAdminLastName(res.data.admin.LastName);
-          setAdminEmail(res.data.admin.Email);
+          const admin = res.data.admin;
+
+          setAdminName(admin.FirstName);
+          setAdminLastName(admin.LastName);
+          setAdminEmail(admin.Email);
+
+          // Fix: Use backend key, assuming it's ProfileImage here (match your backend)
+          // Also prepend base URL if needed
+          let profileUrl = admin.ProfileImage || "";
+
+          if (profileUrl && !profileUrl.startsWith("http")) {
+            profileUrl = import.meta.env.VITE_ADMIN_API_URL + "/" + profileUrl;
+          }
+          setProfilePicUrl(profileUrl);
         }
       } catch (error) {
         console.error("Error fetching admin data:", error);
@@ -105,53 +118,80 @@ export default function Sidebar() {
 
           <div className="container">
             <nav className="mt-4 flex flex-col gap-2">
-              {sidebarItems.map(({ id, icon, label, href }) => (
-                <NavLink
-                  key={id}
-                  to={href}
-                  end={href === `${adminRoute}/admin/dashboard`} // Exact match only for Dashboard
-                  className={({ isActive }) =>
-                    `nav-item group flex items-center gap-2 px-4 py-2 rounded-md transition ${
-                      isActive
-                        ? "bg-primary-100 text-white"
-                        : "text-gray-700 hover:bg-gray-100"
-                    }`
-                  }
-                >
-                  {({ isActive }) => (
-                    <>
+              {sidebarItems.map(({ id, icon, label, href, isDisabled }) => {
+                if (isDisabled) {
+                  return (
+                    <div
+                      key={id}
+                      onClick={() => alert("This section is under development")}
+                      className="nav-item group flex items-center gap-2 px-4 py-2 rounded-md transition cursor-pointer text-gray-400 hover:bg-gray-100"
+                    >
                       <img
                         src={icon}
                         alt={label}
-                        className={`size-5 transition-all ${
-                          isActive
-                            ? "brightness-0 invert"
-                            : "group-hover:brightness-0 group-hover:invert"
-                        }`}
+                        className="size-5 opacity-50"
                       />
-                      <span className={`${isActive ? "text-white" : ""}`}>
-                        {label}
-                      </span>
-                    </>
-                  )}
-                </NavLink>
-              ))}
+                      <span>{label}</span>
+                    </div>
+                  );
+                }
+
+                return (
+                  <NavLink
+                    key={id}
+                    to={href}
+                    end={href === `${adminRoute}/admin/dashboard`}
+                    className={({ isActive }) =>
+                      `nav-item group flex items-center gap-2 px-4 py-2 rounded-md transition ${
+                        isActive
+                          ? "bg-primary-100 text-white"
+                          : "text-gray-700 hover:bg-gray-100"
+                      }`
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <img
+                          src={icon}
+                          alt={label}
+                          className={`size-5 transition-all ${
+                            isActive
+                              ? "brightness-0 invert"
+                              : "group-hover:brightness-0 group-hover:invert"
+                          }`}
+                        />
+                        <span className={`${isActive ? "text-white" : ""}`}>
+                          {label}
+                        </span>
+                      </>
+                    )}
+                  </NavLink>
+                );
+              })}
             </nav>
 
             <footer className="nav-footer flex items-center gap-3 px-4 py-4 border-t mt-4">
-              <div className="bg-primary-100 text-white rounded-full w-10 h-10 flex items-center justify-center font-semibold text-lg">
-                {adminName.charAt(0)}
-                {adminLastName.charAt(0)}
-              </div>
+              {profilePicUrl ? (
+                <img
+                  src={profilePicUrl}
+                  alt="Admin Profile"
+                  className="w-10 h-10 rounded-full object-cover"
+                />
+              ) : (
+                <div className="bg-primary-100 text-white rounded-full w-10 h-10 flex items-center justify-center font-semibold text-lg">
+                  {adminName.charAt(0)}
+                  {adminLastName.charAt(0)}
+                </div>
+              )}
               <article className="flex-1">
                 <h2 className="font-semibold">
                   {adminName} {adminLastName}
                 </h2>
                 <p className="text-sm text-gray-500">{adminEmail}</p>
               </article>
-              <button onClick={handleLogout} className="cursor-pointer">
-                <img src="/icons/logout.svg" alt="logout" className="size-6" />
-              </button>
+              {/* <button onClick={handleLogout} className="cursor-pointer">
+                <img src="/icons/logout.svg" alt="logout" className="size-10" />
+              </button> */}
             </footer>
           </div>
         </section>
@@ -159,3 +199,5 @@ export default function Sidebar() {
     </aside>
   );
 }
+
+export default Sidebar;

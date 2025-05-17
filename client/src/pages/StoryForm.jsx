@@ -1,15 +1,16 @@
 import React, { useState } from "react";
+import axios from "axios";
 
 const StoryForm = () => {
   const [storyData, setStoryData] = useState({
     title: "",
     author: "",
     storyBody: "",
-    media: null,
   });
 
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState([]);
+  const [media, setMedia] = useState(null);
   const [previewMedia, setPreviewMedia] = useState(null);
 
   const handleInputChange = (e) => {
@@ -22,14 +23,13 @@ const StoryForm = () => {
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-
-    setStoryData((prev) => ({
-      ...prev,
-      media: file,
-    }));
-
+    setMedia(file);
     if (file) {
-      setPreviewMedia(URL.createObjectURL(file));
+      const previewUrl = URL.createObjectURL(file);
+      console.log("Preview URL:", previewUrl);
+      setPreviewMedia(previewUrl);
+    } else {
+      setPreviewMedia(null);
     }
   };
 
@@ -47,43 +47,62 @@ const StoryForm = () => {
     setTags(tags.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    try {
+      const token = localStorage.getItem("authToken");
+      const formData = new FormData();
 
-    // Example form data handling
-    const formData = new FormData();
-    formData.append("title", storyData.title);
-    formData.append("author", storyData.author);
-    formData.append("storyBody", storyData.storyBody);
-    formData.append("tags", JSON.stringify(tags));
-    if (storyData.media) {
-      formData.append("media", storyData.media);
+      formData.append("title", storyData.title);
+      formData.append("author", storyData.author);
+      formData.append("storyBody", storyData.storyBody);
+      formData.append("tags", JSON.stringify(tags));
+
+      if (media) {
+        formData.append("media", media);
+      }
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_ADMIN_API_URL}/admin/write/stories`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      console.log("story posted successfully:", response.data);
+      alert("Story posted successfully!");
+
+      setStoryData({
+        title: "",
+        author: "",
+        storyBody: "",
+      });
+      setTags([]);
+      setTagInput("");
+      setMedia(null);
+      setPreviewMedia(null);
+    } catch (error) {
+      console.log("Something went wrong!", error);
+      alert("Something went wrong!");
     }
-
-    // Simulate submission
-    console.log("Submitted Story Data:", {
-      ...storyData,
-      tags,
-    });
-
-    // Reset form
-    setStoryData({
-      title: "",
-      author: "",
-      storyBody: "",
-      media: null,
-    });
-    setTags([]);
-    setTagInput("");
-    setPreviewMedia(null);
   };
 
   return (
     <div className="rounded-xl bg-white shadow-md p-6">
-      <form onSubmit={handleSubmit} className="space-y-6 p-6">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-6 p-6"
+        encType="multipart/form-data"
+      >
         {/* Story Title */}
         <div>
-          <label className="text-lg font-medium text-gray-700">Story Title</label>
+          <label className="text-lg font-medium text-gray-700">
+            Story Title
+          </label>
           <input
             type="text"
             name="title"
@@ -157,7 +176,9 @@ const StoryForm = () => {
 
         {/* Media Upload (optional) */}
         <div>
-          <label className="text-lg font-medium text-gray-700">Upload Image/Video (Optional)</label>
+          <label className="text-lg font-medium text-gray-700">
+            Upload Image/Video (Optional)
+          </label>
           <div className="relative">
             <input
               type="file"
@@ -172,13 +193,22 @@ const StoryForm = () => {
               className="absolute left-3 top-1/2 transform -translate-y-1/2 w-6 h-6"
             />
           </div>
-
           {previewMedia && (
             <div className="mt-3 border border-gray-300 rounded-lg overflow-hidden w-full max-w-md">
-              {storyData.media?.type?.startsWith("video") ? (
-                <video controls src={previewMedia} className="w-full h-auto object-cover" />
+              {media?.type?.startsWith("video") ? (
+                <video
+                  key={previewMedia}
+                  controls
+                  src={previewMedia}
+                  className="w-full h-auto object-cover"
+                />
               ) : (
-                <img src={previewMedia} alt="Media Preview" className="w-full h-auto object-cover" />
+                <img
+                  key={previewMedia}
+                  src={previewMedia}
+                  alt="Media Preview"
+                  className="w-full h-auto object-cover"
+                />
               )}
             </div>
           )}
