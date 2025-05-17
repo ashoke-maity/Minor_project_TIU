@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Header from '../components/layout/Header';
-import MainLayout from '../components/Home/MainLayout';
-import SidebarSection from '../components/Home/SidebarSection';
+import MainLayout from '../components/Home/web/MainLayout';
+import SidebarSection from '../components/Home/web/SidebarSection';
 import axios from 'axios';
 
 function Home() {
