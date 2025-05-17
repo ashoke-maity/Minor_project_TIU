@@ -83,7 +83,7 @@ export default function Navitems() {
   ];
 
   return (
-    <section className="nav-items bg-white h-full flex flex-col justify-between">
+    <section className="nav-items bg-white w-full flex flex-row justify-between">
       <div>
         <Link to="/home" className="link-logo flex items-center gap-2 px-4 py-4">
           <img src="/icons/logo3.png" alt="logo" className="size-[40px]" />

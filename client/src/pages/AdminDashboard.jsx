@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/admin/Sidebar";
+import ManageUsersTable from "../components/admin/ManageUsersTable";
 import AdminStats from "../components/admin/AdminStats";
+
 
 import MobileSidebar from "../components/admin/MobileSidebar";
 import Header from "../components/admin/Header";
@@ -45,16 +47,17 @@ function AdminDashboard() {
     <main className="admin-layout bg-gray-50 min-h-screen">
       <Sidebar />
        <MobileSidebar />
-        <main className="dashboard wrapper mt-5 content-center">
+        <main className="dashboard wrapper mt-5 content-center space-y-2">
           <header className="header">
           <article>
           <Header 
-            title={`Welcome ${adminName} 👋`}
+            title={`Welcome, ${adminName} 👋`}
             description="Track Activity, Trends and popular destinations in real time"
         />
           </article>
         </header>
         <AdminStats />
+        <ManageUsersTable />
         </main>
     </main>
   );
