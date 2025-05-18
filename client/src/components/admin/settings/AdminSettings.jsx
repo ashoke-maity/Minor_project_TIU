@@ -1,10 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
-import Sidebar from "./Sidebar";
-import MobileSidebar from "./MobileSidebar";
-import Header from "./Header";
-import LoadingOverlay from "../shared/LoadingOverlay";
-import Button from "../shared/Button";
-import Toast from "../../services/toast";
+import { Sidebar, MobileSidebar, Header } from "../layout";
+import { LoadingOverlay, Button } from "../../shared";
+import { Toast } from "../../../utils";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -467,4 +464,4 @@ function AdminSettings() {
   );
 }
 
-export default AdminSettings;
+export default AdminSettings; 

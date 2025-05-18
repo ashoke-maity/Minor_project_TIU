@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import PostCard from "./PostCard";
 import PostModal from "./PostModal"; 
+import AdminAnnouncements from "./AdminAnnouncements";
 import { IndianRupee, Users, Bookmark, Calendar, MailPlus, Plus, Briefcase, ChevronRight, Heart, MessageCircle, Save, Image } from "lucide-react";
 import axios from "axios";
 
@@ -153,6 +154,9 @@ function MainLayout({ jobs, loading }) {
 
             {/* Main Feed */}
             <div className="w-full lg:w-2/4 space-y-5">
+              {/* Admin Announcements */}
+              <AdminAnnouncements />
+              
               {/* Create Post Card */}
               <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-4 hover:shadow-xl transition-shadow duration-300">
                 <div className="flex items-center space-x-3">
@@ -166,6 +170,7 @@ function MainLayout({ jobs, loading }) {
                     What's on your mind, {firstName}?
                   </button>
                 </div>
+
                 <div className="flex mt-4 pt-3 border-t border-gray-100 text-sm">
                   <button 
                     onClick={() => openPostModal('event')}

@@ -1,10 +1,12 @@
 import { SidebarComponent } from '@syncfusion/ej2-react-navigations';
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Navitems from './Navitems';
 import axios from 'axios';
 
 const MobileSidebar = () => {
+  const navigate = useNavigate();
+  const adminRoute = import.meta.env.VITE_ADMIN_ROUTE;
   const sidebarRef = React.useRef(null);
   const [adminName, setAdminName] = useState('');
   const [adminEmail, setAdminEmail] = useState('');
@@ -72,6 +74,19 @@ const MobileSidebar = () => {
         </Link>
 
         <div className="flex items-center gap-3">
+          {/* Settings Icon */}
+          <button
+            onClick={() => navigate(`${adminRoute}/admin/dashboard/settings`)}
+            className="p-2 rounded-md hover:bg-gray-100"
+            aria-label="Settings"
+          >
+            <img
+              src="/icons/settings.svg"
+              alt="settings"
+              className="size-5"
+            />
+          </button>
+          
           <div className="flex items-center gap-2">
             {profilePicUrl ? (
               <img
@@ -117,4 +132,4 @@ const MobileSidebar = () => {
   );
 };
 
-export default MobileSidebar;
+export default MobileSidebar; 

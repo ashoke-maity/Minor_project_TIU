@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-const StoryForm = () => {
+const StoryForm = ({ onSubmitSuccess }) => {
   const [storyData, setStoryData] = useState({
     title: "",
     author: "",
@@ -75,6 +75,33 @@ const StoryForm = () => {
 
       console.log("story posted successfully:", response.data);
       alert("Story posted successfully!");
+
+      // Create a story object to pass back to parent
+      const newStory = response.data.story || {
+        ...storyData,
+        _id: Date.now(), // Temporary ID if the backend doesn't return an ID
+        tags,
+        mediaUrl: previewMedia,
+        createdAt: new Date().toISOString()
+      };
+
+      // Save to localStorage for fallback display
+      try {
+        // Get existing stories from localStorage or initialize empty array
+        const existingStories = JSON.parse(localStorage.getItem('createdStories') || '[]');
+        // Add the new story
+        existingStories.unshift(newStory); // Add to beginning of array
+        // Save back to localStorage
+        localStorage.setItem('createdStories', JSON.stringify(existingStories));
+        console.log("Story saved to localStorage for fallback display");
+      } catch (err) {
+        console.error("Could not save story to localStorage:", err);
+      }
+
+      // Pass the story data to parent component
+      if (onSubmitSuccess) {
+        onSubmitSuccess(newStory);
+      }
 
       setStoryData({
         title: "",
