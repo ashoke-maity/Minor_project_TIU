@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import PostCard from "./PostCard";
 import PostModal from "../Home/web/PostModal"; 
 import MobileHeader from "./Header";
+import MobileAdminAnnouncements from "./AdminAnnouncements";
 import { 
   IndianRupee, 
   Users, 
@@ -127,6 +128,9 @@ function MobileMainLayout({ jobs, loading }) {
         <div className="p-4 mt-2">
           {activeTab === "feed" && (
             <div className="space-y-4">
+              {/* Admin Announcements */}
+              <MobileAdminAnnouncements />
+              
               {/* Post Types Grid */}
               <div className="grid grid-cols-4 gap-2 bg-white p-3 rounded-xl shadow-sm">
                 <button 

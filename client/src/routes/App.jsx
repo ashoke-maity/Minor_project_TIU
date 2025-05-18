@@ -1,4 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Home from '../pages/Home';
 import Login from '../components/others/Login';
 import ForgotPassword from '../components/others/ForgotPass';
@@ -13,7 +15,6 @@ import AdminLogin from '../pages/AdminLogin';
 import AdminForgotPass from '../pages/AdminForgotPass';
 import AdminResetPassword from '../pages/AdminResetPass';
 import AdminRegister from '../pages/AdminRegister';
-import AllUsers from '../pages/AdminAllUsers';
 import AdminEvents from '../pages/AdminEvents';
 import AdminStories from '../pages/AdminStories';
 import AdminJobPosting from '../pages/AdminJobPosting';
@@ -29,6 +30,18 @@ const adminRoute = import.meta.env.VITE_ADMIN_ROUTE;
 function App() {
   return (
     <BrowserRouter>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
       <Routes>
         {/* User Routes */}
         <Route path="/" element={<Login />} />
@@ -47,7 +60,6 @@ function App() {
         <Route path={`${adminRoute}/admin/register`} element={<AdminRegister />} />
         <Route path={`${adminRoute}/admin/dashboard`} element={<AdminDashboard />} />
         <Route path={`${adminRoute}/admin/dashboard/settings`} element={<AdminSettings />} />
-        <Route path={`${adminRoute}/admin/dashboard/allusers`} element={<AllUsers />} />
         <Route path={`${adminRoute}/admin/dashboard/events`} element={<AdminEvents />} />
         <Route path={`${adminRoute}/admin/dashboard/addEvents`} element={<AdminNewEvent />} />
         <Route path={`${adminRoute}/admin/dashboard/jobs`} element={<AdminJobPosting />} />
