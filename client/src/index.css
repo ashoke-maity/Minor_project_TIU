@@ -41,6 +41,10 @@
     --color-red-500: #b93815;
     --color-red-50: #fff4ed;
     --color-red-100: #ff543d;
+    --color-teal-100: #d1faf5;
+    --color-teal-400: #2dd4bf; 
+    --color-teal-500: #14b8a6;
+    --color-teal-600: #0d9488;
 
     --background-image-auth: url("/images/auth-img.jpeg");
     --background-image-hero: url("/images/hero-img.png");
@@ -392,6 +396,64 @@
             @apply flex flex-col gap-[30px] w-full;
         }
     }
+
+    .responsive-container {
+        @apply w-full px-4 sm:px-6 md:px-8 lg:px-12 mx-auto max-w-7xl;
+    }
+    
+    .card {
+        @apply bg-white rounded-lg shadow-md transition-shadow duration-300 hover:shadow-lg;
+    }
+    
+    .text-heading {
+        @apply text-xl sm:text-2xl md:text-3xl font-bold text-dark-300;
+    }
+    
+    .text-subheading {
+        @apply text-lg sm:text-xl font-semibold text-dark-300;
+    }
+    
+    .text-body {
+        @apply text-sm sm:text-base text-gray-700;
+    }
+    
+    .text-small {
+        @apply text-xs sm:text-sm text-gray-500;
+    }
+    
+    .btn-primary {
+        @apply bg-teal-500 hover:bg-teal-600 text-white py-2 px-4 rounded-md font-medium transition-colors duration-200;
+    }
+    
+    .btn-secondary {
+        @apply bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 py-2 px-4 rounded-md font-medium transition-colors duration-200;
+    }
+    
+    .btn-accent {
+        @apply bg-primary-100 hover:bg-primary-500 text-white py-2 px-4 rounded-md font-medium transition-colors duration-200;
+    }
+    
+    /* Mobile-friendly */
+    .mobile-menu {
+        @apply fixed inset-0 bg-white z-50 transform transition-transform duration-300 ease-in-out;
+    }
+    
+    .mobile-menu-open {
+        @apply translate-x-0;
+    }
+    
+    .mobile-menu-closed {
+        @apply -translate-x-full;
+    }
+    
+    /* Improved form controls */
+    .form-input {
+        @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent transition duration-200;
+    }
+    
+    .form-label {
+        @apply block mb-1 text-sm font-medium text-gray-700;
+    }
 }
 
 @layer utilities {
@@ -446,21 +508,6 @@
     }
     .button-class-secondary {
         @apply !bg-white !px-4 !rounded-lg !flex !items-center !justify-center !gap-1.5 !shadow-sm;
-    }
-    .form-label {
-        @apply text-sm font-normal text-gray-100;
-    }
-    .form-input {
-        @apply p-3.5 border border-light-400 rounded-xl text-base text-dark-300 font-normal;
-    }
-    .comboBox-popup {
-        @apply absolute z-10 top-24 bg-white border border-gray-200 rounded-xl shadow-200 h-[250px] w-full md:max-w-[660px] overflow-hidden;
-    }
-    .tripCard-pill {
-        @apply bg-white py-1 px-2.5 w-fit rounded-[20px] absolute top-2.5 right-4 text-dark-100 text-sm font-semibold;
-    }
-    .price-pill {
-        @apply bg-white py-0.5 px-2.5 w-fit rounded-[20px] top-2.5 right-4 text-dark-100 text-sm font-semibold;
     }
     .trip-grid {
         @apply grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-7;
