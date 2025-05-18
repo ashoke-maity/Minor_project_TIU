@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from 'axios';
 
-const JobForm = () => {
+const JobForm = ({ onSubmitSuccess }) => {
   const [jobData, setJobData] = useState({
     jobTitle: "",
     companyName: "",
@@ -44,6 +44,15 @@ const JobForm = () => {
 
       console.log("Job posted successfully:", response.data);
       alert("Job posted successfully!");
+
+      // Pass the job data to parent component
+      if (onSubmitSuccess) {
+        onSubmitSuccess(response.data.job || {
+          ...jobData,
+          _id: Date.now(), // Temporary ID if the backend doesn't return an ID
+          logoUrl: previewLogo
+        });
+      }
 
       setJobData({
         jobTitle: "",
