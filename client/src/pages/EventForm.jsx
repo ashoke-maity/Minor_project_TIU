@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-const EventForm = () => {
+const EventForm = ({ onSubmitSuccess }) => {
   const [eventData, setEventData] = useState({
     eventName: "",
     eventDate: "",
@@ -50,19 +50,64 @@ const EventForm = () => {
         formData.append("media", eventData.media);
       }
 
-      const response = await axios.post(
-        `${import.meta.env.VITE_ADMIN_API_URL}/admin/event`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      let newEvent;
+      let apiSuccess = true;
 
-      console.log("Event posted successfully:", response.data);
-      alert("Event posted successfully!");
+      try {
+        // Try to submit to API
+        const response = await axios.post(
+          `${import.meta.env.VITE_ADMIN_API_URL}/admin/event`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        console.log("Event posted successfully:", response.data);
+        alert("Event posted successfully!");
+
+        // Use API response data
+        newEvent = response.data.event || {
+          ...eventData,
+          _id: Date.now(), // Temporary ID if the backend doesn't return an ID
+          mediaUrl: previewMedia,
+          createdAt: new Date().toISOString()
+        };
+      } catch (apiError) {
+        console.error("API error, saving locally:", apiError);
+        apiSuccess = false;
+        
+        // Create a local event object if API fails
+        newEvent = {
+          ...eventData,
+          _id: `local_${Date.now()}`,
+          mediaUrl: previewMedia,
+          createdAt: new Date().toISOString()
+        };
+        
+        alert("Could not connect to server. Event saved locally.");
+      }
+
+      // Save to localStorage for fallback display
+      try {
+        // Get existing events from localStorage or initialize empty array
+        const existingEvents = JSON.parse(localStorage.getItem('createdEvents') || '[]');
+        // Add the new event
+        existingEvents.unshift(newEvent); // Add to beginning of array
+        // Save back to localStorage
+        localStorage.setItem('createdEvents', JSON.stringify(existingEvents));
+        console.log("Event saved to localStorage for fallback display");
+      } catch (err) {
+        console.error("Could not save event to localStorage:", err);
+      }
+
+      // Pass the event data to parent component
+      if (onSubmitSuccess) {
+        onSubmitSuccess(newEvent);
+      }
 
       // Reset
       setEventData({
