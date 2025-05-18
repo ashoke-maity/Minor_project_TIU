@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import PostCard from "./PostCard";
 import PostModal from "./PostModal"; 
-import { IndianRupee } from "lucide-react";
+import { IndianRupee, Users, Bookmark, Calendar, MailPlus, Plus, Briefcase, ChevronRight, Heart, MessageCircle, Save, Image } from "lucide-react";
 import axios from "axios";
 
 function MainLayout({ jobs, loading }) {
@@ -9,6 +9,7 @@ function MainLayout({ jobs, loading }) {
   const [lastName, setLastName] = useState("");
   const [PassoutYear, setPassoutYear] = useState("");
   const [showPostModal, setShowPostModal] = useState(false);
+  const [postType, setPostType] = useState("regular"); // "regular", "event", "job", "media"
 
   // New: posts state and loading/error for posts
   const [posts, setPosts] = useState([]);
@@ -67,111 +68,267 @@ function MainLayout({ jobs, loading }) {
     setPosts((prevPosts) => [newPost, ...prevPosts]);
   };
 
+  const openPostModal = (type = "regular") => {
+    setPostType(type);
+    setShowPostModal(true);
+  };
+
   const initials = `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase();
 
   return (
     <>
-      <div className="flex p-4 bg-gray-100 min-h-screen font-sans">
-        {/* Left Sidebar */}
-        <div className="w-[25rem] pr-4 space-y-3">
-          {/* Profile Card */}
-          <div className="bg-white rounded-md border border-gray-200 p-5 shadow-sm flex flex-col items-center">
-            <div className="w-24 h-24 rounded-full bg-teal-500 text-white mb-3 flex items-center justify-center text-3xl font-bold">
-              {initials || "JD"}
+      <div className="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen font-sans">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex flex-col lg:flex-row py-6 gap-6">
+            {/* Left Sidebar */}
+            <div className="w-full lg:w-1/4 space-y-5">
+              {/* Profile Card */}
+              <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                <div className="bg-gradient-to-r from-teal-400 via-emerald-500 to-teal-600 h-24 relative">
+                  <div className="absolute inset-0 bg-black opacity-10"></div>
+                </div>
+                <div className="px-6 pb-6 pt-0 -mt-14 flex flex-col items-center">
+                  <div className="w-24 h-24 rounded-full border-4 border-white bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-2xl font-bold shadow-xl">
+                    {initials || "JD"}
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-800 mt-4">
+                    {firstName || ""} {lastName || ""}
+                  </h2>
+                  <p className="text-gray-500 text-sm">
+                    Class of {PassoutYear || ""}
+                  </p>
+                </div>
+              </div>
+
+              {/* Quick Links Card */}
+              <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden p-5 hover:shadow-xl transition-shadow duration-300">
+                <h2 className="text-lg font-bold text-gray-800 mb-4">Quick Links</h2>
+                <div className="space-y-3">
+                  <a href="#" className="flex items-center py-2 px-3 hover:bg-teal-50 rounded-lg transition-colors duration-300">
+                    <Bookmark size={18} className="text-teal-500 mr-3" />
+                    <span className="text-gray-700">Bookmarks</span>
+                    <ChevronRight size={16} className="ml-auto text-gray-400" />
+                  </a>
+                  <div className="pl-8 space-y-1">
+                    <a href="#" className="block text-sm text-teal-600 hover:underline py-1">View Saved Bookmarks</a>
+                  </div>
+                  <a href="#" className="flex items-center py-2 px-3 hover:bg-teal-50 rounded-lg transition-colors duration-300">
+                    <Calendar size={18} className="text-teal-500 mr-3" />
+                    <span className="text-gray-700">Events</span>
+                    <ChevronRight size={16} className="ml-auto text-gray-400" />
+                  </a>
+                  <div className="pl-8 space-y-1">
+                    <a href="#" className="block text-sm text-teal-600 hover:underline py-1">My Posted Events</a>
+                    <a href="#" className="block text-sm text-teal-600 hover:underline py-1">Upcoming Events</a>
+                  </div>
+                  <a href="#" className="flex items-center py-2 px-3 hover:bg-teal-50 rounded-lg transition-colors duration-300">
+                    <Briefcase size={18} className="text-teal-500 mr-3" />
+                    <span className="text-gray-700">Jobs</span>
+                    <ChevronRight size={16} className="ml-auto text-gray-400" />
+                  </a>
+                  <div className="pl-8 space-y-1">
+                    <a href="#" className="block text-sm text-teal-600 hover:underline py-1">My Job Posts</a>
+                    <a href="#" className="block text-sm text-teal-600 hover:underline py-1">Available Opportunities</a>
+                  </div>
+                  <a href="#" className="flex items-center py-2 px-3 hover:bg-teal-50 rounded-lg transition-colors duration-300">
+                    <IndianRupee size={18} className="text-teal-500 mr-3" />
+                    <span className="text-gray-700">Donations</span>
+                    <ChevronRight size={16} className="ml-auto text-gray-400" />
+                  </a>
+                </div>
+                
+                {/* Footer for credits */}
+                <div className="mt-6 pt-4 border-t border-gray-100 text-xs text-gray-400">
+                  <p className="mb-1">© 2024 AlumniConnect</p>
+                  <div className="flex space-x-2">
+                    <a href="#" className="hover:text-teal-500 transition-colors">About</a>
+                    <span>•</span>
+                    <a href="#" className="hover:text-teal-500 transition-colors">Terms</a>
+                    <span>•</span>
+                    <a href="#" className="hover:text-teal-500 transition-colors">Contact</a>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="text-gray-800 font-semibold text-sm">
-              {firstName || ""} {lastName || ""}
+
+            {/* Main Feed */}
+            <div className="w-full lg:w-2/4 space-y-5">
+              {/* Create Post Card */}
+              <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-4 hover:shadow-xl transition-shadow duration-300">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-base font-semibold flex-shrink-0 shadow-md">
+                    {initials}
+                  </div>
+                  <button 
+                    onClick={() => openPostModal('regular')}
+                    className="w-full text-left bg-gray-50 hover:bg-gray-100 text-gray-500 rounded-full px-4 py-2.5 border border-gray-200 hover:shadow-inner transition-all duration-300"
+                  >
+                    What's on your mind, {firstName}?
+                  </button>
+                </div>
+                <div className="flex mt-4 pt-3 border-t border-gray-100 text-sm">
+                  <button 
+                    onClick={() => openPostModal('event')}
+                    className="flex items-center justify-center w-1/4 py-1.5 text-gray-700 hover:bg-teal-50 rounded transition-colors duration-300"
+                  >
+                    <Calendar size={18} className="text-teal-500 mr-2" />
+                    Event
+                  </button>
+                  <button 
+                    onClick={() => openPostModal('job')}
+                    className="flex items-center justify-center w-1/4 py-1.5 text-gray-700 hover:bg-teal-50 rounded transition-colors duration-300"
+                  >
+                    <Briefcase size={18} className="text-teal-500 mr-2" />
+                    Job
+                  </button>
+                  <button 
+                    onClick={() => openPostModal('media')}
+                    className="flex items-center justify-center w-1/4 py-1.5 text-gray-700 hover:bg-teal-50 rounded transition-colors duration-300"
+                  >
+                    <Image size={18} className="text-teal-500 mr-2" />
+                    Media
+                  </button>
+                  <button 
+                    onClick={() => openPostModal('donation')}
+                    className="flex items-center justify-center w-1/4 py-1.5 text-gray-700 hover:bg-teal-50 rounded transition-colors duration-300"
+                  >
+                    <IndianRupee size={18} className="text-teal-500 mr-2" />
+                    Donate
+                  </button>
+                </div>
+              </div>
+
+              {/* Posts Feed */}
+              <div className="space-y-5">
+                {postsLoading ? (
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-8 text-center hover:shadow-xl transition-shadow duration-300">
+                    <div className="flex justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500"></div>
+                    </div>
+                    <p className="text-gray-500 mt-4">Loading posts...</p>
+                  </div>
+                ) : postsError ? (
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 text-center hover:shadow-xl transition-shadow duration-300">
+                    <p className="text-red-500 font-medium">{postsError}</p>
+                    <button className="mt-3 text-teal-600 text-sm hover:underline">
+                      Try again
+                    </button>
+                  </div>
+                ) : posts.length === 0 ? (
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-8 text-center hover:shadow-xl transition-shadow duration-300">
+                    <div className="flex justify-center mb-4">
+                      <div className="w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center shadow-inner">
+                        <MailPlus size={24} className="text-teal-500" />
+                      </div>
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-800">No posts yet</h3>
+                    <p className="text-gray-500 mt-2">
+                      Be the first to share something with your alumni network!
+                    </p>
+                    <button 
+                      onClick={() => openPostModal('regular')}
+                      className="mt-4 bg-gradient-to-r from-teal-500 to-emerald-400 hover:from-teal-600 hover:to-emerald-500 text-white py-2 px-6 rounded-lg transition-colors duration-300 shadow-md hover:shadow-lg"
+                    >
+                      Create Post
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-5">
+                    {posts.map((post) => (
+                      <div key={post._id} className="bg-white rounded-xl shadow-lg border border-gray-100 p-4 hover:shadow-xl transition-shadow duration-300">
+                        <PostCard post={post} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Admin Jobs */}
+              {!loading && jobs?.length > 0 && (
+                <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-5 hover:shadow-xl transition-shadow duration-300">
+                  <div className="flex items-center mb-4">
+                    <Briefcase size={20} className="text-teal-500 mr-2" />
+                    <h2 className="text-lg font-bold text-gray-800">Job Opportunities</h2>
+                  </div>
+                  <div className="space-y-4">
+                    {jobs.map((job) => (
+                      <div key={job._id} className="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                        <PostCard key={job._id} job={job} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="text-xs text-gray-500">
-              Batch of {PassoutYear || ""}
+
+            {/* Right Sidebar */}
+            <div className="w-full lg:w-1/4 space-y-5">
+              {/* People You May Know */}
+              <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                <div className="p-5 border-b border-gray-100 bg-gradient-to-r from-teal-50 to-emerald-50">
+                  <h2 className="text-lg font-bold text-gray-800 flex items-center">
+                    <Users size={18} className="text-teal-500 mr-2" /> 
+                    People You May Know
+                  </h2>
+                </div>
+                <div className="divide-y divide-gray-100">
+                  {[1, 2, 3].map((_, idx) => (
+                    <div key={idx} className="flex items-center p-4 hover:bg-gray-50 transition-colors duration-300">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 mr-3 flex-shrink-0 flex items-center justify-center text-white font-medium shadow-md">
+                        {['JD', 'AK', 'SR'][idx]}
+                      </div>
+                      <div>
+                        <h3 className="text-base font-semibold text-gray-800">
+                          {['John Doe', 'Alice Kim', 'Sam Reed'][idx]}
+                        </h3>
+                        <p className="text-sm text-gray-500">
+                          Class of {['2018', '2020', '2019'][idx]}
+                        </p>
+                      </div>
+                      <button className="ml-auto px-3 py-1 text-teal-600 text-sm font-medium border border-teal-200 rounded-md hover:bg-teal-50 transition-colors duration-300">
+                        Connect
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <div className="p-4 bg-gradient-to-r from-teal-50 to-emerald-50 text-center">
+                  <a href="#" className="text-teal-600 text-sm font-medium hover:underline">
+                    View All Suggestions
+                  </a>
+                </div>
+              </div>
+
+              {/* Support & Donation */}
+              <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden p-5 hover:shadow-xl transition-shadow duration-300">
+                <h2 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
+                  <MailPlus size={18} className="text-teal-500 mr-2" /> 
+                  Support
+                </h2>
+                <p className="text-gray-600 text-sm">
+                  Need help? Reach out to our support team at any time.
+                </p>
+                <div className="mt-3 p-3 bg-teal-50 rounded-lg border border-teal-100">
+                  <p className="text-teal-800 text-sm font-medium">
+                    support@alumniconnect.com
+                  </p>
+                </div>
+                <div className="mt-5 pt-5 border-t border-gray-100">
+                  <h2 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
+                    <IndianRupee size={18} className="text-teal-500 mr-2" />
+                    Make a Donation
+                  </h2>
+                  <p className="text-gray-600 text-sm mb-4">
+                    Support your alma mater by contributing to scholarships and campus development.
+                  </p>
+                  <button 
+                    onClick={() => openPostModal('donation')}
+                    className="w-full flex items-center justify-center bg-gradient-to-r from-teal-500 to-emerald-400 hover:from-teal-600 hover:to-emerald-500 text-white py-2.5 rounded-lg transition-colors duration-300 shadow-md hover:shadow-lg"
+                  >
+                    <Plus size={18} className="mr-2" /> Start a Donation
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-
-          {/* Bookmarks Section */}
-          <div className="bg-white rounded-md border border-gray-200 p-3 shadow-sm">
-            <h2 className="text-sm font-semibold text-gray-800 mb-2">Bookmarks</h2>
-            <ul className="text-sm text-gray-600 space-y-1">
-              <li className="hover:text-teal-600 cursor-pointer">Saved Bookmarks</li>
-              <li className="hover:text-teal-600 cursor-pointer">My posts</li>
-            </ul>
-          </div>
-
-          {/* Events Section */}
-          <div className="bg-white rounded-md border border-gray-200 p-3 shadow-sm">
-            <h2 className="text-sm font-semibold text-gray-800 mb-2">Events</h2>
-            <ul className="text-sm text-gray-600 space-y-1 mb-2">
-              <li className="hover:text-teal-600 cursor-pointer">Saved Events</li>
-              <li className="hover:text-teal-600 cursor-pointer">My Events</li>
-            </ul>
-            <button className="w-full bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 rounded text-lg">
-              + Add an Event
-            </button>
-          </div>
-        </div>
-
-        {/* Main Feed */}
-        <div className="w-3/5 px-4">
-          {/* Start Post Input */}
-          <div className="bg-white border border-gray-200 rounded-md p-3 mb-5 w-145 shadow-sm hover:shadow-md flex justify-center items-center text-gray-700 font-medium">
-            <div className="w-9 h-9 rounded-full bg-gray-300 flex-shrink-0 mr-3 flex items-center justify-center text-sm font-bold text-gray-700">
-              {initials}
-            </div>
-            <input
-              type="text"
-              placeholder="Start a Post"
-              className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-teal-500"
-              onClick={() => setShowPostModal(true)}
-            />
-          </div>
-
-          {/* User Posts Feed */}
-          {postsLoading ? (
-            <p className="text-gray-500">Loading posts...</p>
-          ) : postsError ? (
-            <p className="text-red-600">{postsError}</p>
-          ) : posts.length === 0 ? (
-            <p className="text-gray-500">No posts found.</p>
-          ) : (
-            posts.map((post) => (
-              <PostCard key={post._id} post={post} />
-            ))
-          )}
-
-          {/* Admin Jobs */}
-          <div className="flex flex-col gap-5 items-center mt-8">
-            {loading ? (
-              <p className="text-gray-500">Loading jobs...</p>
-            ) : jobs?.length > 0 ? (
-              jobs.map((job) => <PostCard key={job._id} job={job} />)
-            ) : (
-              <p className="text-gray-500">No jobs posted by admin yet.</p>
-            )}
-          </div>
-        </div>
-
-        {/* Right Sidebar */}
-        <div className="w-[25rem] pl-4 space-y-3">
-          {/* Support Section */}
-          <div className="bg-white rounded-md border border-gray-200 p-3 shadow-sm">
-            <h2 className="text-sm font-semibold text-gray-800 mb-2">Support</h2>
-            <p className="text-sm text-gray-600">
-              <span className="font-medium text-gray-800">Our Mail:</span>{" "}
-              support@alumniconnect.com
-            </p>
-            <p className="text-xs text-gray-500 mt-1">
-              Feel free to contact us at any time if you face any issues. We’re here to help!
-            </p>
-          </div>
-
-          {/* Donations Section */}
-          <div className="bg-white rounded-md border border-gray-200 p-3 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold text-gray-800">My Donations</h2>
-              <IndianRupee size={20} className="text-teal-600" />
-            </div>
-            <button className="w-full bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 rounded text-lg">
-              + Create a Donation
-            </button>
           </div>
         </div>
       </div>
@@ -183,7 +340,8 @@ function MainLayout({ jobs, loading }) {
         initials={initials}
         firstName={firstName}
         lastName={lastName}
-        onPostCreate={handlePostCreate} // pass the handler to update posts
+        onPostCreate={handlePostCreate}
+        postType={postType}
       />
     </>
   );

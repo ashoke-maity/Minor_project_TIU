@@ -4,7 +4,7 @@ import Login from '../components/others/Login';
 import ForgotPassword from '../components/others/ForgotPass';
 import ResetPassword from '../components/others/ResetPass';
 import Register from '../components/others/Register';
-import UserSettings from '../pages/UserSettings';
+import UserSettings from "../components/layout/UserSettings";
 import UserPrivacyPolicy from '../pages/UserPrivacyPolicy';
 import UserJobPortal from '../pages/UserJobPortal';
 import AdminDashboard from '../pages/AdminDashboard';
@@ -36,7 +36,7 @@ function App() {
         <Route path="/resetpass" element={<ResetPassword />} />
         <Route path="/register" element={<Register />} />
         <Route path="/home" element={<Home />} />
-        <Route path="/usersetting" element={<UserSettings />} />
+        <Route path="settings" element={<UserSettings />} />
         <Route path="/privacypolicy" element={<UserPrivacyPolicy />} />
         <Route path="/home/jobportal" element={<UserJobPortal />} />
         
