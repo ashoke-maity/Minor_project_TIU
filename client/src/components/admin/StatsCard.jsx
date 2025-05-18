@@ -13,33 +13,33 @@ const StatsCard = ({
   const isDecrement = trend === 'decrement';
 
   return (
-    <article className='stats-card'>
-      <h3 className='text-base font-medium'>{headerTitle}</h3>
+    <article className='stats-card bg-white p-3 sm:p-4 lg:p-5 rounded-lg shadow-sm'>
+      <h3 className='text-sm lg:text-base font-medium text-gray-700'>{headerTitle}</h3>
 
-      <div className="content">
-        <div className="flex flex-col gap-4">
-          <h2 className='text-4l font-semibold'>{total}</h2>
+      <div className="content flex justify-between items-center mt-3">
+        <div className="flex flex-col gap-2 lg:gap-4">
+          <h2 className='text-xl lg:text-2xl font-semibold'>{total.toLocaleString()}</h2>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 lg:gap-2">
             <figure className='flex items-center gap-1'>
               <img 
                 src={`/icons/${isDecrement 
                 ? 'arrow-down-red.svg' 
                 : 'arrow-up-green.svg'}`} 
-                className='size-5' 
+                className='size-4 lg:size-5' 
                 alt='arrow' 
               />
-              <figcaption className={cn('text-sm font-medium', isDecrement ? 'text-red-500' : 'text-success-700')}>
+              <figcaption className={cn('text-xs lg:text-sm font-medium', isDecrement ? 'text-red-500' : 'text-success-700')}>
                 {Math.round(percentage)}%
               </figcaption>
-              <p className='text-sm font-medium text-gray-100 truncate'>vs last month</p>
             </figure>
+            <p className='text-xs lg:text-sm font-medium text-gray-500 truncate'>vs last month</p>
           </div>
         </div>
 
         <img 
           src={`/icons/${isDecrement ? 'decrement.svg' : 'increment.svg'}` }
-          className='xl:w-32 w-full h-full md:h-32 xl:h-full' 
+          className='w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24' 
           alt='trend graph'
         />
       </div>

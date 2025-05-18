@@ -308,15 +308,24 @@
     .mobile-sidebar {
         @apply lg:hidden flex flex-col gap-5;
         header {
-            @apply flex justify-between items-center border-b border-light-100;
+            @apply flex justify-between items-center border-b border-light-100 py-3;
             h1 {
-                @apply text-base md:text-2xl font-bold text-dark-100;
+                @apply text-base md:text-xl font-bold text-dark-100;
             }
             a {
-                @apply flex items-center gap-1.5 py-10;
+                @apply flex items-center gap-1.5;
             }
         }
     }
+    
+    .mobile-nav-sidebar {
+        @apply fixed right-0 top-0 z-50 h-full bg-white shadow-xl flex flex-col;
+        
+        .e-sidebar-content {
+            @apply h-full flex-1 overflow-y-auto;
+        }
+    }
+
     .root-nav {
         @apply flex justify-between gap-4  items-center;
         a {
@@ -354,11 +363,11 @@
         }
     }
     .nav-items {
-        @apply flex flex-col px-6 h-full;
+        @apply flex flex-col px-3 lg:px-6 h-full;
         .container {
             @apply flex flex-col justify-between h-full;
             nav {
-                @apply flex flex-col gap-3.5 pt-9;
+                @apply flex flex-col gap-2 lg:gap-3.5 pt-4 lg:pt-9;
             }
         }
     }
@@ -367,6 +376,11 @@
         @apply flex flex-col lg:flex-row h-screen w-full;
         .children {
             @apply w-full h-full bg-light-200 pt-12 lg:pt-10;
+        }
+        
+        /* Main content area */
+        .dashboard {
+            @apply lg:ml-[270px] transition-all duration-300 pt-2 pb-16 lg:pt-6 px-2 lg:px-6;
         }
     }
     .user-trip {
@@ -378,13 +392,18 @@
     }
 
     .dashboard {
-        @apply flex flex-col gap-10 w-full  pb-20;
+        @apply flex flex-col gap-5 lg:gap-10 w-full pb-10 lg:pb-20;
 
         .container {
-            @apply flex flex-col gap-5 mt-2.5;
+            @apply flex flex-col gap-3 lg:gap-5 mt-2;
             h1 {
-                @apply text-xl font-semibold text-dark-100;
+                @apply text-lg lg:text-xl font-semibold text-dark-100;
             }
+        }
+        
+        /* Stats cards layout */
+        .stats-container {
+            @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-5;
         }
     }
     .featured-card {

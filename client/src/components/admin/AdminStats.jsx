@@ -14,13 +14,14 @@ const {
   usersJoined,
   totalAdmins,
   adminsCreated,
-  userRole ,
+  userRole,
 } = dashboardStats
 
 const AdminStats = () => {
   return (
-    <section className='flex flex-col gap-6'>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-6">
+    <section className='flex flex-col gap-4 lg:gap-6'>
+      <h2 className="text-lg lg:text-xl font-semibold text-gray-800">Overview</h2>
+      <div className="stats-container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-5">
         <StatsCard 
           headerTitle="Total Users"
           total={totalUsers}
@@ -29,15 +30,15 @@ const AdminStats = () => {
         />
         <StatsCard 
           headerTitle="Total Admins"
-          total={totalUsers}
+          total={totalAdmins}
           currentMonthCount={adminsCreated.currentMonth}
           lastMonthCount={adminsCreated.lastMonth}
         />
         <StatsCard 
           headerTitle="Active Users"
-          total={totalUsers}
-          currentMonthCount={usersJoined.currentMonth}
-          lastMonthCount={usersJoined.lastMonth}
+          total={userRole.total}
+          currentMonthCount={userRole.currentMonth}
+          lastMonthCount={userRole.lastMonth}
         />
       </div>
     </section>

@@ -2,6 +2,8 @@ import React, { useState, useEffect} from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { User, Lock, Eye, EyeOff, ShieldCheck } from "lucide-react";
+import LoadingOverlay from "../components/shared/LoadingOverlay";
+import Toast from "../services/toast";
 
 function AdminLogin() {
   const navigate = useNavigate();
@@ -18,6 +20,14 @@ function AdminLogin() {
     if (image) {
       setTempImage(image);
       localStorage.removeItem("tempProfilePic"); // clear after one use
+      Toast.success("Profile updated successfully!");
+    }
+    
+    // Check if redirected from password reset
+    const resetSuccess = localStorage.getItem("passwordResetSuccess");
+    if (resetSuccess) {
+      Toast.success("Password reset successful. Please login with your new password.");
+      localStorage.removeItem("passwordResetSuccess");
     }
   }, []);
 
@@ -33,7 +43,10 @@ function AdminLogin() {
       );
       if (response.status === 200) {
         localStorage.setItem("authToken", response.data.token);
-        navigate(`${import.meta.env.VITE_ADMIN_ROUTE}/admin/dashboard`);
+        Toast.success("Login successful! Redirecting to dashboard...");
+        setTimeout(() => {
+          navigate(`${import.meta.env.VITE_ADMIN_ROUTE}/admin/dashboard`);
+        }, 1000);
       }
     } catch (error) {
       console.log("Axios error:", error);
@@ -47,6 +60,7 @@ function AdminLogin() {
       }
 
       setError(errorMessage);
+      Toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -54,6 +68,8 @@ function AdminLogin() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800 px-4 py-12">
+      <LoadingOverlay loading={loading} message="Signing in..." />
+      
       <div className="w-full max-w-md">
         <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl overflow-hidden">
           {/* Gradient accent at top */}

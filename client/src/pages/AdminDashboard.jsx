@@ -1,18 +1,30 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Sidebar from "../components/admin/Sidebar";
-import ManageUsersTable from "../components/admin/ManageUsersTable";
-import AdminStats from "../components/admin/AdminStats";
-
-
-import MobileSidebar from "../components/admin/MobileSidebar";
-import Header from "../components/admin/Header";
-
+import { Sidebar, MobileSidebar, Header } from "../components/admin/layout";
+import { ManageUsersTable } from "../components/admin/users";
+import { 
+  AdminStats, 
+  UserActivityChart, 
+  JobOpeningsChart, 
+  EventsChart,
+  StoriesOverview,
+  AdminAnnouncements
+} from "../components/admin/dashboard";
 import axios from 'axios';
 
 function AdminDashboard() {
   const navigate = useNavigate();
   const [adminName, setAdminName] = useState("Admin");
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchAdminData = async () => {
@@ -41,24 +53,56 @@ function AdminDashboard() {
     };
 
     fetchAdminData();
-  }, []);
+  }, [navigate]);
 
   return (
     <main className="admin-layout bg-gray-50 min-h-screen">
-      <Sidebar />
-       <MobileSidebar />
-        <main className="dashboard wrapper mt-5 content-center space-y-2">
-          <header className="header">
+      {/* Desktop sidebar */}
+      {!isMobile && <Sidebar />}
+      
+      {/* Mobile sidebar */}
+      {isMobile && <MobileSidebar />}
+      
+      {/* Main content */}
+      <main className={`dashboard wrapper mt-5 content-center space-y-6 ${isMobile ? 'px-2' : 'px-8'}`}>
+        <header className="header">
           <article>
-          <Header 
-            title={`Welcome, ${adminName} 👋`}
-            description="Track Activity, Trends and popular destinations in real time"
-        />
+            <Header 
+              title={`Welcome, ${adminName} 👋`}
+              description="Track Alumni Activities, Manage Events and Jobs"
+            />
           </article>
         </header>
-        <AdminStats />
-        <ManageUsersTable />
-        </main>
+        
+        {/* Stats Overview */}
+        <section>
+          <AdminStats />
+        </section>
+        
+        {/* Announcements Section */}
+        <section>
+          <AdminAnnouncements />
+        </section>
+        
+        {/* Charts Section */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <UserActivityChart />
+          <div className="grid grid-cols-1 gap-6">
+            <JobOpeningsChart />
+          </div>
+        </section>
+
+        {/* Events and Stories Section */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <EventsChart />
+          <StoriesOverview />
+        </section>
+        
+        {/* Users Table */}
+        <section>
+          <ManageUsersTable />
+        </section>
+      </main>
     </main>
   );
 }

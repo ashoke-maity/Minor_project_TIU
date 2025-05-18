@@ -6,9 +6,9 @@ import {
   Inject,
   Page,
 } from "@syncfusion/ej2-react-grids";
-import { cn, formatDate } from "../../components/lib/utils";
-import LoadingOverlay from "../shared/LoadingOverlay";
-import Toast from "../../services/toast";
+import { cn, formatDate } from "../../../utils/helpers";
+import LoadingOverlay from "../../shared/LoadingOverlay";
+import Toast from "../../../utils/toast";
 import axios from "axios";
 
 export default function ManageUsersTable() {
@@ -373,4 +373,4 @@ export default function ManageUsersTable() {
       </div>
     </section>
   );
-}
+} 
