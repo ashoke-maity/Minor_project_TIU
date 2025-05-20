@@ -3,19 +3,19 @@ const User = new mongoose.Schema(
   {
     FirstName: {
       type: String,
-      require: true,
+      required: true,
     },
     LastName: {
       type: String,
-      require: true,
+      required: true,
     },
     PassoutYear: {
       type: String,
-      require: true,
+      required: true,
     },
     Email: {
       type: String,
-      require: true,
+      required: true,
       unique: true,
     },
     Password: {
