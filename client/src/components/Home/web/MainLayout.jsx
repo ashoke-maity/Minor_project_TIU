@@ -1,8 +1,21 @@
 import React, { useEffect, useState } from "react";
 import PostCard from "./PostCard";
-import PostModal from "./PostModal"; 
+import PostModal from "./PostModal";
 import AdminAnnouncements from "./AdminAnnouncements";
-import { IndianRupee, Users, Bookmark, Calendar, MailPlus, Plus, Briefcase, ChevronRight, Heart, MessageCircle, Save, Image } from "lucide-react";
+import {
+  IndianRupee,
+  Users,
+  Bookmark,
+  Calendar,
+  MailPlus,
+  Plus,
+  Briefcase,
+  ChevronRight,
+  Heart,
+  MessageCircle,
+  Save,
+  Image,
+} from "lucide-react";
 import axios from "axios";
 
 function MainLayout({ jobs, loading }) {
@@ -11,6 +24,7 @@ function MainLayout({ jobs, loading }) {
   const [PassoutYear, setPassoutYear] = useState("");
   const [showPostModal, setShowPostModal] = useState(false);
   const [postType, setPostType] = useState("regular"); // "regular", "event", "job", "media"
+  const [adminJobs, setAdminJobs] = useState([]);
 
   // New: posts state and loading/error for posts
   const [posts, setPosts] = useState([]);
@@ -47,11 +61,14 @@ function MainLayout({ jobs, loading }) {
       setPostsLoading(true);
       setPostsError("");
       try {
-        const response = await axios.get(`${import.meta.env.VITE_USER_API_URL}/view/others`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-          },
-        });
+        const response = await axios.get(
+          `${import.meta.env.VITE_USER_API_URL}/view/others`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            },
+          }
+        );
         setPosts(response.data);
       } catch (err) {
         setPostsError("Failed to load posts.");
@@ -60,9 +77,28 @@ function MainLayout({ jobs, loading }) {
         setPostsLoading(false);
       }
     };
-
     fetchPosts();
   }, []);
+
+useEffect(() => {
+  const fetchAdminJob = async () => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_USER_API_URL}/jobs`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+        }
+      );
+      setAdminJobs(response.data.jobs);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  fetchAdminJob();
+}, []);
 
   // Helper to add newly created post to feed immediately
   const handlePostCreate = (newPost) => {
@@ -74,7 +110,9 @@ function MainLayout({ jobs, loading }) {
     setShowPostModal(true);
   };
 
-  const initials = `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase();
+  const initials = `${firstName?.[0] ?? ""}${
+    lastName?.[0] ?? ""
+  }`.toUpperCase();
 
   return (
     <>
@@ -103,50 +141,104 @@ function MainLayout({ jobs, loading }) {
 
               {/* Quick Links Card */}
               <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden p-5 hover:shadow-xl transition-shadow duration-300">
-                <h2 className="text-lg font-bold text-gray-800 mb-4">Quick Links</h2>
+                <h2 className="text-lg font-bold text-gray-800 mb-4">
+                  Quick Links
+                </h2>
                 <div className="space-y-3">
-                  <a href="#" className="flex items-center py-2 px-3 hover:bg-teal-50 rounded-lg transition-colors duration-300">
+                  <a
+                    href="#"
+                    className="flex items-center py-2 px-3 hover:bg-teal-50 rounded-lg transition-colors duration-300"
+                  >
                     <Bookmark size={18} className="text-teal-500 mr-3" />
                     <span className="text-gray-700">Bookmarks</span>
                     <ChevronRight size={16} className="ml-auto text-gray-400" />
                   </a>
                   <div className="pl-8 space-y-1">
-                    <a href="#" className="block text-sm text-teal-600 hover:underline py-1">View Saved Bookmarks</a>
+                    <a
+                      href="#"
+                      className="block text-sm text-teal-600 hover:underline py-1"
+                    >
+                      View Saved Bookmarks
+                    </a>
                   </div>
-                  <a href="#" className="flex items-center py-2 px-3 hover:bg-teal-50 rounded-lg transition-colors duration-300">
+                  <a
+                    href="#"
+                    className="flex items-center py-2 px-3 hover:bg-teal-50 rounded-lg transition-colors duration-300"
+                  >
                     <Calendar size={18} className="text-teal-500 mr-3" />
                     <span className="text-gray-700">Events</span>
                     <ChevronRight size={16} className="ml-auto text-gray-400" />
                   </a>
                   <div className="pl-8 space-y-1">
-                    <a href="#" className="block text-sm text-teal-600 hover:underline py-1">My Posted Events</a>
-                    <a href="#" className="block text-sm text-teal-600 hover:underline py-1">Upcoming Events</a>
+                    <a
+                      href="#"
+                      className="block text-sm text-teal-600 hover:underline py-1"
+                    >
+                      My Posted Events
+                    </a>
+                    <a
+                      href="#"
+                      className="block text-sm text-teal-600 hover:underline py-1"
+                    >
+                      Upcoming Events
+                    </a>
                   </div>
-                  <a href="#" className="flex items-center py-2 px-3 hover:bg-teal-50 rounded-lg transition-colors duration-300">
+                  <a
+                    href="#"
+                    className="flex items-center py-2 px-3 hover:bg-teal-50 rounded-lg transition-colors duration-300"
+                  >
                     <Briefcase size={18} className="text-teal-500 mr-3" />
                     <span className="text-gray-700">Jobs</span>
                     <ChevronRight size={16} className="ml-auto text-gray-400" />
                   </a>
                   <div className="pl-8 space-y-1">
-                    <a href="#" className="block text-sm text-teal-600 hover:underline py-1">My Job Posts</a>
-                    <a href="#" className="block text-sm text-teal-600 hover:underline py-1">Available Opportunities</a>
+                    <a
+                      href="#"
+                      className="block text-sm text-teal-600 hover:underline py-1"
+                    >
+                      My Job Posts
+                    </a>
+                    <a
+                      href="#"
+                      className="block text-sm text-teal-600 hover:underline py-1"
+                    >
+                      Available Opportunities
+                    </a>
                   </div>
-                  <a href="#" className="flex items-center py-2 px-3 hover:bg-teal-50 rounded-lg transition-colors duration-300">
+                  <a
+                    href="#"
+                    className="flex items-center py-2 px-3 hover:bg-teal-50 rounded-lg transition-colors duration-300"
+                  >
                     <IndianRupee size={18} className="text-teal-500 mr-3" />
                     <span className="text-gray-700">Donations</span>
                     <ChevronRight size={16} className="ml-auto text-gray-400" />
                   </a>
                 </div>
-                
+
                 {/* Footer for credits */}
                 <div className="mt-6 pt-4 border-t border-gray-100 text-xs text-gray-400">
                   <p className="mb-1">© 2024 AlumniConnect</p>
                   <div className="flex space-x-2">
-                    <a href="#" className="hover:text-teal-500 transition-colors">About</a>
+                    <a
+                      href="#"
+                      className="hover:text-teal-500 transition-colors"
+                    >
+                      About
+                    </a>
                     <span>•</span>
-                    <a href="#" className="hover:text-teal-500 transition-colors">Terms</a>
+                    <a
+                      href="#"
+                      className="hover:text-teal-500 transition-colors"
+                    >
+                      Terms
+                    </a>
                     <span>•</span>
-                    <a href="#" className="hover:text-teal-500 transition-colors">Contact</a>
+                    <a
+                      href="#"
+                      className="hover:text-teal-500 transition-colors"
+                    >
+                      Contact
+                    </a>
                   </div>
                 </div>
               </div>
@@ -156,15 +248,15 @@ function MainLayout({ jobs, loading }) {
             <div className="w-full lg:w-2/4 space-y-5">
               {/* Admin Announcements */}
               <AdminAnnouncements />
-              
+
               {/* Create Post Card */}
               <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-4 hover:shadow-xl transition-shadow duration-300">
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-base font-semibold flex-shrink-0 shadow-md">
                     {initials}
                   </div>
-                  <button 
-                    onClick={() => openPostModal('regular')}
+                  <button
+                    onClick={() => openPostModal("regular")}
                     className="w-full text-left bg-gray-50 hover:bg-gray-100 text-gray-500 rounded-full px-4 py-2.5 border border-gray-200 hover:shadow-inner transition-all duration-300"
                   >
                     What's on your mind, {firstName}?
@@ -172,29 +264,29 @@ function MainLayout({ jobs, loading }) {
                 </div>
 
                 <div className="flex mt-4 pt-3 border-t border-gray-100 text-sm">
-                  <button 
-                    onClick={() => openPostModal('event')}
+                  <button
+                    onClick={() => openPostModal("event")}
                     className="flex items-center justify-center w-1/4 py-1.5 text-gray-700 hover:bg-teal-50 rounded transition-colors duration-300"
                   >
                     <Calendar size={18} className="text-teal-500 mr-2" />
                     Event
                   </button>
-                  <button 
-                    onClick={() => openPostModal('job')}
+                  <button
+                    onClick={() => openPostModal("job")}
                     className="flex items-center justify-center w-1/4 py-1.5 text-gray-700 hover:bg-teal-50 rounded transition-colors duration-300"
                   >
                     <Briefcase size={18} className="text-teal-500 mr-2" />
                     Job
                   </button>
-                  <button 
-                    onClick={() => openPostModal('media')}
+                  <button
+                    onClick={() => openPostModal("media")}
                     className="flex items-center justify-center w-1/4 py-1.5 text-gray-700 hover:bg-teal-50 rounded transition-colors duration-300"
                   >
                     <Image size={18} className="text-teal-500 mr-2" />
                     Media
                   </button>
-                  <button 
-                    onClick={() => openPostModal('donation')}
+                  <button
+                    onClick={() => openPostModal("donation")}
                     className="flex items-center justify-center w-1/4 py-1.5 text-gray-700 hover:bg-teal-50 rounded transition-colors duration-300"
                   >
                     <IndianRupee size={18} className="text-teal-500 mr-2" />
@@ -226,12 +318,14 @@ function MainLayout({ jobs, loading }) {
                         <MailPlus size={24} className="text-teal-500" />
                       </div>
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-800">No posts yet</h3>
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      No posts yet
+                    </h3>
                     <p className="text-gray-500 mt-2">
                       Be the first to share something with your alumni network!
                     </p>
-                    <button 
-                      onClick={() => openPostModal('regular')}
+                    <button
+                      onClick={() => openPostModal("regular")}
                       className="mt-4 bg-gradient-to-r from-teal-500 to-emerald-400 hover:from-teal-600 hover:to-emerald-500 text-white py-2 px-6 rounded-lg transition-colors duration-300 shadow-md hover:shadow-lg"
                     >
                       Create Post
@@ -240,7 +334,10 @@ function MainLayout({ jobs, loading }) {
                 ) : (
                   <div className="space-y-5">
                     {posts.map((post) => (
-                      <div key={post._id} className="bg-white rounded-xl shadow-lg border border-gray-100 p-4 hover:shadow-xl transition-shadow duration-300">
+                      <div
+                        key={post._id}
+                        className="bg-white rounded-xl shadow-lg border border-gray-100 p-4 hover:shadow-xl transition-shadow duration-300"
+                      >
                         <PostCard post={post} />
                       </div>
                     ))}
@@ -249,16 +346,21 @@ function MainLayout({ jobs, loading }) {
               </div>
 
               {/* Admin Jobs */}
-              {!loading && jobs?.length > 0 && (
+              {!loading && adminJobs?.length > 0 && (
                 <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-5 hover:shadow-xl transition-shadow duration-300">
                   <div className="flex items-center mb-4">
                     <Briefcase size={20} className="text-teal-500 mr-2" />
-                    <h2 className="text-lg font-bold text-gray-800">Job Opportunities</h2>
+                    <h2 className="text-lg font-bold text-gray-800">
+                      Job Opportunities
+                    </h2>
                   </div>
                   <div className="space-y-4">
-                    {jobs.map((job) => (
-                      <div key={job._id} className="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
-                        <PostCard key={job._id} job={job} />
+                    {adminJobs.map((job) => (
+                      <div
+                        key={job._id}
+                        className="border-b border-gray-100 pb-4 last:border-0 last:pb-0"
+                      >
+                        <PostCard job={job} />
                       </div>
                     ))}
                   </div>
@@ -272,22 +374,25 @@ function MainLayout({ jobs, loading }) {
               <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow duration-300">
                 <div className="p-5 border-b border-gray-100 bg-gradient-to-r from-teal-50 to-emerald-50">
                   <h2 className="text-lg font-bold text-gray-800 flex items-center">
-                    <Users size={18} className="text-teal-500 mr-2" /> 
+                    <Users size={18} className="text-teal-500 mr-2" />
                     People You May Know
                   </h2>
                 </div>
                 <div className="divide-y divide-gray-100">
                   {[1, 2, 3].map((_, idx) => (
-                    <div key={idx} className="flex items-center p-4 hover:bg-gray-50 transition-colors duration-300">
+                    <div
+                      key={idx}
+                      className="flex items-center p-4 hover:bg-gray-50 transition-colors duration-300"
+                    >
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 mr-3 flex-shrink-0 flex items-center justify-center text-white font-medium shadow-md">
-                        {['JD', 'AK', 'SR'][idx]}
+                        {["JD", "AK", "SR"][idx]}
                       </div>
                       <div>
                         <h3 className="text-base font-semibold text-gray-800">
-                          {['John Doe', 'Alice Kim', 'Sam Reed'][idx]}
+                          {["John Doe", "Alice Kim", "Sam Reed"][idx]}
                         </h3>
                         <p className="text-sm text-gray-500">
-                          Class of {['2018', '2020', '2019'][idx]}
+                          Class of {["2018", "2020", "2019"][idx]}
                         </p>
                       </div>
                       <button className="ml-auto px-3 py-1 text-teal-600 text-sm font-medium border border-teal-200 rounded-md hover:bg-teal-50 transition-colors duration-300">
@@ -297,7 +402,10 @@ function MainLayout({ jobs, loading }) {
                   ))}
                 </div>
                 <div className="p-4 bg-gradient-to-r from-teal-50 to-emerald-50 text-center">
-                  <a href="#" className="text-teal-600 text-sm font-medium hover:underline">
+                  <a
+                    href="#"
+                    className="text-teal-600 text-sm font-medium hover:underline"
+                  >
                     View All Suggestions
                   </a>
                 </div>
@@ -306,7 +414,7 @@ function MainLayout({ jobs, loading }) {
               {/* Support & Donation */}
               <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden p-5 hover:shadow-xl transition-shadow duration-300">
                 <h2 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
-                  <MailPlus size={18} className="text-teal-500 mr-2" /> 
+                  <MailPlus size={18} className="text-teal-500 mr-2" />
                   Support
                 </h2>
                 <p className="text-gray-600 text-sm">
@@ -323,10 +431,11 @@ function MainLayout({ jobs, loading }) {
                     Make a Donation
                   </h2>
                   <p className="text-gray-600 text-sm mb-4">
-                    Support your alma mater by contributing to scholarships and campus development.
+                    Support your alma mater by contributing to scholarships and
+                    campus development.
                   </p>
-                  <button 
-                    onClick={() => openPostModal('donation')}
+                  <button
+                    onClick={() => openPostModal("donation")}
                     className="w-full flex items-center justify-center bg-gradient-to-r from-teal-500 to-emerald-400 hover:from-teal-600 hover:to-emerald-500 text-white py-2.5 rounded-lg transition-colors duration-300 shadow-md hover:shadow-lg"
                   >
                     <Plus size={18} className="mr-2" /> Start a Donation

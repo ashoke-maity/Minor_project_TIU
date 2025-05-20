@@ -1,11 +1,20 @@
 import React from "react";
 import { formatDistanceToNow } from "date-fns";
-import { Calendar, Briefcase, Heart, MessageCircle, Save, MapPin, Clock, FileText } from "lucide-react";
+import {
+  Calendar,
+  Briefcase,
+  Heart,
+  MessageCircle,
+  Save,
+  MapPin,
+  Clock,
+  FileText,
+} from "lucide-react";
 
 function PostCard({ post, job }) {
   // Determine if we're rendering a job or a regular post
   const data = job || post;
-  
+
   if (!data) return null;
 
   // Format the date
@@ -29,42 +38,45 @@ function PostCard({ post, job }) {
 
   const postType = getPostType();
   const postDate = getFormattedDate(data.createdAt || data.Date || new Date());
-  
+
   // Get user information - handle both formats that might exist in the data
   const userInfo = data.User || data.userId || {};
   const firstName = userInfo.FirstName || "";
   const lastName = userInfo.LastName || "";
-  const initials = `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase() || "U";
-  const fullName = firstName && lastName ? `${firstName} ${lastName}` : "Anonymous User";
+  const initials =
+    `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase() || "U";
+  const fullName =
+    firstName && lastName ? `${firstName} ${lastName}` : "Anonymous User";
   const passoutYear = userInfo.PassoutYear;
 
   // Helper to render job details if it's a job post
   const renderJobDetails = () => {
     if (postType !== "job") return null;
-    
-    const jobData = data.extraData || data;
-    const jobTitle = jobData.jobTitle || "";
-    const companyName = jobData.companyName || "";
-    const location = jobData.location || "";
-    const jobType = jobData.jobType || "";
-    const salary = jobData.salary || "";
-    const deadline = jobData.deadline || null;
-      
+
+    const jobData = data.extraData ? data.extraData : data;
+    const jobTitle = jobData.jobTitle || data.jobTitle || "";
+    const companyName = jobData.companyName || data.companyName || "";
+    const location = jobData.location || data.location || "";
+    const jobType = jobData.jobType || data.jobType || "";
+    const salary = jobData.salary || data.salary || "";
+    const deadline = jobData.deadline || data.deadline || null;
     return (
       <div className="mt-3 space-y-2 text-sm">
         {jobTitle && companyName && (
-          <div className="font-medium">{jobTitle} at {companyName}</div>
+          <div className="font-medium">
+            {jobTitle} at {companyName}
+          </div>
         )}
-        
+
         <div className="flex flex-wrap gap-3">
           {location && (
             <div className="flex items-center text-gray-600">
-              <MapPin size={14} className="mr-1"/> {location}
+              <MapPin size={14} className="mr-1" /> {location}
             </div>
           )}
           {jobType && (
             <div className="flex items-center text-gray-600">
-              <Briefcase size={14} className="mr-1"/> {jobType}
+              <Briefcase size={14} className="mr-1" /> {jobType}
             </div>
           )}
           {salary && (
@@ -73,19 +85,18 @@ function PostCard({ post, job }) {
             </div>
           )}
         </div>
-        
+
         {deadline && (
           <div className="flex items-center text-amber-600 text-xs">
-            <Clock size={14} className="mr-1"/>
-            Application deadline: {
-              (() => {
-                try {
-                  return new Date(deadline).toLocaleDateString();
-                } catch (e) {
-                  return "Available";
-                }
-              })()
-            }
+            <Clock size={14} className="mr-1" />
+            Application deadline:{" "}
+            {(() => {
+              try {
+                return new Date(deadline).toLocaleDateString();
+              } catch (e) {
+                return "Available";
+              }
+            })()}
           </div>
         )}
       </div>
@@ -95,41 +106,37 @@ function PostCard({ post, job }) {
   // Helper to render event details if it's an event post
   const renderEventDetails = () => {
     if (postType !== "event") return null;
-    
+
     const eventData = data.extraData || {};
     const eventName = eventData.eventName || "";
     const eventDate = eventData.eventDate || null;
     const location = eventData.location || "";
     const summary = eventData.summary || "";
-      
+
     return (
       <div className="mt-3 space-y-2 text-sm">
-        {eventName && (
-          <div className="font-medium">{eventName}</div>
-        )}
-        
+        {eventName && <div className="font-medium">{eventName}</div>}
+
         <div className="flex flex-wrap gap-3">
           {eventDate && (
             <div className="flex items-center text-gray-600">
-              <Calendar size={14} className="mr-1"/> 
-              {
-                (() => {
-                  try {
-                    return new Date(eventDate).toLocaleDateString();
-                  } catch (e) {
-                    return "Upcoming";
-                  }
-                })()
-              }
+              <Calendar size={14} className="mr-1" />
+              {(() => {
+                try {
+                  return new Date(eventDate).toLocaleDateString();
+                } catch (e) {
+                  return "Upcoming";
+                }
+              })()}
             </div>
           )}
           {location && (
             <div className="flex items-center text-gray-600">
-              <MapPin size={14} className="mr-1"/> {location}
+              <MapPin size={14} className="mr-1" /> {location}
             </div>
           )}
         </div>
-        
+
         {summary && (
           <div className="text-gray-700 bg-gray-50 p-2 rounded-md text-xs">
             {summary}
@@ -148,15 +155,11 @@ function PostCard({ post, job }) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
-            <h3 className="font-medium text-gray-800 truncate">
-              {fullName}
-            </h3>
+            <h3 className="font-medium text-gray-800 truncate">{fullName}</h3>
             <span className="text-xs text-gray-500">{postDate}</span>
           </div>
           {passoutYear && (
-            <p className="text-xs text-gray-500">
-              Class of {passoutYear}
-            </p>
+            <p className="text-xs text-gray-500">Class of {passoutYear}</p>
           )}
         </div>
       </div>
@@ -190,9 +193,9 @@ function PostCard({ post, job }) {
       {/* Media content - placeholder for future implementation */}
       {data.mediaUrl && (
         <div className="mt-3 rounded-lg overflow-hidden bg-gray-100">
-          <img 
-            src={data.mediaUrl} 
-            alt="Post media" 
+          <img
+            src={data.mediaUrl}
+            alt="Post media"
             className="w-full h-auto object-cover"
           />
         </div>
@@ -201,7 +204,7 @@ function PostCard({ post, job }) {
       {/* Job or event details */}
       {renderJobDetails()}
       {renderEventDetails()}
-      
+
       {/* Social interaction buttons */}
       <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between">
         <button className="flex items-center text-gray-500 hover:text-teal-500 transition-colors py-1 px-2">
