@@ -1,87 +1,129 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
 import axios from "axios";
+import { Link } from "react-router-dom";
+import { Mail, ArrowLeft } from "lucide-react";
+import { toast } from 'react-toastify';
+import LoadingScreen from '../components/common/LoadingScreen';
 
 function AdminForgotPassword() {
-  const [email, setEmail] = useState("");
-  const [msg, setMsg] = useState("");
+  const [Email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMsg("");
+    setMessage("");
     setError("");
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setError("Please enter a valid email address.");
-      return;
-    }
-
-    setIsLoading(true);
+    setLoading(true);
 
     try {
-      // Call forgot password API
       const response = await axios.post(
-        `${import.meta.env.VITE_ADMIN_API_URL}/admin/forgot-password`,
-        { email }
+        `${import.meta.env.VITE_ADMIN_API_URL}/forgot-password`,
+        { Email }
       );
-      setMsg(response.data.msg);
-    } catch (err) {
-      setError(err.response?.data?.msg || "Failed to send reset email.");
+
+      if (response.status === 200) {
+        setMessage(response.data.msg || "Reset link sent to your email.");
+        toast.success("Reset link sent to your email.");
+      }
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      const errorMsg = error.response?.data?.msg || "Failed to send reset link. Try again.";
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="bg-black min-h-screen flex justify-center items-center auth-layout">
-      <div className="card-border lg:min-w-[566px]">
-        <div className="flex flex-col card gap-6 py-14 px-10">
-          <div className="flex flex-row gap-2 justify-center content-center items-center mr-10">
-            <img src="/icons/logo3.png" alt="logo" height={100} width={100} />
-            <h1 className="text-white text-3xl shadow-md font-medium mb-2 animate-colorShift">
-              AlumniConnect
-            </h1>
-          </div>
+    <>
+      {loading && <LoadingScreen />}
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800 px-4 py-12">
+        <div className="w-full max-w-md">
+          <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl overflow-hidden">
+            {/* Gradient accent at top */}
+            <div className="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-purple-400 via-indigo-500 to-purple-600"></div>
+            
+            <div className="px-8 pt-12 pb-8">
+              {/* Back button */}
+              <div className="mb-6">
+                <Link 
+                  to="/admin" 
+                  className="inline-flex items-center text-gray-600 hover:text-purple-600 transition-colors"
+                >
+                  <ArrowLeft size={20} className="mr-2" /> Back to admin login
+                </Link>
+              </div>
 
-          <h3 className="text-primary-100 text-center">Reset Admin Password</h3>
+              {/* Title and description */}
+              <div className="text-center mb-8">
+                <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">Forgot Password?</h1>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">
+                  Enter your admin email address and we'll send you a link to reset your password.
+                </p>
+              </div>
 
-          {msg && <p className="text-green-500 text-center">{msg}</p>}
-          {error && <p className="text-red-500 text-center">{error}</p>}
+              {/* Error and success messages */}
+              {message && (
+                <div className="mb-6 p-3 bg-green-50 border border-green-200 text-green-600 text-sm rounded-lg">
+                  {message}
+                </div>
+              )}
+              {error && (
+                <div className="mb-6 p-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg">
+                  {error}
+                </div>
+              )}
 
-          <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-            <label className="label text-white">Registered Email</label>
-            <input
-              type="email"
-              className="input w-full text-white bg-black border border-white focus:outline-none focus:ring-2 focus:ring-primary-100"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)} // Allow user to change email
-              required
-              placeholder="admin@example.com"
-            />
-            <button
-              type="submit"
-              className="w-full !bg-primary-100 !text-dark-100 hover:!bg-primary-200/80 !rounded-full !min-h-10 !font-bold !px-5 cursor-pointer"
-              disabled={isLoading}
-            >
-              {isLoading ? "Sending..." : "Send Reset Link"}
-            </button>
-          </form>
-          {/* Link to go back to the login page */}
-          <div className="text-center text-white mt-4">
-            <Link
-              to={`${import.meta.env.VITE_ADMIN_ROUTE}/admin/login`} // Link to the login page
-              className="text-primary-100 hover:text-primary-200"
-            >
-              Back to Login
-            </Link>
+              {/* Form */}
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-2">
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Admin Email Address
+                  </label>
+                  <div className="relative rounded-md">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Mail className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      value={Email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
+                      placeholder="admin@example.com"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full flex justify-center items-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  Send Reset Link
+                </button>
+              </form>
+
+              {/* Additional help text */}
+              <div className="mt-6 text-center">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Remember your password?{" "}
+                  <Link to="/admin" className="font-medium text-purple-600 hover:text-purple-500">
+                    Sign in here
+                  </Link>
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
