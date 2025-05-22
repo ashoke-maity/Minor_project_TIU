@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { User, Lock, Shield, Save, Trash2, X, ChevronLeft } from "lucide-react";
+import { User, ChevronLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 function UserSettings() {
@@ -9,9 +9,6 @@ function UserSettings() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [profileImage, setProfileImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -83,43 +80,6 @@ function UserSettings() {
     }
   };
 
-  const handlePasswordUpdate = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    setSuccess("");
-
-    if (newPassword !== confirmPassword) {
-      setError("New passwords do not match");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      await axios.put(
-        `${import.meta.env.VITE_USER_API_URL}/user/password`,
-        {
-          currentPassword,
-          newPassword,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-          },
-        }
-      );
-      setSuccess("Password updated successfully");
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-    } catch (err) {
-      setError("Failed to update password");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleAccountDelete = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -160,8 +120,8 @@ function UserSettings() {
           </button>
           <h1 className="text-lg font-bold text-gray-800">Settings</h1>
         </div>
-        
-        {/* Mobile tabs */}
+
+        {/* Mobile Tabs */}
         <div className="flex border-b overflow-x-auto scrollbar-hide">
           <button
             className={`flex-1 py-3 text-sm font-medium ${
@@ -183,16 +143,6 @@ function UserSettings() {
           >
             Privacy
           </button>
-          <button
-            className={`flex-1 py-3 text-sm font-medium ${
-              activeTab === "password" 
-                ? "text-teal-600 border-b-2 border-teal-500" 
-                : "text-gray-600"
-            }`}
-            onClick={() => setActiveTab("password")}
-          >
-            Password
-          </button>
         </div>
       </div>
 
@@ -209,7 +159,7 @@ function UserSettings() {
           </div>
         )}
 
-        {/* Profile Settings */}
+        {/* Profile Tab */}
         {activeTab === "profile" && (
           <div>
             <form onSubmit={handleProfileUpdate}>
@@ -302,7 +252,7 @@ function UserSettings() {
           </div>
         )}
 
-        {/* Privacy & Account */}
+        {/* Privacy Tab */}
         {activeTab === "privacy" && (
           <div>
             <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 mb-6">
@@ -351,63 +301,9 @@ function UserSettings() {
             </div>
           </div>
         )}
-
-        {/* Password */}
-        {activeTab === "password" && (
-          <div>
-            <form onSubmit={handlePasswordUpdate} className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Current Password
-                </label>
-                <input
-                  type="password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md p-3 text-sm focus:outline-none focus:ring-1 focus:ring-teal-500"
-                  placeholder="Enter your current password"
-                />
-              </div>
-
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  New Password
-                </label>
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md p-3 text-sm focus:outline-none focus:ring-1 focus:ring-teal-500"
-                  placeholder="Enter new password"
-                />
-              </div>
-
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Confirm New Password
-                </label>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md p-3 text-sm focus:outline-none focus:ring-1 focus:ring-teal-500"
-                  placeholder="Confirm new password"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full flex items-center justify-center bg-gradient-to-r from-teal-500 to-emerald-400 hover:from-teal-600 hover:to-emerald-500 text-white py-3 rounded-md text-sm font-medium"
-                disabled={loading}
-              >
-                {loading ? "Updating..." : "Update Password"}
-              </button>
-            </form>
-          </div>
-        )}
       </div>
     </div>
   );
 }
 
-export default UserSettings; 
+export default UserSettings;
