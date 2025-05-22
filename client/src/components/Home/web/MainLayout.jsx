@@ -25,12 +25,14 @@ function MainLayout({ jobs, loading }) {
   const [showPostModal, setShowPostModal] = useState(false);
   const [postType, setPostType] = useState("regular"); // "regular", "event", "job", "media"
   const [adminJobs, setAdminJobs] = useState([]);
+  const [adminEvents, setAdminEvents] = useState([]);
 
   // New: posts state and loading/error for posts
   const [posts, setPosts] = useState([]);
   const [postsLoading, setPostsLoading] = useState(true);
   const [postsError, setPostsError] = useState("");
 
+  // show the profile details of the user logged in
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -77,28 +79,50 @@ function MainLayout({ jobs, loading }) {
         setPostsLoading(false);
       }
     };
+
     fetchPosts();
   }, []);
 
-useEffect(() => {
-  const fetchAdminJob = async () => {
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_USER_API_URL}/jobs`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-          },
-        }
-      );
-      setAdminJobs(response.data.jobs);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  // fetch admin job as user
+  useEffect(() => {
+    const fetchAdminJob = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_USER_API_URL}/jobs`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            },
+          }
+        );
+        setAdminJobs(response.data.jobs);
+      } catch (error) {
+        console.log(error);
+      }
+    };
 
-  fetchAdminJob();
-}, []);
+    fetchAdminJob();
+  }, []);
+
+  // fetch admin events as user
+  useEffect(() => {
+    const fetchAdminEvents = async () => {
+      try {
+        const response = await axios(
+          `${import.meta.env.VITE_USER_API_URL}/admin-events`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            },
+          }
+        );
+        setAdminEvents(response.data.events);
+      } catch (error) {
+        console.error("Failed to fetch admin events", error);
+      }
+    };
+    fetchAdminEvents();
+  }, []);
 
   // Helper to add newly created post to feed immediately
   const handlePostCreate = (newPost) => {
@@ -294,6 +318,23 @@ useEffect(() => {
                   </button>
                 </div>
               </div>
+              {adminEvents.length > 0 && (
+  <div className="space-y-4">
+    <h2 className="text-xl font-semibold text-gray-800">Admin Events</h2>
+    {adminEvents.map((event) => (
+      <div
+        key={event._id}
+        className="bg-white rounded-xl shadow border border-gray-100 p-4"
+      >
+        <h3 className="text-lg font-bold text-teal-700">{event.title}</h3>
+        <p className="text-sm text-gray-600">{event.description}</p>
+        <p className="text-xs text-gray-400 mt-2">
+          Event Date: {new Date(event.eventDate).toLocaleDateString()}
+        </p>
+      </div>
+    ))}
+  </div>
+)}
 
               {/* Posts Feed */}
               <div className="space-y-5">
