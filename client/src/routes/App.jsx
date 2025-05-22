@@ -3,9 +3,6 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Home from '../pages/Home';
 import Login from '../components/others/Login';
-import ForgotPassword from '../components/others/ForgotPass';
-import ResetPassword from '../components/others/ResetPass';
-import Register from '../components/others/Register';
 import UserSettings from "../components/layout/UserSettings";
 import UserPrivacyPolicy from '../pages/UserPrivacyPolicy';
 import UserJobPortal from '../pages/UserJobPortal';
@@ -45,9 +42,6 @@ function App() {
       <Routes>
         {/* User Routes */}
         <Route path="/" element={<Login />} />
-        <Route path="/forgotpass" element={<ForgotPassword />} />
-        <Route path="/resetpass" element={<ResetPassword />} />
-        <Route path="/register" element={<Register />} />
         <Route path="/home" element={<Home />} />
         <Route path="settings" element={<UserSettings />} />
         <Route path="/privacypolicy" element={<UserPrivacyPolicy />} />

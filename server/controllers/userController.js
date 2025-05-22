@@ -4,6 +4,8 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const postmark = require("postmark");
 const postmarkClient = new postmark.ServerClient(process.env.POSTMARK_API_KEY);
+const { OAuth2Client } = require("google-auth-library");
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 // const nodemailer = require("nodemailer");
 const dotenv = require('dotenv').config();
 
@@ -50,185 +52,6 @@ const userLogin = async (req, res) => {
   }
 };
 
-// user forgot password
-const userForgotPassword = async (req, res) => {
-  const { Email } = req.body;
-
-  if (!Email) {
-    return res.status(400).json({ status: 0, msg: "Email is required" });
-  }
-
-  try {
-    const user = await userDatabase.findOne({ Email });
-
-    if (!user) {
-      return res.status(404).json({ status: 0, msg: "User not found" });
-    }
-
-    // Create a reset token
-    const resetToken = crypto.randomBytes(20).toString("hex");
-
-    // Set token expiration (e.g., 1 hour)
-    const resetTokenExpiration = Date.now() + 3600000;
-
-    // Save token and expiration
-    user.resetPasswordToken = resetToken;
-    user.resetPasswordExpires = resetTokenExpiration;
-    await user.save();
-
-    const resetURL = `${process.env.CLIENT_ROUTE}/resetpass?token=${resetToken}`;
-
-    // Send email via Postmark
-    await postmarkClient.sendEmail({
-      From: 'Alumni Connect <' + process.env.EMAIL_FROM + '>',
-      To: Email, // ✅ This should be the user's email, not yours
-      Subject: "Password Reset - AlumniConnect",
-      HtmlBody: `<p>Dear ${user.FirstName || 'User'},</p>
-
-    <p>We received a request to reset the password associated with your Alumni Connect account.</p>
-
-    <p>If you initiated this request, please click the button below to securely reset your password:</p>
-
-    <p>
-      <a href="${resetURL}" style="display: inline-block; padding: 10px 20px; background-color: #2563eb; color: #ffffff; text-decoration: none; border-radius: 5px;">
-        Reset Password
-      </a>
-    </p>
-
-    <p>This password reset link will remain valid for the next <strong>60 minutes</strong>.</p>
-
-    <p>If you did not request this reset, you can safely ignore this message. Your account is still secure, and no changes will be made.</p>
-
-    <p>Need help or have questions? Please reach out to our support team at <a href="mailto:${process.env.EMAIL_FROM}">${process.env.EMAIL_FROM}</a>.</p>
-
-    <p>Best regards,<br>
-    The Alumni Connect Team</p>
-  `,
-  TextBody: `
-Dear ${user.FirstName || 'User'},
-
-We received a request to reset the password for your Alumni Connect account.
-
-If you made this request, please use the link below to reset your password:
-${resetURL}
-
-This link will expire in 60 minutes.
-
-If you did not request this, you can ignore this email. Your account is safe.
-
-For any help, contact us at: ${process.env.EMAIL_FROM}
-
-Best regards,
-The Alumni Connect Team
-  `,
-      MessageStream: "outbound",
-    });
-
-    res.status(200).json({ status: 1, msg: "Password reset email sent" });
-
-  } catch (error) {
-    console.error("Postmark error:", error);
-    res.status(500).json({ status: 0, msg: "Server error" });
-  }
-};
-
-// password reset
-const userResetPassword = async (req, res) => {
-  const { resetToken, newPassword, confirmNewPassword } = req.body;
-
-  if (!resetToken || !newPassword || !confirmNewPassword) {
-    return res.status(400).json({ status: 0, msg: "All fields are required" });
-  }
-
-  if (newPassword !== confirmNewPassword) {
-    return res.status(400).json({ status: 0, msg: "Passwords do not match" });
-  }
-
-  try {
-    // Look for the user by reset token and check if the token hasn't expired
-    const user = await userDatabase.findOne({
-      resetPasswordToken: resetToken,
-      resetPasswordExpires: { $gt: Date.now() }, // token should be greater than the current date (i.e., valid)
-    });
-
-    if (!user) {
-      return res.status(400).json({ status: 0, msg: "Invalid or expired token" });
-    }
-
-    // Hash the new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    // Update user password and remove reset token
-    user.Password = hashedPassword;
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpires = undefined;
-
-    await user.save();
-
-    res.status(200).json({ status: 1, msg: "Password reset successful" });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ status: 0, msg: "Server error" });
-  }
-};
-
-// user register
-const userRegister = async (req, res) => {
-  const {
-    FirstName,
-    LastName,
-    PassoutYear,
-    Email,
-    Password,
-    ConfirmedPassword,
-  } = req.body;
-
-  if (
-    !FirstName ||
-    !LastName ||
-    !PassoutYear ||
-    !Email ||
-    !Password ||
-    !ConfirmedPassword
-  ) {
-    return res.status(400).json({ status: 0, msg: "All fields are required" });
-  }
-
-  if (Password !== ConfirmedPassword) {
-    return res.status(400).json({ status: 0, msg: "Passwords do not match" });
-  }
-
-  try {
-    const existingUser = await userDatabase.findOne({ Email });
-    if (existingUser) {
-      return res
-        .status(409)
-        .json({ status: 0, msg: "Email already registered" });
-    }
-
-    const hashedPassword = await bcrypt.hash(Password, 10);
-
-    const userEntity = {
-      FirstName,
-      LastName,
-      PassoutYear,
-      Email,
-      Password: hashedPassword,
-      Role: "user",
-    };
-
-    const user = new userDatabase(userEntity);
-    const registerData = await user.save();
-
-    res
-      .status(200)
-      .json({ status: 1, msg: "Registration successful", registerData });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ status: 0, msg: "Server error" });
-  }
-};
-
 // User dashboard (user profile section)
 const userDashboard = async (req, res) => {
   try {
@@ -269,58 +92,66 @@ const userDelete = async (req, res) => {
   }
 };
 
-// user password update
-const userUpdate = async (req, res) => {
+
+// google signIn api
+const userGoogleSignIn = async (req, res) => {
+  const { tokenId } = req.body;
+
+  if (!tokenId) {
+    return res.status(400).json({ status: 0, msg: "Token ID is required" });
+  }
+
   try {
-    if (!req.user || !req.user.Email) {
-      return res.status(401).json({ status: 0, msg: "Unauthorized access" });
-    }
+    const ticket = await client.verifyIdToken({
+      idToken: tokenId,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
 
-    const { oldPassword, newPassword, confirmNewPassword } = req.body;
+    const payload = ticket.getPayload();
+    const { email, given_name, family_name } = payload;
 
-    if (!oldPassword || !newPassword || !confirmNewPassword) {
-      return res
-        .status(400)
-        .json({ status: 0, msg: "All fields are required" });
-    }
-
-    if (newPassword !== confirmNewPassword) {
-      return res
-        .status(400)
-        .json({ status: 0, msg: "New passwords do not match" });
-    }
-
-    const user = await userDatabase.findOne({ Email: req.user.Email });
+    // Check if user exists
+    let user = await userDatabase.findOne({ Email: email });
 
     if (!user) {
-      return res.status(404).json({ status: 0, msg: "User not found" });
+      // Register the user if not already present
+      user = new userDatabase({
+        FirstName: given_name,
+        LastName: family_name,
+        Email: email,
+        isGoogleUser: true, // ✅ Add this flag
+        Password: "",        // Avoid setting null; use empty string to satisfy Mongoose
+        PassoutYear: "",     // Prompt user later to fill this in
+        Role: "user",
+      });
+
+      await user.save();
     }
 
-    const isMatch = await bcrypt.compare(oldPassword, user.Password);
-    if (!isMatch) {
-      return res
-        .status(401)
-        .json({ status: 0, msg: "Old password is incorrect" });
-    }
+    const jwtToken = jwt.sign(
+      {
+        id: user._id,
+        Role: user.Role,
+        FirstName: user.FirstName,
+        LastName: user.LastName,
+        PassoutYear: user.PassoutYear,
+        Email: user.Email,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    res.status(200).json({ status: 1, msg: "Google login successful", token: jwtToken });
 
-    user.Password = hashedPassword;
-    await user.save();
-
-    res.status(200).json({ status: 1, msg: "Password updated successfully" });
   } catch (error) {
-    console.error("Password update error:", error);
-    res.status(500).json({ status: 0, msg: "Server error" });
+    console.error("Google Sign-In Error:", error);
+    res.status(500).json({ status: 0, msg: "Google authentication failed" });
   }
 };
 
 module.exports = {
   userLogin,
-  userRegister,
   userDashboard,
   userDelete,
-  userUpdate,
-  userForgotPassword,
-  userResetPassword,
+  userGoogleSignIn,
 };

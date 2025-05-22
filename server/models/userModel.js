@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+
 const User = new mongoose.Schema(
   {
     FirstName: {
@@ -11,7 +12,9 @@ const User = new mongoose.Schema(
     },
     PassoutYear: {
       type: String,
-      required: true,
+      required: function () {
+        return !this.isGoogleUser;
+      },
     },
     Email: {
       type: String,
@@ -20,7 +23,9 @@ const User = new mongoose.Schema(
     },
     Password: {
       type: String,
-      require: true,
+      required: function () {
+        return !this.isGoogleUser;
+      },
     },
     Role: {
       type: String,
@@ -31,6 +36,10 @@ const User = new mongoose.Schema(
     },
     resetPasswordExpires: {
       type: Date,
+    },
+    isGoogleUser: {
+      type: Boolean,
+      default: false,
     },
   },
   {
