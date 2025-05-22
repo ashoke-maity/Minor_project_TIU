@@ -16,6 +16,7 @@ import {
   Settings
 } from "lucide-react";
 import axios from "axios";
+import { io } from "socket.io-client";
 
 function MobileMainLayout({ jobs, loading }) {
   const [firstName, setFirstName] = useState("");
@@ -23,6 +24,7 @@ function MobileMainLayout({ jobs, loading }) {
   const [PassoutYear, setPassoutYear] = useState("");
   const [showPostModal, setShowPostModal] = useState(false);
   const [postType, setPostType] = useState("regular");
+  const socket = io(import.meta.env.VITE_SERVER_ROUTE);
   const [activeTab, setActiveTab] = useState("feed");
 
   // New: posts state and loading/error for posts
@@ -77,10 +79,26 @@ function MobileMainLayout({ jobs, loading }) {
     fetchPosts();
   }, []);
 
+   // ✅ WebSocket listener for new posts
+   useEffect(() => {
+    socket.on("connect", () => {
+    console.log("Socket connected:", socket.id);
+  });
+      socket.on("newPost", (post) => {
+         console.log("Received newPost:", post);
+        setPosts((prevPosts) => [post, ...prevPosts]); // Add new post at top
+      });
+  
+      // Clean up
+      return () => {
+        socket.off("newPost");
+      };
+    }, []);
+
   // Helper to add newly created post to feed immediately
-  const handlePostCreate = (newPost) => {
-    setPosts((prevPosts) => [newPost, ...prevPosts]);
-  };
+const handlePostCreate = async (newPost) => {
+  setPosts((prevPosts) => [newPost, ...prevPosts]);
+};
 
   const openPostModal = (type = "regular") => {
     setPostType(type);
@@ -99,7 +117,7 @@ function MobileMainLayout({ jobs, loading }) {
             <div className="bg-gradient-to-r from-teal-400 via-emerald-500 to-teal-600 h-24"></div>
             <div className="absolute left-0 right-0 -bottom-12 flex justify-center">
               <div className="w-24 h-24 rounded-full border-4 border-white bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-2xl font-bold shadow-xl">
-                {initials || "JD"}
+                {initials}
               </div>
             </div>
           </div>
@@ -228,9 +246,6 @@ function MobileMainLayout({ jobs, loading }) {
               <div className="divide-y divide-gray-100">
                 {[1, 2, 3, 4, 5].map((_, idx) => (
                   <div key={idx} className="flex items-center py-3">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 mr-3 flex-shrink-0 flex items-center justify-center text-white font-medium shadow-md">
-                      {['JD', 'AK', 'SR', 'MP', 'BK'][idx]}
-                    </div>
                     <div>
                       <h3 className="text-base font-semibold text-gray-800">
                         {['John Doe', 'Alice Kim', 'Sam Reed', 'Mark Peters', 'Ben Katz'][idx]}
