@@ -17,6 +17,7 @@ import {
   Image,
 } from "lucide-react";
 import axios from "axios";
+import { io } from "socket.io-client";
 
 function MainLayout({ jobs, loading }) {
   const [firstName, setFirstName] = useState("");
@@ -24,6 +25,7 @@ function MainLayout({ jobs, loading }) {
   const [PassoutYear, setPassoutYear] = useState("");
   const [showPostModal, setShowPostModal] = useState(false);
   const [postType, setPostType] = useState("regular"); // "regular", "event", "job", "media"
+  const socket = io(import.meta.env.VITE_SERVER_ROUTE);
   const [adminJobs, setAdminJobs] = useState([]);
   const [adminEvents, setAdminEvents] = useState([]);
 
@@ -124,10 +126,26 @@ function MainLayout({ jobs, loading }) {
     fetchAdminEvents();
   }, []);
 
+  // ✅ WebSocket listener for new posts
+ useEffect(() => {
+  socket.on("connect", () => {
+  console.log("Socket connected:", socket.id);
+});
+    socket.on("newPost", (post) => {
+       console.log("Received newPost:", post);
+      setPosts((prevPosts) => [post, ...prevPosts]); // Add new post at top
+    });
+
+    // Clean up
+    return () => {
+      socket.off("newPost");
+    };
+  }, []);
+
   // Helper to add newly created post to feed immediately
-  const handlePostCreate = (newPost) => {
-    setPosts((prevPosts) => [newPost, ...prevPosts]);
-  };
+const handlePostCreate = async (newPost) => {
+  setPosts((prevPosts) => [newPost, ...prevPosts]);
+};
 
   const openPostModal = (type = "regular") => {
     setPostType(type);
@@ -152,7 +170,7 @@ function MainLayout({ jobs, loading }) {
                 </div>
                 <div className="px-6 pb-6 pt-0 -mt-14 flex flex-col items-center">
                   <div className="w-24 h-24 rounded-full border-4 border-white bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-2xl font-bold shadow-xl">
-                    {initials || "JD"}
+                    {initials}
                   </div>
                   <h2 className="text-xl font-bold text-gray-800 mt-4">
                     {firstName || ""} {lastName || ""}
@@ -319,22 +337,29 @@ function MainLayout({ jobs, loading }) {
                 </div>
               </div>
               {adminEvents.length > 0 && (
-  <div className="space-y-4">
-    <h2 className="text-xl font-semibold text-gray-800">Admin Events</h2>
-    {adminEvents.map((event) => (
-      <div
-        key={event._id}
-        className="bg-white rounded-xl shadow border border-gray-100 p-4"
-      >
-        <h3 className="text-lg font-bold text-teal-700">{event.title}</h3>
-        <p className="text-sm text-gray-600">{event.description}</p>
-        <p className="text-xs text-gray-400 mt-2">
-          Event Date: {new Date(event.eventDate).toLocaleDateString()}
-        </p>
-      </div>
-    ))}
-  </div>
-)}
+                <div className="space-y-4">
+                  <h2 className="text-xl font-semibold text-gray-800">
+                    Admin Events
+                  </h2>
+                  {adminEvents.map((event) => (
+                    <div
+                      key={event._id}
+                      className="bg-white rounded-xl shadow border border-gray-100 p-4"
+                    >
+                      <h3 className="text-lg font-bold text-teal-700">
+                        {event.title}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        {event.description}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-2">
+                        Event Date:{" "}
+                        {new Date(event.eventDate).toLocaleDateString()}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Posts Feed */}
               <div className="space-y-5">
