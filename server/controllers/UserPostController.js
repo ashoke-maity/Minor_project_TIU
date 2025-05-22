@@ -10,21 +10,29 @@ const createPost = async (req, res) => {
       return res.status(400).json({ message: "Post must contain at least text or media." });
     }
 
-    const newPost = new UserPost({
+    let newPost = new UserPost({
       userId,
-      postType: postType || "general", // default to "general" if not provided
+      postType: postType || "general",
       content,
       mediaUrl,
       extraData,
     });
 
     await newPost.save();
+
+    // Populate user info BEFORE emitting the socket event
+newPost = await newPost.populate("userId", "FirstName LastName");
+
+    req.app.get("io").emit("newPost", newPost);
+
+    console.log("Emitted newPost via socket:", newPost);
     res.status(201).json({ message: "Post created successfully", post: newPost });
   } catch (err) {
     console.error("Error creating post:", err);
-    res.status(500).json({ message: "Server error", err:err.message });
+    res.status(500).json({ message: "Server error", err: err.message });
   }
 };
+
 
 const getUserPosts = async (req, res) => {
   try {
@@ -59,6 +67,10 @@ const deletePost = async (req, res) => {
   try {
     const post = await UserPost.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
     if (!post) return res.status(404).json({ message: "Post not found" });
+
+    // Emit socket event to all connected clients
+    req.app.get("io").emit("postDeleted", post._id);
+
     res.status(200).json({ message: "Post deleted successfully" });
   } catch (err) {
     res.status(500).json({ message: "Failed to delete post" });

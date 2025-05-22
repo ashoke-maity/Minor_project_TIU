@@ -1,5 +1,6 @@
 const dotenv = require('dotenv').config();
-const express = require('express')
+const express = require('express');
+const http = require('http'); // new
 const app = express();
 const dbConnect = require('./config/db');
 const userRouters = require('./routes/userRoutes');
@@ -14,6 +15,8 @@ const fetchAdminJobsRouter = require('./routes/FetchAdminJobRoutes');
 const fetchAdminEventRouter = require('./routes/AdminEventRoutes');
 const fetchAdminStoryRouter = require('./routes/AdminStoryRoutes');
 const UserPostRouter = require('./routes/UserPostRoutes');
+const { initializeSocket } = require('./middlewares/Socket');
+const server = http.createServer(app);
 
 // cors
 const cors = require('cors');
@@ -44,7 +47,11 @@ app.use(process.env.USER_ROUTE, fetchAdminStoryRouter); // user can fetch succes
 app.use(process.env.ADMIN_ROUTE, AdminImageUploadRouter); // admin image upload
 app.use(process.env.USER_ROUTE, UserImageUploadRouter); // user image upload
 
+// web socket
+const io = initializeSocket(server);
+app.set("io", io);
+
 // start server
-app.listen(process.env.PORT, () => {
+server.listen(process.env.PORT, () => {
     console.log(`This server is running on ${process.env.PORT}`)
 });
