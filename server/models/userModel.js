@@ -10,12 +10,6 @@ const User = new mongoose.Schema(
       type: String,
       required: true,
     },
-    PassoutYear: {
-      type: String,
-      required: function () {
-        return !this.isGoogleUser;
-      },
-    },
     Email: {
       type: String,
       required: true,
@@ -41,6 +35,25 @@ const User = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+
+    Followers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    Following: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    FollowRequests: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   {
     timestamps: true,
