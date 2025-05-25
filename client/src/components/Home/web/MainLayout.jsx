@@ -22,17 +22,56 @@ import { io } from "socket.io-client";
 function MainLayout({ jobs, loading }) {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [PassoutYear, setPassoutYear] = useState("");
   const [showPostModal, setShowPostModal] = useState(false);
   const [postType, setPostType] = useState("regular"); // "regular", "event", "job", "media"
   const socket = io(import.meta.env.VITE_SERVER_ROUTE);
   const [adminJobs, setAdminJobs] = useState([]);
   const [adminEvents, setAdminEvents] = useState([]);
+  const [suggestedUsers, setSuggestedUsers] = useState([]);
 
   // New: posts state and loading/error for posts
   const [posts, setPosts] = useState([]);
   const [postsLoading, setPostsLoading] = useState(true);
   const [postsError, setPostsError] = useState("");
+
+  useEffect(() => {
+    const fetchSuggestedUsers = async () => {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_USER_API_URL}/all-users`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            },
+          }
+        );
+        setSuggestedUsers(res.data.users);
+      } catch (err) {
+        console.error("Error fetching users", err);
+      }
+    };
+
+    fetchSuggestedUsers();
+  }, []);
+
+  // follow request
+  const handleFollow = async (targetUserId) => {
+  try {
+    const res = await axios.post(
+      `${import.meta.env.VITE_USER_API_URL}/follow-request`,
+      { targetUserId },
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+        },
+      }
+    );
+
+    alert(res.data.msg);
+  } catch (err) {
+    console.error("Follow error:", err.response?.data?.msg || err.message);
+  }
+};
 
   // show the profile details of the user logged in
   useEffect(() => {
@@ -47,10 +86,9 @@ function MainLayout({ jobs, loading }) {
           }
         );
 
-        const { FirstName, LastName, PassoutYear } = response.data.user;
+        const { FirstName, LastName} = response.data.user;
         setFirstName(FirstName);
         setLastName(LastName);
-        setPassoutYear(PassoutYear);
       } catch (err) {
         console.error("Failed to fetch profile info:", err);
       }
@@ -127,12 +165,12 @@ function MainLayout({ jobs, loading }) {
   }, []);
 
   // ✅ WebSocket listener for new posts
- useEffect(() => {
-  socket.on("connect", () => {
-  console.log("Socket connected:", socket.id);
-});
+  useEffect(() => {
+    socket.on("connect", () => {
+      console.log("Socket connected:", socket.id);
+    });
     socket.on("newPost", (post) => {
-       console.log("Received newPost:", post);
+      console.log("Received newPost:", post);
       setPosts((prevPosts) => [post, ...prevPosts]); // Add new post at top
     });
 
@@ -143,9 +181,9 @@ function MainLayout({ jobs, loading }) {
   }, []);
 
   // Helper to add newly created post to feed immediately
-const handlePostCreate = async (newPost) => {
-  setPosts((prevPosts) => [newPost, ...prevPosts]);
-};
+  const handlePostCreate = async (newPost) => {
+    setPosts((prevPosts) => [newPost, ...prevPosts]);
+  };
 
   const openPostModal = (type = "regular") => {
     setPostType(type);
@@ -175,9 +213,6 @@ const handlePostCreate = async (newPost) => {
                   <h2 className="text-xl font-bold text-gray-800 mt-4">
                     {firstName || ""} {lastName || ""}
                   </h2>
-                  <p className="text-gray-500 text-sm">
-                    Class of {PassoutYear || ""}
-                  </p>
                 </div>
               </div>
 
@@ -445,23 +480,24 @@ const handlePostCreate = async (newPost) => {
                   </h2>
                 </div>
                 <div className="divide-y divide-gray-100">
-                  {[1, 2, 3].map((_, idx) => (
+                  {suggestedUsers.slice(0, 5).map((user, idx) => (
                     <div
-                      key={idx}
+                      key={user._id}
                       className="flex items-center p-4 hover:bg-gray-50 transition-colors duration-300"
                     >
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 mr-3 flex-shrink-0 flex items-center justify-center text-white font-medium shadow-md">
-                        {["JD", "AK", "SR"][idx]}
+                        {user.FirstName[0]}
+                        {user.LastName[0]}
                       </div>
                       <div>
                         <h3 className="text-base font-semibold text-gray-800">
-                          {["John Doe", "Alice Kim", "Sam Reed"][idx]}
+                          {user.FirstName} {user.LastName}
                         </h3>
-                        <p className="text-sm text-gray-500">
-                          Class of {["2018", "2020", "2019"][idx]}
-                        </p>
                       </div>
-                      <button className="ml-auto px-3 py-1 text-teal-600 text-sm font-medium border border-teal-200 rounded-md hover:bg-teal-50 transition-colors duration-300">
+                      <button
+                        onClick={() => handleFollow(user._id)}
+                        className="ml-auto px-3 py-1 text-teal-600 text-sm font-medium border border-teal-200 rounded-md hover:bg-teal-50 transition-colors duration-300"
+                      >
                         Connect
                       </button>
                     </div>
