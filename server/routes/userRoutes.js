@@ -9,6 +9,8 @@ const {
   getUserNotifications,
   sendFollowRequest,
   acceptFollowRequest,
+  rejectFollowRequest,
+  getPendingFollowRequests,
 } = require("../controllers/userController");
 const verifyUserToken = require("../middlewares/userAuthMiddleware");
 
@@ -33,7 +35,10 @@ router.post("/follow-request", verifyUserToken, sendFollowRequest);
 // send accept request
 router.post("/accept-follow", verifyUserToken, acceptFollowRequest);
 
-// show notification
-// router.get("/notifications", verifyUserToken, getUserNotifications);
+// reject a request
+router.post("/reject-request", verifyUserToken, rejectFollowRequest)
+
+// get all the pending request
+router.get("/all-request", verifyUserToken, getPendingFollowRequests);
 
 module.exports = router;

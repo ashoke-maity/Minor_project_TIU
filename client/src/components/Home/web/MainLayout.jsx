@@ -28,6 +28,7 @@ function MainLayout({ jobs, loading }) {
   const [adminJobs, setAdminJobs] = useState([]);
   const [adminEvents, setAdminEvents] = useState([]);
   const [suggestedUsers, setSuggestedUsers] = useState([]);
+  const [notifications, setNotifications] = useState([]);
 
   // New: posts state and loading/error for posts
   const [posts, setPosts] = useState([]);
@@ -56,22 +57,26 @@ function MainLayout({ jobs, loading }) {
 
   // follow request
   const handleFollow = async (targetUserId) => {
-  try {
-    const res = await axios.post(
-      `${import.meta.env.VITE_USER_API_URL}/follow-request`,
-      { targetUserId },
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-        },
-      }
-    );
+    try {
+      const token = localStorage.getItem("authToken");
+      console.log("Token:", token);
+      console.log("Sending follow request to:", targetUserId);
 
-    alert(res.data.msg);
-  } catch (err) {
-    console.error("Follow error:", err.response?.data?.msg || err.message);
-  }
-};
+      const response = await axios.post(
+        `${import.meta.env.VITE_USER_API_URL}/follow-request`,
+        { targetUserId }, // ensure this is an object with a key called targetUserId
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log("Follow request sent:", response.data);
+    } catch (error) {
+      console.error("Failed to send connection request", error);
+    }
+  };
 
   // show the profile details of the user logged in
   useEffect(() => {
@@ -86,7 +91,7 @@ function MainLayout({ jobs, loading }) {
           }
         );
 
-        const { FirstName, LastName} = response.data.user;
+        const { FirstName, LastName } = response.data.user;
         setFirstName(FirstName);
         setLastName(LastName);
       } catch (err) {
@@ -494,6 +499,7 @@ function MainLayout({ jobs, loading }) {
                           {user.FirstName} {user.LastName}
                         </h3>
                       </div>
+
                       <button
                         onClick={() => handleFollow(user._id)}
                         className="ml-auto px-3 py-1 text-teal-600 text-sm font-medium border border-teal-200 rounded-md hover:bg-teal-50 transition-colors duration-300"
@@ -512,7 +518,6 @@ function MainLayout({ jobs, loading }) {
                   </a>
                 </div>
               </div>
-
               {/* Support & Donation */}
               <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden p-5 hover:shadow-xl transition-shadow duration-300">
                 <h2 className="text-lg font-bold text-gray-800 mb-3 flex items-center">

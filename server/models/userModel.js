@@ -15,21 +15,9 @@ const User = new mongoose.Schema(
       required: true,
       unique: true,
     },
-    Password: {
-      type: String,
-      required: function () {
-        return !this.isGoogleUser;
-      },
-    },
     Role: {
       type: String,
       default: "user",
-    },
-    resetPasswordToken: {
-      type: String,
-    },
-    resetPasswordExpires: {
-      type: Date,
     },
     isGoogleUser: {
       type: Boolean,
