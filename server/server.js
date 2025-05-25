@@ -15,6 +15,7 @@ const fetchAdminJobsRouter = require('./routes/FetchAdminJobRoutes');
 const fetchAdminEventRouter = require('./routes/AdminEventRoutes');
 const fetchAdminStoryRouter = require('./routes/AdminStoryRoutes');
 const UserPostRouter = require('./routes/UserPostRoutes');
+const NotificationRouter = require('./routes/notificationRoutes');
 const { initializeSocket } = require('./middlewares/Socket');
 const server = http.createServer(app);
 
@@ -42,6 +43,7 @@ app.use(process.env.ADMIN_ROUTE, fetchRouter); // admin can access user data
 app.use(process.env.USER_ROUTE, fetchAdminJobsRouter); // user can fetch jobs posted by admin
 app.use(process.env.USER_ROUTE, fetchAdminEventRouter); // user can fetch events posted by admin
 app.use(process.env.USER_ROUTE, fetchAdminStoryRouter); // user can fetch success stories posted by admin
+app.use(process.env.USER_ROUTE, NotificationRouter); // user can get the notification
 
 // image upload route
 app.use(process.env.ADMIN_ROUTE, AdminImageUploadRouter); // admin image upload
