@@ -28,9 +28,7 @@ function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
 
-  const initials = `${firstName?.[0] ?? ""}${
-    lastName?.[0] ?? ""
-  }`.toUpperCase();
+  const initials = `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase();
 
   const fetchNotifications = async () => {
     try {
@@ -74,10 +72,7 @@ function Header() {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setDropdownOpen(false);
       }
-      if (
-        notificationRef.current &&
-        !notificationRef.current.contains(e.target)
-      ) {
+      if (notificationRef.current && !notificationRef.current.contains(e.target)) {
         setNotificationOpen(false);
       }
     };
@@ -96,7 +91,9 @@ function Header() {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      setNotifications((prev) => prev.filter((n) => n.senderId !== senderId));
+      setNotifications((prev) =>
+        prev.filter((n) => n.sender?._id !== senderId)
+      );
       toast.success("Connection request accepted!");
     } catch (err) {
       console.error("Failed to accept request", err);
@@ -114,7 +111,9 @@ function Header() {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      setNotifications((prev) => prev.filter((n) => n.senderId !== senderId));
+      setNotifications((prev) =>
+        prev.filter((n) => n.sender?._id !== senderId)
+      );
       toast.info("Connection request declined.");
     } catch (err) {
       console.error("Failed to decline request", err);
@@ -235,17 +234,17 @@ function Header() {
                             {notif.timeAgo || notif.createdAt}
                           </span>
 
-                          {notif.senderId && (
+                          {notif.sender && (
                             <div className="mt-2 flex gap-2">
                               <button
-                                onClick={() => handleAccept(notif.senderId)}
+                                onClick={() => handleAccept(notif.sender._id)}
                                 className="bg-green-500 hover:bg-green-600 text-white p-1 rounded-full transition-all"
                                 title="Accept"
                               >
                                 <Check size={16} />
                               </button>
                               <button
-                                onClick={() => handleDecline(notif.senderId)}
+                                onClick={() => handleDecline(notif.sender._id)}
                                 className="bg-red-500 hover:bg-red-600 text-white p-1 rounded-full transition-all"
                                 title="Decline"
                               >

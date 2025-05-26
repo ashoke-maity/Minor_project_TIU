@@ -152,21 +152,25 @@ const getAllUsersExceptCurrent = async (req, res) => {
 
 // send a follow request to another user
 const sendFollowRequest = async (req, res) => {
-    console.log("req.user:", req.user); // Logged in user info
-    console.log("req.body:", req.body); // Should contain targetUserId
+  console.log("req.user:", req.user); // Logged in user info
+  console.log("req.body:", req.body); // Should contain targetUserId
 
   const senderId = req.user?.id;
   const { targetUserId } = req.body;
 
   if (!targetUserId) {
-    return res.status(400).json({ status: 0, msg: "Target user ID is required" });
+    return res
+      .status(400)
+      .json({ status: 0, msg: "Target user ID is required" });
   }
 
   if (senderId === targetUserId) {
-    return res.status(400).json({ status: 0, msg: "You cannot follow yourself" });
+    return res
+      .status(400)
+      .json({ status: 0, msg: "You cannot follow yourself" });
   }
-console.log("Sender ID:", senderId);
-console.log("Target User ID:", targetUserId);
+  console.log("Sender ID:", senderId);
+  console.log("Target User ID:", targetUserId);
 
   try {
     const sender = await userDatabase.findById(senderId);
@@ -176,15 +180,25 @@ console.log("Target User ID:", targetUserId);
       return res.status(404).json({ status: 0, msg: "User not found" });
     }
 
-    console.log("Checking if already sent follow request:", targetUser.FollowRequests.includes(senderId));
-console.log("Checking if already a follower:", targetUser.Followers.includes(senderId));
+    console.log(
+      "Checking if already sent follow request:",
+      targetUser.FollowRequests.includes(senderId)
+    );
+    console.log(
+      "Checking if already a follower:",
+      targetUser.Followers.includes(senderId)
+    );
 
     if (targetUser.FollowRequests.includes(senderId)) {
-      return res.status(400).json({ status: 0, msg: "Follow request already sent" });
+      return res
+        .status(400)
+        .json({ status: 0, msg: "Follow request already sent" });
     }
 
     if (targetUser.Followers.includes(senderId)) {
-      return res.status(400).json({ status: 0, msg: "You already follow this user" });
+      return res
+        .status(400)
+        .json({ status: 0, msg: "You already follow this user" });
     }
 
     // Add follow request
@@ -206,14 +220,14 @@ console.log("Checking if already a follower:", targetUser.Followers.includes(sen
   }
 
   console.log("FollowRequests:", targetUser.FollowRequests);
-console.log("Followers:", targetUser.Followers);
+  console.log("Followers:", targetUser.Followers);
 };
-
 
 // accept follow request
 const acceptFollowRequest = async (req, res) => {
   const receiverId = req.user?.id;
-  const { requesterId } = req.body;
+  const { senderId } = req.body;
+  const requesterId = senderId;
 
   if (!requesterId) {
     return res.status(400).json({ status: 0, msg: "Requester ID is required" });
@@ -258,7 +272,8 @@ const acceptFollowRequest = async (req, res) => {
 // reject follow request
 const rejectFollowRequest = async (req, res) => {
   const receiverId = req.user?.id;
-  const { requesterId } = req.body;
+  const { senderId } = req.body;
+  const requesterId = senderId;
 
   if (!requesterId) {
     return res.status(400).json({ status: 0, msg: "Requester ID is required" });
