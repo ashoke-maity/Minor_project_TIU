@@ -28,7 +28,7 @@ function MainLayout({ jobs, loading }) {
   const [adminJobs, setAdminJobs] = useState([]);
   const [adminEvents, setAdminEvents] = useState([]);
   const [suggestedUsers, setSuggestedUsers] = useState([]);
-  const [notifications, setNotifications] = useState([]);
+  const [sentRequests, setSentRequests] = useState([]);
 
   // New: posts state and loading/error for posts
   const [posts, setPosts] = useState([]);
@@ -73,6 +73,9 @@ function MainLayout({ jobs, loading }) {
       );
 
       console.log("Follow request sent:", response.data);
+      if (response.data.status === 1) {
+        setSentRequests((prev) => [...prev, targetUserId]);
+      }
     } catch (error) {
       console.error("Failed to send connection request", error);
     }
@@ -485,29 +488,42 @@ function MainLayout({ jobs, loading }) {
                   </h2>
                 </div>
                 <div className="divide-y divide-gray-100">
-                  {suggestedUsers.slice(0, 5).map((user, idx) => (
-                    <div
-                      key={user._id}
-                      className="flex items-center p-4 hover:bg-gray-50 transition-colors duration-300"
-                    >
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 mr-3 flex-shrink-0 flex items-center justify-center text-white font-medium shadow-md">
-                        {user.FirstName[0]}
-                        {user.LastName[0]}
-                      </div>
-                      <div>
-                        <h3 className="text-base font-semibold text-gray-800">
-                          {user.FirstName} {user.LastName}
-                        </h3>
-                      </div>
+                  {suggestedUsers.slice(0, 5).map((user) => {
+                    const isRequested = sentRequests.includes(user._id);
 
-                      <button
-                        onClick={() => handleFollow(user._id)}
-                        className="ml-auto px-3 py-1 text-teal-600 text-sm font-medium border border-teal-200 rounded-md hover:bg-teal-50 transition-colors duration-300"
+                    return (
+                      <div
+                        key={user._id}
+                        className="flex items-center p-4 hover:bg-gray-50 transition-colors duration-300"
                       >
-                        Connect
-                      </button>
-                    </div>
-                  ))}
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 mr-3 flex-shrink-0 flex items-center justify-center text-white font-medium shadow-md">
+                          {user.FirstName[0]}
+                          {user.LastName[0]}
+                        </div>
+                        <div>
+                          <h3 className="text-base font-semibold text-gray-800">
+                            {user.FirstName} {user.LastName}
+                          </h3>
+                        </div>
+
+                        {isRequested ? (
+                          <button
+                            disabled
+                            className="ml-auto px-3 py-1 text-gray-500 text-sm font-medium border border-gray-200 rounded-md bg-gray-100 cursor-not-allowed"
+                          >
+                            Requested
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleFollow(user._id)}
+                            className="ml-auto px-3 py-1 text-teal-600 text-sm font-medium border border-teal-200 rounded-md hover:bg-teal-50 transition-colors duration-300"
+                          >
+                            Connect
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
                 <div className="p-4 bg-gradient-to-r from-teal-50 to-emerald-50 text-center">
                   <a
