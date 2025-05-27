@@ -8,7 +8,6 @@ import {
   Search,
   LogOut,
   Settings,
-  Plus,
   Users,
   Menu,
   X,
@@ -277,10 +276,12 @@ function Header() {
             )}
           </div>
 
-          <button className="flex items-center gap-1 hover:text-teal-600 transition-colors">
+          <div className="w-px h-6 bg-gray-300"></div>
+
+          <Link to="/network" className="flex items-center gap-1 hover:text-teal-600 transition-colors">
             <Users size={20} />
             <span className="hidden lg:inline">My Network</span>
-          </button>
+          </Link>
 
           <div className="w-px h-6 bg-gray-300"></div>
 
