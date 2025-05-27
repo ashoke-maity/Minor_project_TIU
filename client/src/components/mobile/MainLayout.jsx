@@ -260,9 +260,9 @@ const handlePostCreate = async (newPost) => {
                   </div>
                 ))}
                 <div className="pt-4 text-center">
-                  <a href="#" className="text-teal-600 text-sm font-medium hover:underline">
+                  <Link to="/network" className="text-teal-600 text-sm font-medium hover:underline">
                     View All Suggestions
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>

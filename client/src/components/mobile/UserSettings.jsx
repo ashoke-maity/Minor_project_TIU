@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { User, ChevronLeft } from "lucide-react";
+import { User, ChevronLeft, Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 function UserSettings() {
   const navigate = useNavigate();
@@ -20,6 +21,16 @@ function UserSettings() {
     fetchUserData();
   }, []);
 
+  useEffect(() => {
+    if (success || error) {
+      const timer = setTimeout(() => {
+        setSuccess("");
+        setError("");
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [success, error]);
+
   const fetchUserData = async () => {
     try {
       const response = await axios.get(
@@ -30,12 +41,17 @@ function UserSettings() {
           },
         }
       );
-      const { FirstName, LastName, Email } = response.data.user;
+      const { FirstName, LastName, Email, profileImage } = response.data.user;
       setFirstName(FirstName || "");
       setLastName(LastName || "");
       setEmail(Email || "");
+
+      if (profileImage) {
+        setImagePreview(profileImage);
+      }
     } catch (err) {
       setError("Failed to fetch user data");
+      toast.error("Failed to fetch user data");
       console.error(err);
     }
   };
@@ -59,21 +75,29 @@ function UserSettings() {
     setSuccess("");
 
     try {
+      const formData = new FormData();
+      formData.append("firstName", firstName);
+      formData.append("lastName", lastName);
+      if (profileImage) {
+        formData.append("profileImage", profileImage);
+      }
+
       await axios.put(
-        `${import.meta.env.VITE_USER_API_URL}/user/profile`,
-        {
-          firstName,
-          lastName,
-        },
+        `${import.meta.env.VITE_USER_API_URL}/user/dashboard`,
+        formData,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            "Content-Type": "multipart/form-data",
           },
         }
       );
+
       setSuccess("Profile updated successfully");
+      toast.success("Profile updated successfully");
     } catch (err) {
       setError("Failed to update profile");
+      toast.error("Failed to update profile");
       console.error(err);
     } finally {
       setLoading(false);
@@ -87,20 +111,23 @@ function UserSettings() {
 
     if (deleteConfirm !== email) {
       setError("Email confirmation does not match");
+      toast.error("Email confirmation does not match");
       setLoading(false);
       return;
     }
 
     try {
-      await axios.delete(`${import.meta.env.VITE_USER_API_URL}/user/account`, {
+      await axios.delete(`${import.meta.env.VITE_USER_API_URL}/user/delete`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("authToken")}`,
         },
       });
       localStorage.clear();
+      toast.success("Account deleted successfully");
       window.location.href = "/";
     } catch (err) {
       setError("Failed to delete account");
+      toast.error("Failed to delete account");
       console.error(err);
     } finally {
       setLoading(false);
@@ -108,13 +135,13 @@ function UserSettings() {
   };
 
   return (
-    <div className="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen font-sans">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
       {/* Mobile Header */}
-      <div className="sticky top-0 z-10 bg-white shadow-md">
-        <div className="px-4 py-3 flex items-center">
+      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-sm shadow-sm">
+        <div className="px-4 py-3 flex items-center border-b border-green-100/50">
           <button 
             onClick={() => navigate(-1)} 
-            className="mr-2 text-gray-600"
+            className="mr-2 text-green-600"
           >
             <ChevronLeft size={24} />
           </button>
@@ -122,39 +149,41 @@ function UserSettings() {
         </div>
 
         {/* Mobile Tabs */}
-        <div className="flex border-b overflow-x-auto scrollbar-hide">
+        <div className="flex border-b border-green-100/50 overflow-x-auto scrollbar-hide bg-white/50">
           <button
             className={`flex-1 py-3 text-sm font-medium ${
               activeTab === "profile" 
-                ? "text-teal-600 border-b-2 border-teal-500" 
-                : "text-gray-600"
+                ? "text-green-600 border-b-2 border-green-500" 
+                : "text-gray-600 hover:text-green-600"
             }`}
             onClick={() => setActiveTab("profile")}
           >
+            <User size={16} className="inline-block mr-1" />
             Profile
           </button>
           <button
             className={`flex-1 py-3 text-sm font-medium ${
-              activeTab === "privacy" 
-                ? "text-teal-600 border-b-2 border-teal-500" 
-                : "text-gray-600"
+              activeTab === "notifications" 
+                ? "text-green-600 border-b-2 border-green-500" 
+                : "text-gray-600 hover:text-green-600"
             }`}
-            onClick={() => setActiveTab("privacy")}
+            onClick={() => setActiveTab("notifications")}
           >
-            Privacy
+            <Bell size={16} className="inline-block mr-1" />
+            Notifications
           </button>
         </div>
       </div>
 
       {/* Content */}
-      <div className="px-4 py-5">
+      <div className="p-4">
         {error && (
-          <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-md border border-red-200">
+          <div className="mb-4 p-3 bg-red-50/80 text-red-600 text-sm rounded-lg border border-red-200 backdrop-blur-sm">
             {error}
           </div>
         )}
         {success && (
-          <div className="mb-4 p-3 bg-green-50 text-green-600 text-sm rounded-md border border-green-200">
+          <div className="mb-4 p-3 bg-green-50/80 text-green-600 text-sm rounded-lg border border-green-200 backdrop-blur-sm">
             {success}
           </div>
         )}
@@ -164,36 +193,38 @@ function UserSettings() {
           <div>
             <form onSubmit={handleProfileUpdate}>
               <div className="mb-6 flex flex-col items-center">
-                <div
-                  className="w-20 h-20 rounded-full bg-gray-200 mb-3 relative overflow-hidden"
-                  style={{
-                    backgroundImage: imagePreview ? `url(${imagePreview})` : "none",
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                  }}
-                >
-                  {!imagePreview && (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <User size={32} />
-                    </div>
-                  )}
-                  <input
-                    type="file"
-                    id="profile-image"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                  />
-                  <label
-                    htmlFor="profile-image"
-                    className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white opacity-0 hover:opacity-100 transition-opacity cursor-pointer"
+                <div className="relative">
+                  <div
+                    className="w-24 h-24 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 mb-3 relative overflow-hidden ring-4 ring-white shadow-lg"
+                    style={{
+                      backgroundImage: imagePreview ? `url(${imagePreview})` : "none",
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }}
                   >
-                    Change
-                  </label>
+                    {!imagePreview && (
+                      <div className="w-full h-full flex items-center justify-center text-green-400">
+                        <User size={32} />
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      id="profile-image"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                    />
+                    <label
+                      htmlFor="profile-image"
+                      className="absolute inset-0 bg-black/50 flex items-center justify-center text-white opacity-0 hover:opacity-100 transition-opacity cursor-pointer"
+                    >
+                      Change
+                    </label>
+                  </div>
                 </div>
                 <label
                   htmlFor="profile-image"
-                  className="text-sm text-teal-600 cursor-pointer"
+                  className="text-sm text-green-600 cursor-pointer"
                 >
                   Upload Photo
                 </label>
@@ -208,7 +239,7 @@ function UserSettings() {
                     type="text"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md p-3 text-sm focus:outline-none focus:ring-1 focus:ring-teal-500"
+                    className="w-full border border-green-100 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white/50 backdrop-blur-sm"
                     placeholder="Enter your first name"
                   />
                 </div>
@@ -220,7 +251,7 @@ function UserSettings() {
                     type="text"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md p-3 text-sm focus:outline-none focus:ring-1 focus:ring-teal-500"
+                    className="w-full border border-green-100 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white/50 backdrop-blur-sm"
                     placeholder="Enter your last name"
                   />
                 </div>
@@ -234,7 +265,7 @@ function UserSettings() {
                   type="email"
                   value={email}
                   disabled
-                  className="w-full border border-gray-300 rounded-md p-3 text-sm bg-gray-50"
+                  className="w-full border border-green-100 rounded-lg p-3 text-sm bg-green-50/50"
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   You cannot change your email address
@@ -243,62 +274,52 @@ function UserSettings() {
 
               <button
                 type="submit"
-                className="w-full flex items-center justify-center bg-gradient-to-r from-teal-500 to-emerald-400 hover:from-teal-600 hover:to-emerald-500 text-white py-3 rounded-md text-sm font-medium"
+                className="w-full flex items-center justify-center bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white py-3 rounded-lg text-sm font-medium transition-all duration-300 shadow-md hover:shadow-lg"
                 disabled={loading}
               >
                 {loading ? "Saving..." : "Save Changes"}
               </button>
             </form>
-          </div>
-        )}
 
-        {/* Privacy Tab */}
-        {activeTab === "privacy" && (
-          <div>
-            <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 mb-6">
-              <h4 className="text-base font-medium text-gray-700 mb-2">Privacy Policy</h4>
+            <div className="border-t border-green-100/50 pt-6 mt-6">
+              <h3 className="text-lg font-medium text-red-600 mb-4">Delete Account</h3>
               <p className="text-sm text-gray-600 mb-4">
-                Our Privacy Policy describes how we handle your data, your privacy rights, and how the law protects you.
-              </p>
-              <a
-                href="/privacypolicy"
-                className="text-teal-600 hover:underline text-sm font-medium"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                View Privacy Policy
-              </a>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 mt-5">
-              <h4 className="text-base font-medium text-red-600 mb-2">Delete Account</h4>
-              <p className="text-sm text-gray-600 mb-4">
-                Warning: This action cannot be undone. All your data will be permanently deleted.
+                Once you delete your account, there is no going back. Please be certain.
               </p>
 
-              <form onSubmit={handleAccountDelete}>
-                <div className="mb-4">
+              <form onSubmit={handleAccountDelete} className="space-y-4">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Confirm by typing your email address
+                    Confirm by typing your email
                   </label>
                   <input
                     type="text"
                     value={deleteConfirm}
                     onChange={(e) => setDeleteConfirm(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md p-3 text-sm focus:outline-none focus:ring-1 focus:ring-red-500"
+                    className="w-full border border-green-100 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white/50 backdrop-blur-sm"
                     placeholder={email}
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full flex items-center justify-center bg-red-600 hover:bg-red-700 text-white py-3 rounded-md text-sm font-medium"
+                  className="w-full flex items-center justify-center bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white py-3 rounded-lg text-sm font-medium transition-all duration-300 shadow-md hover:shadow-lg"
                   disabled={loading}
                 >
-                  {loading ? "Processing..." : "Delete My Account"}
+                  {loading ? "Deleting..." : "Delete Account"}
                 </button>
               </form>
             </div>
+          </div>
+        )}
+
+        {/* Notifications Tab */}
+        {activeTab === "notifications" && (
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg shadow-sm border border-green-100/50 p-4">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Notification Preferences</h3>
+            <p className="text-sm text-gray-600">
+              Notification settings are coming soon. Stay tuned for updates!
+            </p>
           </div>
         )}
       </div>
