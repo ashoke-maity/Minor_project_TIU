@@ -1,10 +1,67 @@
 const UserPost = require( "../models/UserPostModel");
+const cloudinary = require('../config/cloudinary');
+const streamifier = require('streamifier');
 
 // Create a new post
 const createPost = async (req, res) => {
   try {
-    const { postType, content, mediaUrl, extraData } = req.body;
+    const {
+      postType = "regular",
+      content,
+      jobTitle,
+      companyName,
+      location,
+      jobType,
+      salary,
+      requirements,
+      deadline,
+      eventName,
+      eventDate,
+      summary,
+      donationTitle,
+      goal,
+      purpose,
+    } = req.body;
     const userId = req.user.id;
+
+     const extraData = {};
+
+    if (postType === "job") {
+      extraData.jobTitle = jobTitle;
+      extraData.companyName = companyName;
+      extraData.location = location;
+      extraData.jobType = jobType;
+      extraData.salary = salary;
+      extraData.requirements = requirements;
+      extraData.deadline = deadline;
+    } else if (postType === "event") {
+      extraData.eventName = eventName;
+      extraData.eventDate = eventDate;
+      extraData.location = location;
+      extraData.summary = summary;
+    } else if (postType === "donation") {
+      extraData.donationTitle = donationTitle;
+      extraData.goal = goal;
+      extraData.purpose = purpose;
+    }
+
+    let mediaUrl = null;
+
+    if (req.file) {
+      const resourceType = req.file.mimetype.startsWith('video/') ? 'video' : 'image';
+      mediaUrl = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { resource_type: resourceType },
+          (error, result) => {
+            if (error) {
+              return reject(error);
+            }
+            resolve(result.secure_url);
+          }
+        );
+        streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+      });
+    }
 
     if (!content && !mediaUrl) {
       return res.status(400).json({ message: "Post must contain at least text or media." });
@@ -12,7 +69,7 @@ const createPost = async (req, res) => {
 
     let newPost = new UserPost({
       userId,
-      postType: postType || "general",
+      postType: postType || "regular",
       content,
       mediaUrl,
       extraData,
@@ -25,10 +82,8 @@ newPost = await newPost.populate("userId", "FirstName LastName");
 
     req.app.get("io").emit("newPost", newPost);
 
-    console.log("Emitted newPost via socket:", newPost);
     res.status(201).json({ message: "Post created successfully", post: newPost });
   } catch (err) {
-    console.error("Error creating post:", err);
     res.status(500).json({ message: "Server error", err: err.message });
   }
 };

@@ -173,24 +173,39 @@ function MainLayout({ jobs, loading }) {
   }, []);
 
   // ✅ WebSocket listener for new posts
-  useEffect(() => {
-    socket.on("connect", () => {
-      console.log("Socket connected:", socket.id);
-    });
-    socket.on("newPost", (post) => {
-      console.log("Received newPost:", post);
-      setPosts((prevPosts) => [post, ...prevPosts]); // Add new post at top
-    });
+useEffect(() => {
+  socket.on("connect", () => {
+    console.log("Socket connected:", socket.id);
+  });
 
-    // Clean up
-    return () => {
-      socket.off("newPost");
-    };
-  }, []);
+  socket.on("newPost", (post) => {
+    console.log("Received newPost:", post);
+    setPosts((prevPosts) => {
+      // Check if the post already exists in the feed
+      const exists = prevPosts.some((p) => p._id === post._id);
+      if (exists) {
+        return prevPosts; // If it exists, do not add it again
+      }
+      return [post, ...prevPosts]; // Add new post to the top of the feed
+    });
+  });
+
+  // Clean up
+  return () => {
+    socket.off("newPost");
+  };
+}, []);
 
   // Helper to add newly created post to feed immediately
   const handlePostCreate = async (newPost) => {
-    setPosts((prevPosts) => [newPost, ...prevPosts]);
+    setPosts((prevPosts) => {
+      // Check if the post already exists in the feed
+      const exists = prevPosts.some((p) => p._id === newPost._id);
+      if (exists) {
+        return prevPosts; // If it exists, do not add it again
+      }
+      return [newPost, ...prevPosts]; // Add new post to the top of the feed
+    });
   };
 
   const openPostModal = (type = "regular") => {

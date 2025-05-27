@@ -9,8 +9,8 @@ const userPostSchema = new mongoose.Schema(
     },
     postType: {
       type: String,
-      enum: ["event", "donation", "poll", "job", "general", "video"],
-      default: "general",
+      enum: [ "regular", "job", "event", "media", "donation"],
+      default: "regular",
     },
     content: { type: String },
     mediaUrl: { type: String },

@@ -278,11 +278,6 @@ function Header() {
           </div>
 
           <button className="flex items-center gap-1 hover:text-teal-600 transition-colors">
-            <Plus size={20} />
-            <span className="hidden lg:inline">Jobs</span>
-          </button>
-
-          <button className="flex items-center gap-1 hover:text-teal-600 transition-colors">
             <Users size={20} />
             <span className="hidden lg:inline">My Network</span>
           </button>
