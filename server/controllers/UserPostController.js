@@ -1,6 +1,6 @@
-const UserPost = require( "../models/UserPostModel");
-const cloudinary = require('../config/cloudinary');
-const streamifier = require('streamifier');
+const UserPost = require("../models/UserPostModel");
+const cloudinary = require("../config/cloudinary");
+const streamifier = require("streamifier");
 
 // Create a new post
 const createPost = async (req, res) => {
@@ -24,7 +24,7 @@ const createPost = async (req, res) => {
     } = req.body;
     const userId = req.user.id;
 
-     const extraData = {};
+    const extraData = {};
 
     if (postType === "job") {
       extraData.jobTitle = jobTitle;
@@ -48,7 +48,9 @@ const createPost = async (req, res) => {
     let mediaUrl = null;
 
     if (req.file) {
-      const resourceType = req.file.mimetype.startsWith('video/') ? 'video' : 'image';
+      const resourceType = req.file.mimetype.startsWith("video/")
+        ? "video"
+        : "image";
       mediaUrl = await new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
           { resource_type: resourceType },
@@ -64,7 +66,9 @@ const createPost = async (req, res) => {
     }
 
     if (!content && !mediaUrl) {
-      return res.status(400).json({ message: "Post must contain at least text or media." });
+      return res
+        .status(400)
+        .json({ message: "Post must contain at least text or media." });
     }
 
     let newPost = new UserPost({
@@ -78,16 +82,17 @@ const createPost = async (req, res) => {
     await newPost.save();
 
     // Populate user info BEFORE emitting the socket event
-newPost = await newPost.populate("userId", "FirstName LastName");
+    newPost = await newPost.populate("userId", "FirstName LastName");
 
     req.app.get("io").emit("newPost", newPost);
 
-    res.status(201).json({ message: "Post created successfully", post: newPost });
+    res
+      .status(201)
+      .json({ message: "Post created successfully", post: newPost });
   } catch (err) {
     res.status(500).json({ message: "Server error", err: err.message });
   }
 };
-
 
 const getUserPosts = async (req, res) => {
   try {
@@ -96,7 +101,7 @@ const getUserPosts = async (req, res) => {
     // Find posts where userId is NOT current user, and populate user details
     const posts = await UserPost.find({ userId: { $ne: userId } })
       .sort({ createdAt: -1 })
-      .populate("userId", "FirstName LastName");  // <-- populate userId with these fields only
+      .populate("userId", "FirstName LastName"); // <-- populate userId with these fields only
 
     res.status(200).json(posts);
   } catch (err) {
@@ -109,7 +114,7 @@ const getAllPosts = async (req, res) => {
   try {
     const posts = await UserPost.find()
       .sort({ createdAt: -1 })
-      .populate("userId", "FirstName LastName");  // <-- same here
+      .populate("userId", "FirstName LastName"); // <-- same here
 
     res.status(200).json(posts);
   } catch (err) {
@@ -120,7 +125,10 @@ const getAllPosts = async (req, res) => {
 // Delete a post
 const deletePost = async (req, res) => {
   try {
-    const post = await UserPost.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
+    const post = await UserPost.findOneAndDelete({
+      _id: req.params.id,
+      userId: req.user._id,
+    });
     if (!post) return res.status(404).json({ message: "Post not found" });
 
     // Emit socket event to all connected clients
@@ -132,4 +140,135 @@ const deletePost = async (req, res) => {
   }
 };
 
-module.exports = {createPost, getUserPosts, getAllPosts, deletePost}
+// like a post
+const likePost = async (req, res) => {
+  try {
+    const post = await UserPost.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+
+    post.likes.push(req.user._id);
+    await post.save();
+
+    res.status(200).json({ message: "Post liked successfully", post });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to like post" });
+  }
+};
+
+// unlike a post
+const unlikePost = async (req, res) => {
+  try {
+    const post = await UserPost.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+
+    post.likes.pull(req.user._id);
+    await post.save();
+
+    res.status(200).json({ message: "Post unliked successfully", post });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to unlike post" });
+  }
+};
+
+// comment on a post
+const commentOnPost = async (req, res) => {
+  try {
+    const post = await UserPost.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+
+    const { comment } = req.body;
+    if (!comment)
+      return res.status(400).json({ message: "Comment is required" });
+
+    post.comments.push({ userId: req.user._id, comment });
+    await post.save();
+
+    // Emit socket event to all connected clients
+    req.app
+      .get("io")
+      .emit("postCommented", {
+        postId: post._id,
+        userId: req.user._id,
+        comment,
+      });
+
+    res.status(201).json({ message: "Comment added successfully", post });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to add comment" });
+  }
+};
+
+// delete a comment
+const deleteComment = async (req, res) => {
+  try {
+    const post = await UserPost.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+
+    const commentId = req.params.commentId;
+    const commentIndex = post.comments.findIndex(
+      (c) =>
+        c._id.toString() === commentId &&
+        c.userId.toString() === req.user._id.toString()
+    );
+
+    if (commentIndex === -1)
+      return res.status(404).json({ message: "Comment not found" });
+
+    post.comments.splice(commentIndex, 1);
+    await post.save();
+
+    // Emit socket event to all connected clients
+    req.app.get("io").emit("commentDeleted", { postId: post._id, commentId });
+
+    res.status(200).json({ message: "Comment deleted successfully", post });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to delete comment" });
+  }
+};
+
+// save a post
+const savePost = async (req, res) => {
+  try {
+    const post = await UserPost.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+    const userId = req.user._id;
+    if (post.savedBy.includes(userId)) {
+      return res.status(400).json({ message: "Post already saved" });
+    }
+    post.savedBy.push(userId);
+    await post.save();
+    res.status(200).json({ message: "Post saved successfully", post });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to save post" });
+  }
+};
+
+// unsave a post
+const unsavePost = async (req, res) => {
+  try {
+    const post = await UserPost.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+    const userId = req.user._id;
+    if (!post.savedBy.includes(userId)) {
+      return res.status(400).json({ message: "Post not saved" });
+    }
+    post.savedBy.pull(userId);
+    await post.save();
+    res.status(200).json({ message: "Post unsaved successfully", post });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to unsave post" });
+  }
+};
+
+module.exports = {
+  createPost,
+  getUserPosts,
+  getAllPosts,
+  deletePost,
+  likePost,
+  unlikePost,
+  commentOnPost,
+  deleteComment,
+  savePost,
+  unsavePost,
+};
