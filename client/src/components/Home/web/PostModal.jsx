@@ -1,8 +1,24 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Calendar, Briefcase, Image, IndianRupee, X, Upload, FileText } from "lucide-react";
+import {
+  Calendar,
+  Briefcase,
+  Image,
+  IndianRupee,
+  X,
+  Upload,
+  FileText,
+} from "lucide-react";
 
-function PostModal({ isOpen, onClose, initials, firstName, lastName, onPostCreate, postType: initialPostType }) {
+function PostModal({
+  isOpen,
+  onClose,
+  initials,
+  firstName,
+  lastName,
+  onPostCreate,
+  postType: initialPostType,
+}) {
   const [content, setContent] = useState("");
   const [postType, setPostType] = useState("regular");
   const [loading, setLoading] = useState(false);
@@ -93,7 +109,7 @@ function PostModal({ isOpen, onClose, initials, firstName, lastName, onPostCreat
 
     setError("");
     setLoading(true);
-    
+
     // Prepare extra data based on post type
     const extraData = {};
     if (postType === "job") {
@@ -116,19 +132,20 @@ function PostModal({ isOpen, onClose, initials, firstName, lastName, onPostCreat
     }
 
     try {
-      // For simplicity, handling just textual data here
-      // In a real app, you'd use FormData for media uploads
+      const formData = new FormData();
+      formData.append("postType", postType);
+      formData.append("content", content);
+      if (mediaFile) {
+        formData.append("media", mediaFile);
+      }
+
       const response = await axios.post(
         `${import.meta.env.VITE_USER_API_URL}/create/post`,
-        {
-          postType,
-          content,
-          mediaUrl: "", // You would handle media uploads separately
-          extraData,
-        },
+        formData,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            "Content-Type": "multipart/form-data",
           },
         }
       );
@@ -136,7 +153,7 @@ function PostModal({ isOpen, onClose, initials, firstName, lastName, onPostCreat
       if (typeof onPostCreate === "function") {
         onPostCreate(response.data.post);
       }
-      
+
       resetForm();
       onClose();
     } catch (err) {
@@ -192,33 +209,53 @@ function PostModal({ isOpen, onClose, initials, firstName, lastName, onPostCreat
 
         {/* Post Type Tabs */}
         <div className="flex mb-5 border-b overflow-x-auto">
-          <button 
-            className={`flex items-center px-4 py-2 ${postType === 'regular' ? 'text-teal-600 border-b-2 border-teal-500' : 'text-gray-500 hover:text-teal-600'}`}
-            onClick={() => setPostType('regular')}
+          <button
+            className={`flex items-center px-4 py-2 ${
+              postType === "regular"
+                ? "text-teal-600 border-b-2 border-teal-500"
+                : "text-gray-500 hover:text-teal-600"
+            }`}
+            onClick={() => setPostType("regular")}
           >
             <FileText size={18} className="mr-2" /> Regular
           </button>
-          <button 
-            className={`flex items-center px-4 py-2 ${postType === 'job' ? 'text-teal-600 border-b-2 border-teal-500' : 'text-gray-500 hover:text-teal-600'}`}
-            onClick={() => setPostType('job')}
+          <button
+            className={`flex items-center px-4 py-2 ${
+              postType === "job"
+                ? "text-teal-600 border-b-2 border-teal-500"
+                : "text-gray-500 hover:text-teal-600"
+            }`}
+            onClick={() => setPostType("job")}
           >
             <Briefcase size={18} className="mr-2" /> Job
           </button>
-          <button 
-            className={`flex items-center px-4 py-2 ${postType === 'event' ? 'text-teal-600 border-b-2 border-teal-500' : 'text-gray-500 hover:text-teal-600'}`}
-            onClick={() => setPostType('event')}
+          <button
+            className={`flex items-center px-4 py-2 ${
+              postType === "event"
+                ? "text-teal-600 border-b-2 border-teal-500"
+                : "text-gray-500 hover:text-teal-600"
+            }`}
+            onClick={() => setPostType("event")}
           >
             <Calendar size={18} className="mr-2" /> Event
           </button>
-          <button 
-            className={`flex items-center px-4 py-2 ${postType === 'media' ? 'text-teal-600 border-b-2 border-teal-500' : 'text-gray-500 hover:text-teal-600'}`}
-            onClick={() => setPostType('media')}
+          <button
+            className={`flex items-center px-4 py-2 ${
+              postType === "media"
+                ? "text-teal-600 border-b-2 border-teal-500"
+                : "text-gray-500 hover:text-teal-600"
+            }`}
+            onClick={() => setPostType("media")}
           >
             <Image size={18} className="mr-2" /> Media
           </button>
-          <button 
-            className={`flex items-center px-4 py-2 ${postType === 'donation' ? 'text-teal-600 border-b-2 border-teal-500' : 'text-gray-500 hover:text-teal-600'}`}
-            onClick={() => setPostType('donation')}
+          <button
+            className={`flex items-center px-4 py-2 ${
+              postType === "donation"
+                ? "text-teal-600 border-b-2 border-teal-500"
+                : "text-gray-500 hover:text-teal-600"
+            }`}
+            onClick={() => setPostType("donation")}
           >
             <IndianRupee size={18} className="mr-2" /> Donation
           </button>
@@ -243,20 +280,24 @@ function PostModal({ isOpen, onClose, initials, firstName, lastName, onPostCreat
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Job Title *</label>
-                  <input 
-                    type="text" 
-                    value={jobTitle} 
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Job Title *
+                  </label>
+                  <input
+                    type="text"
+                    value={jobTitle}
                     onChange={(e) => setJobTitle(e.target.value)}
                     className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-1 focus:ring-teal-500"
                     placeholder="e.g. Software Developer"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Company *</label>
-                  <input 
-                    type="text" 
-                    value={companyName} 
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Company *
+                  </label>
+                  <input
+                    type="text"
+                    value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
                     className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-1 focus:ring-teal-500"
                     placeholder="e.g. Tech Innovations Inc."
@@ -266,19 +307,23 @@ function PostModal({ isOpen, onClose, initials, firstName, lastName, onPostCreat
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Location *</label>
-                  <input 
-                    type="text" 
-                    value={jobLocation} 
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Location *
+                  </label>
+                  <input
+                    type="text"
+                    value={jobLocation}
                     onChange={(e) => setJobLocation(e.target.value)}
                     className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-1 focus:ring-teal-500"
                     placeholder="e.g. Bangalore, India"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Job Type *</label>
-                  <select 
-                    value={jobType} 
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Job Type *
+                  </label>
+                  <select
+                    value={jobType}
                     onChange={(e) => setJobType(e.target.value)}
                     className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-1 focus:ring-teal-500"
                   >
@@ -294,20 +339,24 @@ function PostModal({ isOpen, onClose, initials, firstName, lastName, onPostCreat
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Salary Range</label>
-                  <input 
-                    type="text" 
-                    value={salary} 
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Salary Range
+                  </label>
+                  <input
+                    type="text"
+                    value={salary}
                     onChange={(e) => setSalary(e.target.value)}
                     className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-1 focus:ring-teal-500"
                     placeholder="e.g. ₹10-15 LPA"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Application Deadline</label>
-                  <input 
-                    type="date" 
-                    value={deadline} 
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Application Deadline
+                  </label>
+                  <input
+                    type="date"
+                    value={deadline}
                     onChange={(e) => setDeadline(e.target.value)}
                     className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-1 focus:ring-teal-500"
                   />
@@ -315,9 +364,11 @@ function PostModal({ isOpen, onClose, initials, firstName, lastName, onPostCreat
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Requirements</label>
-                <textarea 
-                  value={requirements} 
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Requirements
+                </label>
+                <textarea
+                  value={requirements}
                   onChange={(e) => setRequirements(e.target.value)}
                   className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-1 focus:ring-teal-500"
                   rows={3}
@@ -326,9 +377,11 @@ function PostModal({ isOpen, onClose, initials, firstName, lastName, onPostCreat
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Job Description</label>
-                <textarea 
-                  value={content} 
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Job Description
+                </label>
+                <textarea
+                  value={content}
                   onChange={(e) => setContent(e.target.value)}
                   className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-1 focus:ring-teal-500"
                   rows={3}
@@ -342,10 +395,12 @@ function PostModal({ isOpen, onClose, initials, firstName, lastName, onPostCreat
           {postType === "event" && (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Event Name *</label>
-                <input 
-                  type="text" 
-                  value={eventName} 
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Event Name *
+                </label>
+                <input
+                  type="text"
+                  value={eventName}
                   onChange={(e) => setEventName(e.target.value)}
                   className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-1 focus:ring-teal-500"
                   placeholder="e.g. Alumni Reunion 2024"
@@ -354,19 +409,23 @@ function PostModal({ isOpen, onClose, initials, firstName, lastName, onPostCreat
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Event Date *</label>
-                  <input 
-                    type="date" 
-                    value={eventDate} 
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Event Date *
+                  </label>
+                  <input
+                    type="date"
+                    value={eventDate}
                     onChange={(e) => setEventDate(e.target.value)}
                     className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-1 focus:ring-teal-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Location *</label>
-                  <input 
-                    type="text" 
-                    value={eventLocation} 
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Location *
+                  </label>
+                  <input
+                    type="text"
+                    value={eventLocation}
                     onChange={(e) => setEventLocation(e.target.value)}
                     className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-1 focus:ring-teal-500"
                     placeholder="e.g. College Auditorium"
@@ -375,9 +434,11 @@ function PostModal({ isOpen, onClose, initials, firstName, lastName, onPostCreat
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Event Summary</label>
-                <textarea 
-                  value={eventSummary} 
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Event Summary
+                </label>
+                <textarea
+                  value={eventSummary}
                   onChange={(e) => setEventSummary(e.target.value)}
                   className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-1 focus:ring-teal-500"
                   rows={2}
@@ -386,9 +447,11 @@ function PostModal({ isOpen, onClose, initials, firstName, lastName, onPostCreat
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Event Description</label>
-                <textarea 
-                  value={content} 
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Event Description
+                </label>
+                <textarea
+                  value={content}
                   onChange={(e) => setContent(e.target.value)}
                   className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-1 focus:ring-teal-500"
                   rows={3}
@@ -404,12 +467,12 @@ function PostModal({ isOpen, onClose, initials, firstName, lastName, onPostCreat
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center relative">
                 {mediaPreview ? (
                   <div className="relative">
-                    <img 
-                      src={mediaPreview} 
-                      alt="Upload preview" 
+                    <img
+                      src={mediaPreview}
+                      alt="Upload preview"
                       className="max-h-48 mx-auto object-contain"
                     />
-                    <button 
+                    <button
                       onClick={() => {
                         setMediaFile(null);
                         setMediaPreview(null);
@@ -422,13 +485,21 @@ function PostModal({ isOpen, onClose, initials, firstName, lastName, onPostCreat
                 ) : (
                   <div>
                     <Upload className="w-10 h-10 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500 mb-2">Click to upload or drag and drop</p>
-                    <p className="text-xs text-gray-400">PNG, JPG, GIF up to 10MB</p>
+                    <p className="text-sm text-gray-500 mb-2">
+                      Click to upload or drag and drop
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      PNG, JPG, GIF up to 10MB
+                    </p>
                   </div>
                 )}
-                <input 
+                <input
                   type="file"
-                  className={mediaPreview ? "hidden" : "absolute inset-0 w-full h-full opacity-0 cursor-pointer"}
+                  className={
+                    mediaPreview
+                      ? "hidden"
+                      : "absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  }
                   onChange={handleFileChange}
                   accept="image/*"
                 />
@@ -449,10 +520,12 @@ function PostModal({ isOpen, onClose, initials, firstName, lastName, onPostCreat
           {postType === "donation" && (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Donation Title *</label>
-                <input 
-                  type="text" 
-                  value={donationTitle} 
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Donation Title *
+                </label>
+                <input
+                  type="text"
+                  value={donationTitle}
                   onChange={(e) => setDonationTitle(e.target.value)}
                   className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-1 focus:ring-teal-500"
                   placeholder="e.g. Scholarship Fund"
@@ -460,12 +533,16 @@ function PostModal({ isOpen, onClose, initials, firstName, lastName, onPostCreat
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Donation Goal</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Donation Goal
+                </label>
                 <div className="relative">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">₹</span>
-                  <input 
-                    type="text" 
-                    value={donationGoal} 
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                    ₹
+                  </span>
+                  <input
+                    type="text"
+                    value={donationGoal}
                     onChange={(e) => setDonationGoal(e.target.value)}
                     className="w-full border border-gray-300 rounded-md pl-8 p-2 text-sm focus:outline-none focus:ring-1 focus:ring-teal-500"
                     placeholder="e.g. 100000"
@@ -474,9 +551,11 @@ function PostModal({ isOpen, onClose, initials, firstName, lastName, onPostCreat
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Purpose *</label>
-                <textarea 
-                  value={donationPurpose} 
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Purpose *
+                </label>
+                <textarea
+                  value={donationPurpose}
                   onChange={(e) => setDonationPurpose(e.target.value)}
                   className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-1 focus:ring-teal-500"
                   rows={2}
@@ -485,9 +564,11 @@ function PostModal({ isOpen, onClose, initials, firstName, lastName, onPostCreat
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Additional Information</label>
-                <textarea 
-                  value={content} 
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Additional Information
+                </label>
+                <textarea
+                  value={content}
                   onChange={(e) => setContent(e.target.value)}
                   className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-1 focus:ring-teal-500"
                   rows={3}
@@ -522,4 +603,4 @@ function PostModal({ isOpen, onClose, initials, firstName, lastName, onPostCreat
   );
 }
 
-export default PostModal; 
+export default PostModal;

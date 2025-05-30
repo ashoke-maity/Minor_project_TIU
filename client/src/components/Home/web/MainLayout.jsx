@@ -15,24 +15,84 @@ import {
   MessageCircle,
   Save,
   Image,
+  UserPlus,
+  UserCheck,
+  X,
 } from "lucide-react";
 import axios from "axios";
 import { io } from "socket.io-client";
+import { useNavigate } from "react-router-dom";
 
 function MainLayout({ jobs, loading }) {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [PassoutYear, setPassoutYear] = useState("");
   const [showPostModal, setShowPostModal] = useState(false);
   const [postType, setPostType] = useState("regular"); // "regular", "event", "job", "media"
   const socket = io(import.meta.env.VITE_SERVER_ROUTE);
   const [adminJobs, setAdminJobs] = useState([]);
   const [adminEvents, setAdminEvents] = useState([]);
+  const [suggestedUsers, setSuggestedUsers] = useState([]);
+  const [sentRequests, setSentRequests] = useState([]);
+  const [connectionStats, setConnectionStats] = useState({
+    connections: 0,
+    following: 0
+  });
 
   // New: posts state and loading/error for posts
   const [posts, setPosts] = useState([]);
   const [postsLoading, setPostsLoading] = useState(true);
   const [postsError, setPostsError] = useState("");
+
+  const [showConnectionsPopup, setShowConnectionsPopup] = useState(false);
+  const [showFollowingPopup, setShowFollowingPopup] = useState(false);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchSuggestedUsers = async () => {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_USER_API_URL}/all-users`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            },
+          }
+        );
+        setSuggestedUsers(res.data.users);
+      } catch (err) {
+        console.error("Error fetching users", err);
+      }
+    };
+
+    fetchSuggestedUsers();
+  }, []);
+
+  // follow request
+  const handleFollow = async (targetUserId) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      console.log("Token:", token);
+      console.log("Sending follow request to:", targetUserId);
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_USER_API_URL}/follow-request`,
+        { targetUserId }, // ensure this is an object with a key called targetUserId
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log("Follow request sent:", response.data);
+      if (response.data.status === 1) {
+        setSentRequests((prev) => [...prev, targetUserId]);
+      }
+    } catch (error) {
+      console.error("Failed to send connection request", error);
+    }
+  };
 
   // show the profile details of the user logged in
   useEffect(() => {
@@ -47,10 +107,9 @@ function MainLayout({ jobs, loading }) {
           }
         );
 
-        const { FirstName, LastName, PassoutYear } = response.data.user;
+        const { FirstName, LastName } = response.data.user;
         setFirstName(FirstName);
         setLastName(LastName);
-        setPassoutYear(PassoutYear);
       } catch (err) {
         console.error("Failed to fetch profile info:", err);
       }
@@ -127,25 +186,40 @@ function MainLayout({ jobs, loading }) {
   }, []);
 
   // ✅ WebSocket listener for new posts
- useEffect(() => {
+useEffect(() => {
   socket.on("connect", () => {
-  console.log("Socket connected:", socket.id);
-});
-    socket.on("newPost", (post) => {
-       console.log("Received newPost:", post);
-      setPosts((prevPosts) => [post, ...prevPosts]); // Add new post at top
-    });
+    console.log("Socket connected:", socket.id);
+  });
 
-    // Clean up
-    return () => {
-      socket.off("newPost");
-    };
-  }, []);
+  socket.on("newPost", (post) => {
+    console.log("Received newPost:", post);
+    setPosts((prevPosts) => {
+      // Check if the post already exists in the feed
+      const exists = prevPosts.some((p) => p._id === post._id);
+      if (exists) {
+        return prevPosts; // If it exists, do not add it again
+      }
+      return [post, ...prevPosts]; // Add new post to the top of the feed
+    });
+  });
+
+  // Clean up
+  return () => {
+    socket.off("newPost");
+  };
+}, []);
 
   // Helper to add newly created post to feed immediately
-const handlePostCreate = async (newPost) => {
-  setPosts((prevPosts) => [newPost, ...prevPosts]);
-};
+  const handlePostCreate = async (newPost) => {
+    setPosts((prevPosts) => {
+      // Check if the post already exists in the feed
+      const exists = prevPosts.some((p) => p._id === newPost._id);
+      if (exists) {
+        return prevPosts; // If it exists, do not add it again
+      }
+      return [newPost, ...prevPosts]; // Add new post to the top of the feed
+    });
+  };
 
   const openPostModal = (type = "regular") => {
     setPostType(type);
@@ -155,6 +229,30 @@ const handlePostCreate = async (newPost) => {
   const initials = `${firstName?.[0] ?? ""}${
     lastName?.[0] ?? ""
   }`.toUpperCase();
+
+  // Add new useEffect for fetching connection stats
+  useEffect(() => {
+    const fetchConnectionStats = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_USER_API_URL}/user/connections`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            },
+          }
+        );
+        setConnectionStats({
+          connections: response.data.connections?.length || 0,
+          following: response.data.following?.length || 0
+        });
+      } catch (err) {
+        console.error("Error fetching connection stats:", err);
+      }
+    };
+
+    fetchConnectionStats();
+  }, []);
 
   return (
     <>
@@ -168,16 +266,37 @@ const handlePostCreate = async (newPost) => {
                 <div className="bg-gradient-to-r from-teal-400 via-emerald-500 to-teal-600 h-24 relative">
                   <div className="absolute inset-0 bg-black opacity-10"></div>
                 </div>
-                <div className="px-6 pb-6 pt-0 -mt-14 flex flex-col items-center">
-                  <div className="w-24 h-24 rounded-full border-4 border-white bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-2xl font-bold shadow-xl">
+                <div className="px-6 pb-6 pt-0 -mt-12 relative z-10">
+                  <div className="w-24 h-24 rounded-full border-4 border-white bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-2xl font-bold shadow-xl mx-auto">
                     {initials}
                   </div>
-                  <h2 className="text-xl font-bold text-gray-800 mt-4">
+                  <h2 className="text-xl font-bold text-gray-800 mt-4 text-center">
                     {firstName || ""} {lastName || ""}
                   </h2>
-                  <p className="text-gray-500 text-sm">
-                    Class of {PassoutYear || ""}
-                  </p>
+                  
+                  {/* Connection Stats */}
+                  <div className="grid grid-cols-2 gap-6 mt-4 w-full">
+                    <div 
+                      className="text-center cursor-pointer hover:bg-teal-50 p-2 rounded-lg transition-colors duration-300"
+                      onClick={() => setShowConnectionsPopup(true)}
+                    >
+                      <div className="flex items-center justify-center space-x-2 text-teal-600 mb-1">
+                        <UserCheck size={18} />
+                        <span className="text-lg font-semibold">{connectionStats.connections}</span>
+                      </div>
+                      <p className="text-sm text-gray-600">Connections</p>
+                    </div>
+                    <div 
+                      className="text-center cursor-pointer hover:bg-teal-50 p-2 rounded-lg transition-colors duration-300"
+                      onClick={() => setShowFollowingPopup(true)}
+                    >
+                      <div className="flex items-center justify-center space-x-2 text-teal-600 mb-1">
+                        <UserPlus size={18} />
+                        <span className="text-lg font-semibold">{connectionStats.following}</span>
+                      </div>
+                      <p className="text-sm text-gray-600">Following</p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -199,6 +318,10 @@ const handlePostCreate = async (newPost) => {
                     <a
                       href="#"
                       className="block text-sm text-teal-600 hover:underline py-1"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigate("/my-posts?view=bookmarks");
+                      }}
                     >
                       View Saved Bookmarks
                     </a>
@@ -215,12 +338,10 @@ const handlePostCreate = async (newPost) => {
                     <a
                       href="#"
                       className="block text-sm text-teal-600 hover:underline py-1"
-                    >
-                      My Posted Events
-                    </a>
-                    <a
-                      href="#"
-                      className="block text-sm text-teal-600 hover:underline py-1"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigate("/my-posts?view=events");
+                      }}
                     >
                       Upcoming Events
                     </a>
@@ -237,16 +358,26 @@ const handlePostCreate = async (newPost) => {
                     <a
                       href="#"
                       className="block text-sm text-teal-600 hover:underline py-1"
-                    >
-                      My Job Posts
-                    </a>
-                    <a
-                      href="#"
-                      className="block text-sm text-teal-600 hover:underline py-1"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigate("/my-posts?view=jobs");
+                      }}
                     >
                       Available Opportunities
                     </a>
                   </div>
+                  <a
+                    href="#"
+                    className="flex items-center py-2 px-3 hover:bg-teal-50 rounded-lg transition-colors duration-300"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigate("/my-posts?view=posts");
+                    }}
+                  >
+                    <Image size={18} className="text-teal-500 mr-3" />
+                    <span className="text-gray-700">My Posts</span>
+                    <ChevronRight size={16} className="ml-auto text-gray-400" />
+                  </a>
                   <a
                     href="#"
                     className="flex items-center py-2 px-3 hover:bg-teal-50 rounded-lg transition-colors duration-300"
@@ -439,44 +570,55 @@ const handlePostCreate = async (newPost) => {
               {/* People You May Know */}
               <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow duration-300">
                 <div className="p-5 border-b border-gray-100 bg-gradient-to-r from-teal-50 to-emerald-50">
-                  <h2 className="text-lg font-bold text-gray-800 flex items-center">
-                    <Users size={18} className="text-teal-500 mr-2" />
-                    People You May Know
-                  </h2>
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-sm font-medium text-gray-700">People You May Know</h3>
+                    <button
+                      onClick={() => navigate('/network')}
+                      className="text-xs text-teal-600 hover:text-teal-700 font-medium transition-colors"
+                    >
+                      View All
+                    </button>
+                  </div>
                 </div>
                 <div className="divide-y divide-gray-100">
-                  {[1, 2, 3].map((_, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center p-4 hover:bg-gray-50 transition-colors duration-300"
-                    >
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 mr-3 flex-shrink-0 flex items-center justify-center text-white font-medium shadow-md">
-                        {["JD", "AK", "SR"][idx]}
+                  {suggestedUsers.slice(0, 5).map((user) => {
+                    const isRequested = sentRequests.includes(user._id);
+
+                    return (
+                      <div
+                        key={user._id}
+                        className="flex items-center p-4 hover:bg-gray-50 transition-colors duration-300"
+                      >
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 mr-3 flex-shrink-0 flex items-center justify-center text-white font-medium shadow-md">
+                          {user.FirstName[0]}
+                          {user.LastName[0]}
+                        </div>
+                        <div>
+                          <h3 className="text-base font-semibold text-gray-800">
+                            {user.FirstName} {user.LastName}
+                          </h3>
+                        </div>
+
+                        {isRequested ? (
+                          <button
+                            disabled
+                            className="ml-auto px-3 py-1 text-gray-500 text-sm font-medium border border-gray-200 rounded-md bg-gray-100 cursor-not-allowed"
+                          >
+                            Requested
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleFollow(user._id)}
+                            className="ml-auto px-3 py-1 text-teal-600 text-sm font-medium border border-teal-200 rounded-md hover:bg-teal-50 transition-colors duration-300"
+                          >
+                            Connect
+                          </button>
+                        )}
                       </div>
-                      <div>
-                        <h3 className="text-base font-semibold text-gray-800">
-                          {["John Doe", "Alice Kim", "Sam Reed"][idx]}
-                        </h3>
-                        <p className="text-sm text-gray-500">
-                          Class of {["2018", "2020", "2019"][idx]}
-                        </p>
-                      </div>
-                      <button className="ml-auto px-3 py-1 text-teal-600 text-sm font-medium border border-teal-200 rounded-md hover:bg-teal-50 transition-colors duration-300">
-                        Connect
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                <div className="p-4 bg-gradient-to-r from-teal-50 to-emerald-50 text-center">
-                  <a
-                    href="#"
-                    className="text-teal-600 text-sm font-medium hover:underline"
-                  >
-                    View All Suggestions
-                  </a>
+                    );
+                  })}
                 </div>
               </div>
-
               {/* Support & Donation */}
               <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden p-5 hover:shadow-xl transition-shadow duration-300">
                 <h2 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
@@ -512,6 +654,51 @@ const handlePostCreate = async (newPost) => {
           </div>
         </div>
       </div>
+
+      {/* Add popups at the end, before PostModal */}
+      {showConnectionsPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden">
+            <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+                <UserCheck size={20} className="text-teal-500 mr-2" />
+                My Connections
+              </h3>
+              <button
+                onClick={() => setShowConnectionsPopup(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto max-h-[calc(80vh-4rem)]">
+              <p className="text-gray-500 text-center py-4">Coming soon...</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showFollowingPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden">
+            <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+                <UserPlus size={20} className="text-teal-500 mr-2" />
+                Following
+              </h3>
+              <button
+                onClick={() => setShowFollowingPopup(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto max-h-[calc(80vh-4rem)]">
+              <p className="text-gray-500 text-center py-4">Coming soon...</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Post Modal */}
       <PostModal

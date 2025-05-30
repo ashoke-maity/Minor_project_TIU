@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const commentSchema = require("./commentModel"); 
 
 const userPostSchema = new mongoose.Schema(
   {
@@ -9,12 +10,26 @@ const userPostSchema = new mongoose.Schema(
     },
     postType: {
       type: String,
-      enum: ["event", "donation", "poll", "job", "general", "video"],
-      default: "general",
+      enum: ["regular", "job", "event", "media", "donation"],
+      default: "regular",
     },
     content: { type: String },
     mediaUrl: { type: String },
-    extraData: { type: mongoose.Schema.Types.Mixed },
+
+    // Stores job/event/donation specific fields
+    extraData: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
+
+    // Users who liked the post
+    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+
+    // Users who saved the post
+    savedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+
+    // Comments on the post
+    comments: [commentSchema],
   },
   { timestamps: true }
 );

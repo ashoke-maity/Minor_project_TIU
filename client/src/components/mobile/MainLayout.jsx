@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import PostCard from "./PostCard";
 import PostModal from "../Home/web/PostModal"; 
 import MobileHeader from "./Header";
@@ -13,12 +13,15 @@ import {
   Briefcase, 
   ChevronRight, 
   Home as HomeIcon,
-  Settings
+  Settings,
+  Image,
+  X
 } from "lucide-react";
 import axios from "axios";
 import { io } from "socket.io-client";
 
 function MobileMainLayout({ jobs, loading }) {
+  const navigate = useNavigate();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [PassoutYear, setPassoutYear] = useState("");
@@ -26,11 +29,31 @@ function MobileMainLayout({ jobs, loading }) {
   const [postType, setPostType] = useState("regular");
   const socket = io(import.meta.env.VITE_SERVER_ROUTE);
   const [activeTab, setActiveTab] = useState("feed");
+  const [suggestedUsers, setSuggestedUsers] = useState([]);
+  const [sentRequests, setSentRequests] = useState([]);
 
-  // New: posts state and loading/error for posts
+  // Following and Followers state
+  const [following, setFollowing] = useState([]);
+  const [followers, setFollowers] = useState([]);
+  const [showFollowingModal, setShowFollowingModal] = useState(false);
+  const [showFollowersModal, setShowFollowersModal] = useState(false);
+  const [followingLoading, setFollowingLoading] = useState(true);
+  const [followersLoading, setFollowersLoading] = useState(true);
+
+  // Posts state and loading/error for posts
   const [posts, setPosts] = useState([]);
   const [postsLoading, setPostsLoading] = useState(true);
   const [postsError, setPostsError] = useState("");
+
+  // User's posts state
+  const [userPosts, setUserPosts] = useState([]);
+  const [userPostsLoading, setUserPostsLoading] = useState(true);
+  const [userPostsError, setUserPostsError] = useState("");
+
+  // Saved items state
+  const [savedItems, setSavedItems] = useState([]);
+  const [savedItemsLoading, setSavedItemsLoading] = useState(true);
+  const [savedItemsError, setSavedItemsError] = useState("");
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -56,6 +79,43 @@ function MobileMainLayout({ jobs, loading }) {
     fetchProfile();
   }, []);
 
+  // Fetch following and followers
+  useEffect(() => {
+    const fetchConnections = async () => {
+      try {
+        // Fetch following
+        const followingResponse = await axios.get(
+          `${import.meta.env.VITE_USER_API_URL}/following`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            },
+          }
+        );
+        setFollowing(followingResponse.data.following);
+        setFollowingLoading(false);
+
+        // Fetch followers
+        const followersResponse = await axios.get(
+          `${import.meta.env.VITE_USER_API_URL}/followers`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            },
+          }
+        );
+        setFollowers(followersResponse.data.followers);
+        setFollowersLoading(false);
+      } catch (err) {
+        console.error("Failed to fetch connections:", err);
+        setFollowingLoading(false);
+        setFollowersLoading(false);
+      }
+    };
+
+    fetchConnections();
+  }, []);
+
   useEffect(() => {
     // Fetch all posts to show in feed
     const fetchPosts = async () => {
@@ -79,26 +139,81 @@ function MobileMainLayout({ jobs, loading }) {
     fetchPosts();
   }, []);
 
-   // ✅ WebSocket listener for new posts
-   useEffect(() => {
+  // Fetch user's posts
+  useEffect(() => {
+    const fetchUserPosts = async () => {
+      setUserPostsLoading(true);
+      setUserPostsError("");
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_USER_API_URL}/view/my-posts`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+        });
+        setUserPosts(response.data);
+      } catch (err) {
+        setUserPostsError("Failed to load your posts.");
+        console.error(err);
+      } finally {
+        setUserPostsLoading(false);
+      }
+    };
+
+    fetchUserPosts();
+  }, []);
+
+  // Fetch saved items
+  useEffect(() => {
+    const fetchSavedItems = async () => {
+      setSavedItemsLoading(true);
+      setSavedItemsError("");
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_USER_API_URL}/saved-items`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+        });
+        setSavedItems(response.data);
+      } catch (err) {
+        setSavedItemsError("Failed to load saved items.");
+        console.error(err);
+      } finally {
+        setSavedItemsLoading(false);
+      }
+    };
+
+    if (activeTab === "bookmarks") {
+      fetchSavedItems();
+    }
+  }, [activeTab]);
+
+  // ✅ WebSocket listener for new posts
+  useEffect(() => {
     socket.on("connect", () => {
-    console.log("Socket connected:", socket.id);
-  });
-      socket.on("newPost", (post) => {
-         console.log("Received newPost:", post);
-        setPosts((prevPosts) => [post, ...prevPosts]); // Add new post at top
-      });
-  
-      // Clean up
-      return () => {
-        socket.off("newPost");
-      };
-    }, []);
+      console.log("Socket connected:", socket.id);
+    });
+    socket.on("newPost", (post) => {
+      console.log("Received newPost:", post);
+      setPosts((prevPosts) => [post, ...prevPosts]); // Add new post at top
+    });
+
+    // Clean up
+    return () => {
+      socket.off("newPost");
+    };
+  }, []);
 
   // Helper to add newly created post to feed immediately
-const handlePostCreate = async (newPost) => {
-  setPosts((prevPosts) => [newPost, ...prevPosts]);
-};
+  const handlePostCreate = async (newPost) => {
+    // Only add to posts if it's not already in userPosts
+    if (!userPosts.some(post => post._id === newPost._id)) {
+      setPosts((prevPosts) => [newPost, ...prevPosts]);
+    }
+    // Only add to userPosts if it's not already in posts
+    if (!posts.some(post => post._id === newPost._id)) {
+      setUserPosts((prevPosts) => [newPost, ...prevPosts]);
+    }
+  };
 
   const openPostModal = (type = "regular") => {
     setPostType(type);
@@ -106,6 +221,49 @@ const handlePostCreate = async (newPost) => {
   };
 
   const initials = `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase();
+
+  useEffect(() => {
+    if (activeTab === "network") {
+      fetchSuggestedUsers();
+    }
+  }, [activeTab]);
+
+  const fetchSuggestedUsers = async () => {
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_USER_API_URL}/all-users`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+        }
+      );
+      setSuggestedUsers(res.data.users);
+    } catch (err) {
+      console.error("Error fetching users", err);
+    }
+  };
+
+  const handleFollow = async (targetUserId) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await axios.post(
+        `${import.meta.env.VITE_USER_API_URL}/follow-request`,
+        { targetUserId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.status === 1) {
+        setSentRequests((prev) => [...prev, targetUserId]);
+      }
+    } catch (error) {
+      console.error("Failed to send connection request", error);
+    }
+  };
 
   return (
     <>
@@ -129,8 +287,118 @@ const handlePostCreate = async (newPost) => {
             <p className="text-gray-500 text-sm">
               Class of {PassoutYear || ""}
             </p>
+            
+            {/* Following and Followers Count */}
+            <div className="flex justify-center space-x-8 mt-4">
+              <button 
+                onClick={() => setShowFollowingModal(true)}
+                className="flex flex-col items-center"
+              >
+                <span className="text-lg font-semibold text-gray-800">{following.length}</span>
+                <span className="text-sm text-gray-500">Following</span>
+              </button>
+              <button 
+                onClick={() => setShowFollowersModal(true)}
+                className="flex flex-col items-center"
+              >
+                <span className="text-lg font-semibold text-gray-800">{followers.length}</span>
+                <span className="text-sm text-gray-500">Followers</span>
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Following Modal */}
+        {showFollowingModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+            <div className="bg-white rounded-xl w-full max-w-md mx-4 max-h-[80vh] overflow-hidden">
+              <div className="p-4 border-b flex justify-between items-center">
+                <h3 className="text-lg font-semibold">Following</h3>
+                <button 
+                  onClick={() => setShowFollowingModal(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+              <div className="overflow-y-auto max-h-[calc(80vh-4rem)]">
+                {followingLoading ? (
+                  <div className="p-4 text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500 mx-auto"></div>
+                    <p className="text-gray-500 mt-2">Loading...</p>
+                  </div>
+                ) : following.length === 0 ? (
+                  <div className="p-4 text-center text-gray-500">
+                    Not following anyone yet
+                  </div>
+                ) : (
+                  <div className="divide-y">
+                    {following.map((user) => (
+                      <div key={user._id} className="p-4 flex items-center">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white font-semibold text-lg mr-3">
+                          {user.FirstName[0]}
+                          {user.LastName[0]}
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-gray-800">
+                            {user.FirstName} {user.LastName}
+                          </h4>
+                          <p className="text-sm text-gray-500">{user.Email}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Followers Modal */}
+        {showFollowersModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+            <div className="bg-white rounded-xl w-full max-w-md mx-4 max-h-[80vh] overflow-hidden">
+              <div className="p-4 border-b flex justify-between items-center">
+                <h3 className="text-lg font-semibold">Followers</h3>
+                <button 
+                  onClick={() => setShowFollowersModal(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+              <div className="overflow-y-auto max-h-[calc(80vh-4rem)]">
+                {followersLoading ? (
+                  <div className="p-4 text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500 mx-auto"></div>
+                    <p className="text-gray-500 mt-2">Loading...</p>
+                  </div>
+                ) : followers.length === 0 ? (
+                  <div className="p-4 text-center text-gray-500">
+                    No followers yet
+                  </div>
+                ) : (
+                  <div className="divide-y">
+                    {followers.map((user) => (
+                      <div key={user._id} className="p-4 flex items-center">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white font-semibold text-lg mr-3">
+                          {user.FirstName[0]}
+                          {user.LastName[0]}
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-gray-800">
+                            {user.FirstName} {user.LastName}
+                          </h4>
+                          <p className="text-sm text-gray-500">{user.Email}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Create Post Button - Fixed */}
         <div className="fixed bottom-20 right-4 z-10">
@@ -148,6 +416,37 @@ const handlePostCreate = async (newPost) => {
             <div className="space-y-4">
               {/* Admin Announcements */}
               <MobileAdminAnnouncements />
+              
+              {/* Quick Access Buttons */}
+              <div className="grid grid-cols-2 gap-3">
+                <button 
+                  onClick={() => navigate("/my-posts?view=jobs")}
+                  className="bg-white rounded-xl shadow-sm p-4 flex items-center hover:bg-gray-50 transition-colors duration-300"
+                >
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                    <Briefcase size={20} className="text-blue-600" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-sm font-semibold text-gray-800">Available Opportunities</h3>
+                    <p className="text-xs text-gray-500">View job openings</p>
+                  </div>
+                  <ChevronRight size={16} className="ml-auto text-gray-400" />
+                </button>
+
+                <button 
+                  onClick={() => navigate("/my-posts?view=events")}
+                  className="bg-white rounded-xl shadow-sm p-4 flex items-center hover:bg-gray-50 transition-colors duration-300"
+                >
+                  <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center mr-3">
+                    <Calendar size={20} className="text-amber-600" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-sm font-semibold text-gray-800">Upcoming Events</h3>
+                    <p className="text-xs text-gray-500">View events</p>
+                  </div>
+                  <ChevronRight size={16} className="ml-auto text-gray-400" />
+                </button>
+              </div>
               
               {/* Post Types Grid */}
               <div className="grid grid-cols-4 gap-2 bg-white p-3 rounded-xl shadow-sm">
@@ -244,25 +543,40 @@ const handlePostCreate = async (newPost) => {
                 People You May Know
               </h3>
               <div className="divide-y divide-gray-100">
-                {[1, 2, 3, 4, 5].map((_, idx) => (
-                  <div key={idx} className="flex items-center py-3">
-                    <div>
-                      <h3 className="text-base font-semibold text-gray-800">
-                        {['John Doe', 'Alice Kim', 'Sam Reed', 'Mark Peters', 'Ben Katz'][idx]}
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        Class of {['2018', '2020', '2019', '2015', '2022'][idx]}
-                      </p>
+                {suggestedUsers.slice(0, 5).map((user) => {
+                  const isRequested = sentRequests.includes(user._id);
+                  return (
+                    <div key={user._id} className="flex items-center py-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white font-semibold text-lg mr-3">
+                        {user.FirstName[0]}
+                        {user.LastName[0]}
+                      </div>
+                      <div>
+                        <h3 className="text-base font-semibold text-gray-800">
+                          {user.FirstName} {user.LastName}
+                        </h3>
+                        <p className="text-sm text-gray-500">
+                          {user.Email}
+                        </p>
+                      </div>
+                      <button 
+                        onClick={() => handleFollow(user._id)}
+                        disabled={isRequested}
+                        className={`ml-auto px-3 py-1 text-sm font-medium rounded-md transition-colors duration-300 ${
+                          isRequested 
+                            ? 'text-gray-500 bg-gray-100 cursor-not-allowed'
+                            : 'text-teal-600 border border-teal-200 hover:bg-teal-50'
+                        }`}
+                      >
+                        {isRequested ? 'Request Sent' : 'Connect'}
+                      </button>
                     </div>
-                    <button className="ml-auto px-3 py-1 text-teal-600 text-sm font-medium border border-teal-200 rounded-md hover:bg-teal-50 transition-colors duration-300">
-                      Connect
-                    </button>
-                  </div>
-                ))}
+                  );
+                })}
                 <div className="pt-4 text-center">
-                  <a href="#" className="text-teal-600 text-sm font-medium hover:underline">
+                  <Link to="/network" className="text-teal-600 text-sm font-medium hover:underline">
                     View All Suggestions
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -274,49 +588,86 @@ const handlePostCreate = async (newPost) => {
                 <Bookmark size={18} className="text-teal-500 mr-2" /> 
                 Your Saved Items
               </h3>
-              {/* Sample Empty State */}
-              <div className="text-center py-8">
-                <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto flex items-center justify-center mb-4">
-                  <Bookmark size={24} className="text-gray-400" />
+              {savedItemsLoading ? (
+                <div className="text-center py-8">
+                  <div className="flex justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500"></div>
+                  </div>
+                  <p className="text-gray-500 mt-4">Loading saved items...</p>
                 </div>
-                <h3 className="text-gray-600 font-medium mb-1">No saved items yet</h3>
-                <p className="text-gray-500 text-sm">
-                  Items you save will appear here
-                </p>
-              </div>
+              ) : savedItemsError ? (
+                <div className="text-center py-8">
+                  <p className="text-red-500 font-medium">{savedItemsError}</p>
+                  <button className="mt-3 text-teal-600 text-sm hover:underline">
+                    Try again
+                  </button>
+                </div>
+              ) : savedItems.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto flex items-center justify-center mb-4">
+                    <Bookmark size={24} className="text-gray-400" />
+                  </div>
+                  <h3 className="text-gray-600 font-medium mb-1">No saved items yet</h3>
+                  <p className="text-gray-500 text-sm">
+                    Items you save will appear here
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {savedItems.map((item) => (
+                    <div key={item._id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                      <PostCard post={item} />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
           {activeTab === "jobs" && (
             <div>
               <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                <Briefcase size={18} className="text-teal-500 mr-2" /> 
-                Job Opportunities
+                <Image size={18} className="text-teal-500 mr-2" /> 
+                My Posts
               </h3>
               
-              {!loading && jobs?.length > 0 ? (
-                <div className="space-y-4">
-                  {jobs.map((job) => (
-                    <div key={job._id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-                      <PostCard job={job} />
-                    </div>
-                  ))}
+              {userPostsLoading ? (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
+                  <div className="flex justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500"></div>
+                  </div>
+                  <p className="text-gray-500 mt-4">Loading your posts...</p>
                 </div>
-              ) : (
+              ) : userPostsError ? (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center">
+                  <p className="text-red-500 font-medium">{userPostsError}</p>
+                  <button className="mt-3 text-teal-600 text-sm hover:underline">
+                    Try again
+                  </button>
+                </div>
+              ) : userPosts.length === 0 ? (
                 <div className="bg-white rounded-xl shadow-sm p-4 text-center py-8">
                   <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto flex items-center justify-center mb-4">
-                    <Briefcase size={24} className="text-gray-400" />
+                    <Image size={24} className="text-gray-400" />
                   </div>
-                  <h3 className="text-gray-600 font-medium mb-1">No job opportunities yet</h3>
+                  <h3 className="text-gray-600 font-medium mb-1">No posts yet</h3>
                   <p className="text-gray-500 text-sm mb-4">
-                    Check back later for new openings
+                    Share your thoughts with your alumni network
                   </p>
                   <button 
-                    onClick={() => openPostModal('job')}
+                    onClick={() => openPostModal('regular')}
                     className="bg-gradient-to-r from-teal-500 to-emerald-400 hover:from-teal-600 hover:to-emerald-500 text-white py-2 px-6 rounded-lg transition-colors duration-300 shadow-md hover:shadow-lg"
                   >
-                    Post a Job
+                    Create Post
                   </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {userPosts.map((post) => (
+                    <div key={post._id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                      <PostCard post={post} />
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -350,8 +701,8 @@ const handlePostCreate = async (newPost) => {
             onClick={() => setActiveTab('jobs')}
             className={`flex flex-col items-center justify-center w-1/4 h-full ${activeTab === 'jobs' ? 'text-teal-500' : 'text-gray-500'}`}
           >
-            <Briefcase size={20} />
-            <span className="text-xs mt-1">Jobs</span>
+            <Image size={20} />
+            <span className="text-xs mt-1">My Posts</span>
           </button>
         </div>
       </div>
