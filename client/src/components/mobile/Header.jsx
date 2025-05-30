@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import {
@@ -8,8 +8,12 @@ import {
   LogOut,
   X,
   Settings,
-  Menu
+  Menu,
+  Check,
+  Trash2
 } from "lucide-react";
+import { io } from "socket.io-client";
+import { toast } from "react-toastify";
 
 function MobileHeader() {
   const navigate = useNavigate();
@@ -18,6 +22,9 @@ function MobileHeader() {
   const [lastName, setLastName] = useState("");
   const [showMenu, setShowMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const socket = io(import.meta.env.VITE_SERVER_ROUTE);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -39,7 +46,41 @@ function MobileHeader() {
       }
     };
     fetchProfile();
+
+    fetchNotifications();
+
+    // Socket.io event listeners
+    socket.on("connect", () => {
+      console.log("Socket connected:", socket.id);
+    });
+
+    socket.on("newNotification", (notification) => {
+      setNotifications(prev => [notification, ...prev]);
+      setUnreadCount(prev => prev + 1);
+      toast.info(notification.message);
+    });
+
+    return () => {
+      socket.off("newNotification");
+    };
   }, []);
+
+  const fetchNotifications = async () => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_USER_API_URL}/notifications`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+        }
+      );
+      setNotifications(response.data.notifications);
+      setUnreadCount(response.data.notifications.filter(n => !n.isRead).length);
+    } catch (err) {
+      console.error("Failed to fetch notifications:", err);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.clear();
@@ -59,6 +100,96 @@ function MobileHeader() {
   const toggleNotifications = () => {
     setShowNotifications(!showNotifications);
     if (showMenu) setShowMenu(false);
+  };
+
+  const handleAccept = async (senderId) => {
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_USER_API_URL}/accept-follow`,
+        { senderId },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+        }
+      );
+      setNotifications(prev => prev.filter(n => n.sender?._id !== senderId));
+      toast.success("Connection request accepted!");
+    } catch (err) {
+      console.error("Failed to accept request:", err);
+      toast.error("Failed to accept connection.");
+    }
+  };
+
+  const handleDecline = async (senderId) => {
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_USER_API_URL}/reject-request`,
+        { senderId },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+        }
+      );
+      setNotifications(prev => prev.filter(n => n.sender?._id !== senderId));
+      toast.info("Connection request declined.");
+    } catch (err) {
+      console.error("Failed to decline request:", err);
+      toast.error("Failed to decline connection.");
+    }
+  };
+
+  const handleMarkAsRead = async (notificationId) => {
+    try {
+      await axios.put(
+        `${import.meta.env.VITE_USER_API_URL}/${notificationId}/read`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+        }
+      );
+      setNotifications(prev =>
+        prev.map(n =>
+          n._id === notificationId ? { ...n, isRead: true } : n
+        )
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (err) {
+      console.error("Failed to mark notification as read:", err);
+    }
+  };
+
+  const handleDeleteNotification = async (notificationId) => {
+    try {
+      await axios.delete(
+        `${import.meta.env.VITE_USER_API_URL}/${notificationId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+        }
+      );
+      setNotifications(prev => prev.filter(n => n._id !== notificationId));
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (err) {
+      console.error("Failed to delete notification:", err);
+    }
+  };
+
+  const formatTimeAgo = (date) => {
+    const now = new Date();
+    const diff = now - new Date(date);
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) return `${days}d ago`;
+    if (hours > 0) return `${hours}h ago`;
+    if (minutes > 0) return `${minutes}m ago`;
+    return "Just now";
   };
 
   const initials = `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase();
@@ -82,9 +213,11 @@ function MobileHeader() {
               onClick={toggleNotifications}
             >
               <Bell size={22} />
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                3
-              </span>
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                  {unreadCount}
+                </span>
+              )}
             </button>
             
             <button
@@ -126,50 +259,68 @@ function MobileHeader() {
               </div>
               
               <div className="overflow-auto h-[calc(100%-60px)]">
-                <div className="divide-y">
-                  {/* Sample notifications */}
-                  <div className="px-4 py-3 hover:bg-gray-50">
-                    <div className="flex items-start">
-                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3 flex-shrink-0">
-                        <User size={16} />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-800">
-                          <span className="font-medium">John Doe</span> liked your post
-                        </p>
-                        <span className="text-xs text-gray-500">2 hours ago</span>
-                      </div>
-                    </div>
+                {notifications.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    No notifications yet
                   </div>
-                  
-                  <div className="px-4 py-3 hover:bg-gray-50">
-                    <div className="flex items-start">
-                      <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 mr-3 flex-shrink-0">
-                        <Bell size={16} />
+                ) : (
+                  <div className="divide-y">
+                    {notifications.map((notification) => (
+                      <div 
+                        key={notification._id}
+                        className={`px-4 py-3 hover:bg-gray-50 ${!notification.isRead ? 'bg-teal-50' : ''}`}
+                        onClick={() => !notification.isRead && handleMarkAsRead(notification._id)}
+                      >
+                        <div className="flex items-start">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-emerald-400 flex items-center justify-center text-white mr-3 flex-shrink-0">
+                            {notification.sender?.FirstName?.[0] || "U"}
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm text-gray-800">
+                              {notification.message}
+                            </p>
+                            <div className="flex items-center justify-between mt-1">
+                              <span className="text-xs text-gray-500">
+                                {formatTimeAgo(notification.createdAt)}
+                              </span>
+                              {notification.type === "follow-request" && (
+                                <div className="flex items-center space-x-2">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleAccept(notification.sender._id);
+                                    }}
+                                    className="bg-green-500 hover:bg-green-600 text-white p-1 rounded-full transition-all"
+                                  >
+                                    <Check size={16} />
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDecline(notification.sender._id);
+                                    }}
+                                    className="bg-red-500 hover:bg-red-600 text-white p-1 rounded-full transition-all"
+                                  >
+                                    <X size={16} />
+                                  </button>
+                                </div>
+                              )}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteNotification(notification._id);
+                                }}
+                                className="text-gray-400 hover:text-red-500"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm text-gray-800">
-                          New job opportunity posted by <span className="font-medium">ABC Company</span>
-                        </p>
-                        <span className="text-xs text-gray-500">Yesterday</span>
-                      </div>
-                    </div>
+                    ))}
                   </div>
-                  
-                  <div className="px-4 py-3 hover:bg-gray-50">
-                    <div className="flex items-start">
-                      <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 mr-3 flex-shrink-0">
-                        <Bell size={16} />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-800">
-                          Alumni meetup event next week
-                        </p>
-                        <span className="text-xs text-gray-500">3 days ago</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           </div>

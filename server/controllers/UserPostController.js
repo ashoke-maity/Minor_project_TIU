@@ -112,11 +112,19 @@ const getUserPosts = async (req, res) => {
 // Get all posts for feed (admin/user)
 const getAllPosts = async (req, res) => {
   try {
+    const userId = req.user._id;
     const posts = await UserPost.find()
       .sort({ createdAt: -1 })
-      .populate("userId", "FirstName LastName"); // <-- same here
+      .populate("userId", "FirstName LastName")
+      .populate("likes", "FirstName LastName");
 
-    res.status(200).json(posts);
+    // Add isLiked field to each post
+    const postsWithLikeStatus = posts.map(post => ({
+      ...post.toObject(),
+      isLiked: post.likes.some(like => like._id.toString() === userId.toString())
+    }));
+
+    res.status(200).json(postsWithLikeStatus);
   } catch (err) {
     res.status(500).json({ message: "Failed to fetch posts" });
   }
@@ -146,10 +154,37 @@ const likePost = async (req, res) => {
     const post = await UserPost.findById(req.params.id);
     if (!post) return res.status(404).json({ message: "Post not found" });
 
+    // Check if user already liked the post
+    if (post.likes.includes(req.user._id)) {
+      // If already liked, unlike it
+      post.likes.pull(req.user._id);
+      await post.save();
+      
+      const populatedPost = await UserPost.findById(post._id)
+        .populate('likes', 'FirstName LastName');
+
+      return res.status(200).json({ 
+        message: "Post unliked successfully", 
+        likeCount: populatedPost.likes.length,
+        likedUsers: populatedPost.likes,
+        isLiked: false
+      });
+    }
+
+    // If not liked, add the like
     post.likes.push(req.user._id);
     await post.save();
 
-    res.status(200).json({ message: "Post liked successfully", post });
+    // Populate the likes array with user information
+    const populatedPost = await UserPost.findById(post._id)
+      .populate('likes', 'FirstName LastName');
+
+    res.status(200).json({ 
+      message: "Post liked successfully", 
+      likeCount: populatedPost.likes.length,
+      likedUsers: populatedPost.likes,
+      isLiked: true
+    });
   } catch (err) {
     res.status(500).json({ message: "Failed to like post" });
   }
@@ -161,10 +196,24 @@ const unlikePost = async (req, res) => {
     const post = await UserPost.findById(req.params.id);
     if (!post) return res.status(404).json({ message: "Post not found" });
 
+    // Check if user has liked the post
+    if (!post.likes.includes(req.user._id)) {
+      return res.status(400).json({ message: "Post not liked yet" });
+    }
+
+    // Remove the like
     post.likes.pull(req.user._id);
     await post.save();
 
-    res.status(200).json({ message: "Post unliked successfully", post });
+    // Populate the likes array with user information
+    const populatedPost = await UserPost.findById(post._id)
+      .populate('likes', 'FirstName LastName');
+
+    res.status(200).json({ 
+      message: "Post unliked successfully", 
+      likeCount: populatedPost.likes.length,
+      likedUsers: populatedPost.likes
+    });
   } catch (err) {
     res.status(500).json({ message: "Failed to unlike post" });
   }
@@ -176,25 +225,47 @@ const commentOnPost = async (req, res) => {
     const post = await UserPost.findById(req.params.id);
     if (!post) return res.status(404).json({ message: "Post not found" });
 
-    const { comment } = req.body;
-    if (!comment)
-      return res.status(400).json({ message: "Comment is required" });
+    const { commentText } = req.body;
+    if (!commentText) {
+      return res.status(400).json({ message: "Comment text is required" });
+    }
 
-    post.comments.push({ userId: req.user._id, comment });
+    // Create new comment
+    const newComment = {
+      userId: req.user._id,
+      text: commentText
+    };
+
+    // Add comment to post
+    post.comments.push(newComment);
     await post.save();
 
-    // Emit socket event to all connected clients
-    req.app
-      .get("io")
-      .emit("postCommented", {
-        postId: post._id,
-        userId: req.user._id,
-        comment,
+    // Fetch the updated post with populated comment data
+    const updatedPost = await UserPost.findById(post._id)
+      .populate({
+        path: 'comments.userId',
+        select: 'FirstName LastName'
       });
 
-    res.status(201).json({ message: "Comment added successfully", post });
+    // Get the last added comment
+    const addedComment = updatedPost.comments[updatedPost.comments.length - 1];
+
+    // Emit socket event
+    req.app.get("io").emit("postCommented", {
+      postId: post._id,
+      comment: addedComment
+    });
+
+    res.status(201).json({ 
+      message: "Comment added successfully", 
+      comment: addedComment
+    });
   } catch (err) {
-    res.status(500).json({ message: "Failed to add comment" });
+    console.error("Comment error:", err);
+    res.status(500).json({ 
+      message: "Failed to add comment", 
+      error: err.message 
+    });
   }
 };
 

@@ -33,29 +33,29 @@ router.get("/view/post", verifyUserToken, getAllPosts);
 router.delete("/delete/post/:id", verifyUserToken, deletePost);
 
 // like a post
-router.post("/like/post/:id", verifyUserToken, likePost);
+router.post("/user/like/post/:id", verifyUserToken, likePost);
 
 // unlike a post
 router.post("/unlike/post/:id", verifyUserToken, unlikePost);
 
 // comment on a post
 router.post(
-  "/comment/post/:id",
+  "/user/comment/post/:id",
   verifyUserToken,
   commentOnPost
 );
 
 // delete a comment
 router.delete(
-  "/delete/comment/:postId/:commentId",
+  "/user/delete/comment/:postId/:commentId",
   verifyUserToken,
   deleteComment
 );
 
 // save a post
-router.post("/save/post/:id", verifyUserToken, savePost);
+router.post("/user/save/post/:id", verifyUserToken, savePost);
 
 // unsave a post
-router.post("/unsave/post/:id", verifyUserToken, unsavePost);
+router.post("/user/unsave/post/:id", verifyUserToken, unsavePost);
 
 module.exports = router;
