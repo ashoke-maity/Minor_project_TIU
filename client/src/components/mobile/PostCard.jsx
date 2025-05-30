@@ -1,6 +1,7 @@
 import React from "react";
-import { Calendar, Briefcase, Heart, MessageCircle, Bookmark, MapPin, Clock, FileText, Maximize2, X } from "lucide-react";
+import { Calendar, Briefcase, Heart, MessageCircle, Bookmark, MapPin, Clock, FileText, Maximize2, X, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import axios from "axios";
 
 function PostCard({ post, job }) {
   // Determine if we're rendering a job or a regular post
@@ -55,6 +56,7 @@ function PostCard({ post, job }) {
   const [newComment, setNewComment] = React.useState("");
   const [comments, setComments] = React.useState(data?.comments || []);
   const [showMediaModal, setShowMediaModal] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
   
   // Get user information with fallbacks
   const userInfo = data.User || data.userId || {};
@@ -64,18 +66,132 @@ function PostCard({ post, job }) {
   const fullName = firstName && lastName ? `${firstName} ${lastName}` : "Anonymous User";
   const passoutYear = userInfo.PassoutYear;
 
+  // Check if post is already liked/saved by current user
+  React.useEffect(() => {
+    const checkUserInteractions = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_USER_API_URL}/user/dashboard`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            },
+          }
+        );
+        const currentUserId = response.data.user._id;
+        setLiked(data.likes?.includes(currentUserId) || false);
+        setSaved(data.savedBy?.includes(currentUserId) || false);
+      } catch (err) {
+        console.error("Error checking user interactions:", err);
+      }
+    };
+    checkUserInteractions();
+  }, [data]);
+
   // Interaction handlers
-  const handleLike = () => {
-    setLiked(!liked);
-    setLikeCount(prev => liked ? prev - 1 : prev + 1);
+  const handleLike = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axios.post(
+        `${import.meta.env.VITE_USER_API_URL}/user/like/post/${data._id}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+        }
+      );
+
+      if (response.data.status === 1) {
+        setLiked(!liked);
+        setLikeCount(prev => liked ? prev - 1 : prev + 1);
+      }
+    } catch (error) {
+      console.error("Error liking post:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleToggleComments = () => {
     setCommentVisible(!commentVisible);
   };
 
-  const handleSave = () => {
-    setSaved(!saved);
+  const handleSave = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axios.post(
+        `${import.meta.env.VITE_USER_API_URL}/user/save/post/${data._id}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+        }
+      );
+
+      if (response.data.status === 1) {
+        setSaved(!saved);
+      }
+    } catch (error) {
+      console.error("Error saving post:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAddComment = async () => {
+    if (!newComment.trim()) return;
+
+    try {
+      setIsLoading(true);
+      const response = await axios.post(
+        `${import.meta.env.VITE_USER_API_URL}/user/comment/post/${data._id}`,
+        { text: newComment },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+        }
+      );
+
+      if (response.data.status === 1) {
+        const newCommentObj = {
+          user: fullName,
+          text: newComment,
+          timestamp: new Date(),
+          _id: response.data.comment._id
+        };
+        setComments([...comments, newCommentObj]);
+        setNewComment("");
+      }
+    } catch (error) {
+      console.error("Error adding comment:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    try {
+      setIsLoading(true);
+      const response = await axios.delete(
+        `${import.meta.env.VITE_USER_API_URL}/user/delete/comment/${data._id}/${commentId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+        }
+      );
+
+      if (response.data.status === 1) {
+        setComments(comments.filter(comment => comment._id !== commentId));
+      }
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Helper to render job details
@@ -250,6 +366,7 @@ function PostCard({ post, job }) {
       <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between">
         <button
           onClick={handleLike}
+          disabled={isLoading}
           className={`flex items-center text-gray-500 hover:text-teal-500 transition-all duration-300 py-1 px-2 rounded-lg ${
             liked ? 'bg-teal-50 text-teal-500 scale-110' : 'hover:bg-teal-50'
           }`}
@@ -266,6 +383,7 @@ function PostCard({ post, job }) {
         </button>
         <button
           onClick={handleToggleComments}
+          disabled={isLoading}
           className={`flex items-center text-gray-500 hover:text-teal-500 transition-all duration-300 py-1 px-2 rounded-lg ${
             commentVisible ? 'bg-teal-50 text-teal-500' : 'hover:bg-teal-50'
           }`}
@@ -275,6 +393,7 @@ function PostCard({ post, job }) {
         </button>
         <button
           onClick={handleSave}
+          disabled={isLoading}
           className={`flex items-center text-gray-500 hover:text-teal-500 transition-all duration-300 py-1 px-2 rounded-lg ${
             saved ? 'bg-teal-50 text-teal-500 scale-110' : 'hover:bg-teal-50'
           }`}
@@ -295,9 +414,9 @@ function PostCard({ post, job }) {
           <div className="space-y-3">
             {/* Existing Comments */}
             {comments.length > 0 ? (
-              comments.map((comment, idx) => (
+              comments.map((comment) => (
                 <div
-                  key={idx}
+                  key={comment._id}
                   className="flex items-start space-x-2 bg-gray-50 p-3 rounded-lg"
                 >
                   <div className="w-7 h-7 rounded-full bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
@@ -308,9 +427,17 @@ function PostCard({ post, job }) {
                       <span className="font-medium text-xs text-gray-800">
                         {comment.user || "User"}
                       </span>
-                      <span className="text-xs text-gray-500">
-                        {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-xs text-gray-500">
+                          {new Date(comment.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        <button
+                          onClick={() => handleDeleteComment(comment._id)}
+                          className="text-gray-400 hover:text-red-500"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </div>
                     <p className="text-xs text-gray-700 mt-1">{comment.text}</p>
                   </div>
@@ -333,23 +460,13 @@ function PostCard({ post, job }) {
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   placeholder="Write a comment..."
+                  disabled={isLoading}
                   className="flex-1 border border-gray-200 rounded-full px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-300"
                 />
                 <button
-                  onClick={() => {
-                    if (newComment.trim()) {
-                      setComments([
-                        ...comments,
-                        { 
-                          user: fullName, 
-                          text: newComment,
-                          timestamp: new Date()
-                        },
-                      ]);
-                      setNewComment("");
-                    }
-                  }}
-                  className="bg-teal-500 text-white px-3 py-1.5 rounded-full text-xs hover:bg-teal-600 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+                  onClick={handleAddComment}
+                  disabled={isLoading || !newComment.trim()}
+                  className="bg-teal-500 text-white px-3 py-1.5 rounded-full text-xs hover:bg-teal-600 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Post
                 </button>
