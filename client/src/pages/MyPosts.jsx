@@ -260,28 +260,10 @@ function MyPosts() {
   };
 
   // handle post edit functionality
-  const handleEdit = async (postId) => {
-    try {
-      const token = localStorage.getItem("authToken");
-      const response = await axios.put(
-        `${import.meta.env.VITE_USER_API_URL}/user/edit/post/${postId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (response.data.success) {
-        setEditingPostId(postId);
-        setEditContent(post.content);
-        toast.info("Editing mode activated");
-      } else {
-        toast.error("Failed to fetch post for editing");
-      }
-    } catch (err) {
-      console.error("Error navigating to edit post:", err);
-      toast.error("Failed to navigate to edit post");
-    }
+  const handleEdit = (post) => {
+    setEditingPostId(post._id);
+    setEditContent(post.content);
+    toast.info("Editing mode activated");
   };
 
   // function to save the edit after editing
@@ -419,13 +401,13 @@ function MyPosts() {
                   </div>
                 ) : (
                   <>
-                    <PostCard post={post} hideInteractions={editingPostId === post._id} />
+                    <PostCard
+                      post={post}
+                      hideInteractions={editingPostId === post._id}
+                    />
                     <div className="flex gap-2 mt-2">
                       <button
-                        onClick={() => {
-                          setEditingPostId(post._id);
-                          setEditContent(post.content);
-                        }}
+                        onClick={() => handleEdit(post)}
                         className="px-3 py-1 text-blue-600 border border-blue-200 rounded-md hover:bg-blue-50 text-xs font-medium"
                       >
                         Edit

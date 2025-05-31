@@ -61,7 +61,7 @@ function PostCard({ post, job, currentUserId, hideInteractions }) {
           },
         }
       );
-      
+
       // Update the like status based on the response
       setLiked(response.data.isLiked);
       setLikeCount(response.data.likeCount);
@@ -112,7 +112,9 @@ function PostCard({ post, job, currentUserId, hideInteractions }) {
     try {
       const token = localStorage.getItem("authToken");
       await axios.delete(
-        `${import.meta.env.VITE_USER_API_URL}/user/delete/comment/${data._id}/${commentId}`,
+        `${import.meta.env.VITE_USER_API_URL}/user/delete/comment/${
+          data._id
+        }/${commentId}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -257,15 +259,17 @@ function PostCard({ post, job, currentUserId, hideInteractions }) {
 
   const renderLikedUsers = () => {
     if (!likedUsers || likedUsers.length === 0) return null;
-    
-    const currentUserLiked = likedUsers.some(user => user?._id === currentUserId);
-    const otherLikedUsers = likedUsers.filter(user => user?._id !== currentUserId);
-    
+
+    const currentUserLiked = likedUsers.some(
+      (user) => user?._id === currentUserId
+    );
+    const otherLikedUsers = likedUsers.filter(
+      (user) => user?._id !== currentUserId
+    );
+
     return (
       <div className="mt-2 text-sm text-gray-600">
-        {currentUserLiked && (
-          <span className="font-medium">You</span>
-        )}
+        {currentUserLiked && <span className="font-medium">You</span>}
         {currentUserLiked && otherLikedUsers.length > 0 && " and "}
         {otherLikedUsers.length > 0 && (
           <span>
@@ -292,7 +296,9 @@ function PostCard({ post, job, currentUserId, hideInteractions }) {
         <div className="flex-1">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-semibold text-gray-900">{fullName}</h3>
+              <h3 className="text-sm font-semibold text-gray-900">
+                {fullName}
+              </h3>
               <p className="text-xs text-gray-500">
                 {passoutYear ? `Class of ${passoutYear}` : ""} • {postDate}
               </p>
@@ -303,7 +309,9 @@ function PostCard({ post, job, currentUserId, hideInteractions }) {
 
       {/* Post content */}
       <div className="mt-3">
-        <p className="text-sm text-gray-800 whitespace-pre-wrap">{data.content}</p>
+        <p className="text-sm text-gray-800 whitespace-pre-wrap">
+          {data.content}
+        </p>
         {renderJobDetails()}
         {renderEventDetails()}
       </div>
@@ -321,11 +329,7 @@ function PostCard({ post, job, currentUserId, hideInteractions }) {
                   onClick={() => setShowMediaModal(true)}
                 />
               ) : media.type.startsWith("video/") ? (
-                <video
-                  src={media.url}
-                  controls
-                  className="rounded-lg w-full"
-                />
+                <video src={media.url} controls className="rounded-lg w-full" />
               ) : (
                 <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
                   <FileText size={20} className="text-gray-500" />
@@ -338,7 +342,17 @@ function PostCard({ post, job, currentUserId, hideInteractions }) {
           ))}
         </div>
       )}
-
+      {/* Add this block for single mediaUrl support */}
+      {data.mediaUrl && (
+        <div className="mt-3">
+          <img
+            src={data.mediaUrl}
+            alt="Post media"
+            className="rounded-lg max-h-72 w-full object-cover"
+            onClick={() => setShowMediaModal(true)}
+          />
+        </div>
+      )}
       {/* Interaction buttons - only show if not in editing mode */}
       {!hideInteractions && (
         <div className="mt-4 flex items-center space-x-4 border-t border-gray-100 pt-3">
@@ -402,7 +416,9 @@ function PostCard({ post, job, currentUserId, hideInteractions }) {
                     <p className="text-sm font-medium text-gray-900">
                       {comment.userId?.FirstName} {comment.userId?.LastName}
                     </p>
-                    <p className="text-sm text-gray-700">{comment.commentText}</p>
+                    <p className="text-sm text-gray-700">
+                      {comment.commentText}
+                    </p>
                   </div>
                   <div className="mt-1 flex items-center space-x-2">
                     <span className="text-xs text-gray-500">
