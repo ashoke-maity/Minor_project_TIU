@@ -1,12 +1,25 @@
-import React from "react";
-import { Calendar, Briefcase, Heart, MessageCircle, Bookmark, MapPin, Clock, FileText, Maximize2, X, Trash2 } from "lucide-react";
+import { React, useState, useEffect } from "react";
+import {
+  Calendar,
+  Briefcase,
+  Heart,
+  MessageCircle,
+  Bookmark,
+  MapPin,
+  Clock,
+  FileText,
+  Maximize2,
+  X,
+  Trash2,
+  Users,
+} from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import axios from "axios";
 
 function PostCard({ post, job }) {
   // Determine if we're rendering a job or a regular post
   const data = job || post;
-  
+
   if (!data) return null;
 
   // Format the date for display
@@ -15,12 +28,12 @@ function PostCard({ post, job }) {
     try {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) return "Recently";
-      
+
       // Simple relative time function
       const now = new Date();
       const diffMs = now - date;
       const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-      
+
       if (diffDays === 0) {
         const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
         if (diffHours === 0) {
@@ -47,27 +60,32 @@ function PostCard({ post, job }) {
 
   const postType = getPostType();
   const postDate = formatDate(data.createdAt || data.Date || new Date());
-  
+
   // Add state for interactions
-  const [liked, setLiked] = React.useState(false);
-  const [saved, setSaved] = React.useState(false);
-  const [likeCount, setLikeCount] = React.useState(data?.likes?.length || 0);
-  const [commentVisible, setCommentVisible] = React.useState(false);
-  const [newComment, setNewComment] = React.useState("");
-  const [comments, setComments] = React.useState(data?.comments || []);
-  const [showMediaModal, setShowMediaModal] = React.useState(false);
-  const [isLoading, setIsLoading] = React.useState(false);
-  
+  const [liked, setLiked] = useState(data?.isLiked || false);
+  const [saved, setSaved] = useState(false);
+  const [likeCount, setLikeCount] = useState(data?.likes?.length || 0);
+  const [likedUsers, setLikedUsers] = useState(data?.likes || []);
+  const [commentVisible, setCommentVisible] = useState(false);
+  const [newComment, setNewComment] = useState("");
+  const [comments, setComments] = useState(data?.comments || []);
+  const [showMediaModal, setShowMediaModal] = useState(false);
+  const [showLikesModal, setShowLikesModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState(null);
+
   // Get user information with fallbacks
   const userInfo = data.User || data.userId || {};
   const firstName = userInfo.FirstName || "";
   const lastName = userInfo.LastName || "";
-  const initials = `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase() || "U";
-  const fullName = firstName && lastName ? `${firstName} ${lastName}` : "Anonymous User";
+  const initials =
+    `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase() || "U";
+  const fullName =
+    firstName && lastName ? `${firstName} ${lastName}` : "Anonymous User";
   const passoutYear = userInfo.PassoutYear;
 
   // Check if post is already liked/saved by current user
-  React.useEffect(() => {
+  useEffect(() => {
     const checkUserInteractions = async () => {
       try {
         const response = await axios.get(
@@ -78,15 +96,20 @@ function PostCard({ post, job }) {
             },
           }
         );
-        const currentUserId = response.data.user._id;
-        setLiked(data.likes?.includes(currentUserId) || false);
-        setSaved(data.savedBy?.includes(currentUserId) || false);
+        const userId = response.data.user._id;
+        setCurrentUserId(userId);
+        setSaved(
+          data.savedBy
+            ?.map((id) => String(id))
+            .includes(String(userId)) || false
+        );
+        setLiked(data?.isLiked || false);
       } catch (err) {
         console.error("Error checking user interactions:", err);
       }
     };
     checkUserInteractions();
-  }, [data]);
+  }, [data.savedBy, data.isLiked]);
 
   // Interaction handlers
   const handleLike = async () => {
@@ -94,25 +117,25 @@ function PostCard({ post, job }) {
       setIsLoading(true);
       const response = await axios.post(
         `${import.meta.env.VITE_USER_API_URL}/user/like/post/${data._id}`,
-        {},
+        { userId: currentUserId },
         {
           headers: {
+            "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("authToken")}`,
           },
         }
       );
 
-      if (response.data.status === 1) {
-        setLiked(!liked);
-        setLikeCount(prev => liked ? prev - 1 : prev + 1);
-      }
+      // Update the like status based on the response
+      setLiked(response.data.isLiked);
+      setLikeCount(response.data.likeCount);
+      setLikedUsers(response.data.likedUsers || []);
     } catch (error) {
       console.error("Error liking post:", error);
     } finally {
       setIsLoading(false);
     }
   };
-
   const handleToggleComments = () => {
     setCommentVisible(!commentVisible);
   };
@@ -160,7 +183,7 @@ function PostCard({ post, job }) {
           user: fullName,
           text: newComment,
           timestamp: new Date(),
-          _id: response.data.comment._id
+          _id: response.data.comment._id,
         };
         setComments([...comments, newCommentObj]);
         setNewComment("");
@@ -176,7 +199,9 @@ function PostCard({ post, job }) {
     try {
       setIsLoading(true);
       const response = await axios.delete(
-        `${import.meta.env.VITE_USER_API_URL}/user/delete/comment/${data._id}/${commentId}`,
+        `${import.meta.env.VITE_USER_API_URL}/user/delete/comment/${
+          data._id
+        }/${commentId}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("authToken")}`,
@@ -185,7 +210,7 @@ function PostCard({ post, job }) {
       );
 
       if (response.data.status === 1) {
-        setComments(comments.filter(comment => comment._id !== commentId));
+        setComments(comments.filter((comment) => comment._id !== commentId));
       }
     } catch (error) {
       console.error("Error deleting comment:", error);
@@ -197,29 +222,31 @@ function PostCard({ post, job }) {
   // Helper to render job details
   const renderJobDetails = () => {
     if (postType !== "job") return null;
-    
+
     const jobData = data.extraData || data;
     const jobTitle = jobData.jobTitle || "";
     const companyName = jobData.companyName || "";
     const location = jobData.location || "";
     const jobType = jobData.jobType || "";
     const salary = jobData.salary || "";
-    
+
     return (
       <div className="mt-2 space-y-1 text-sm">
         {jobTitle && companyName && (
-          <div className="font-medium">{jobTitle} at {companyName}</div>
+          <div className="font-medium">
+            {jobTitle} at {companyName}
+          </div>
         )}
-        
+
         <div className="flex flex-wrap gap-2">
           {location && (
             <div className="flex items-center text-gray-600 text-xs">
-              <MapPin size={12} className="mr-1"/> {location}
+              <MapPin size={12} className="mr-1" /> {location}
             </div>
           )}
           {jobType && (
             <div className="flex items-center text-gray-600 text-xs">
-              <Briefcase size={12} className="mr-1"/> {jobType}
+              <Briefcase size={12} className="mr-1" /> {jobType}
             </div>
           )}
           {salary && (
@@ -235,39 +262,64 @@ function PostCard({ post, job }) {
   // Helper to render event details
   const renderEventDetails = () => {
     if (postType !== "event") return null;
-    
+
     const eventData = data.extraData || {};
     const eventName = eventData.eventName || "";
     const eventDate = eventData.eventDate || null;
     const location = eventData.location || "";
-    
+
     return (
       <div className="mt-2 space-y-1 text-sm">
-        {eventName && (
-          <div className="font-medium">{eventName}</div>
-        )}
-        
+        {eventName && <div className="font-medium">{eventName}</div>}
+
         <div className="flex flex-wrap gap-2">
           {eventDate && (
             <div className="flex items-center text-gray-600 text-xs">
-              <Calendar size={12} className="mr-1"/> 
-              {
-                (() => {
-                  try {
-                    return new Date(eventDate).toLocaleDateString();
-                  } catch (e) {
-                    return "Upcoming";
-                  }
-                })()
-              }
+              <Calendar size={12} className="mr-1" />
+              {(() => {
+                try {
+                  return new Date(eventDate).toLocaleDateString();
+                } catch (e) {
+                  return "Upcoming";
+                }
+              })()}
             </div>
           )}
           {location && (
             <div className="flex items-center text-gray-600 text-xs">
-              <MapPin size={12} className="mr-1"/> {location}
+              <MapPin size={12} className="mr-1" /> {location}
             </div>
           )}
         </div>
+      </div>
+    );
+  };
+
+  const renderLikedUsers = () => {
+    if (!likedUsers || likedUsers.length === 0) return null;
+    
+    const currentUserLiked = likedUsers.some(
+      (user) => user?._id === currentUserId
+    );
+    const otherLikedUsers = likedUsers.filter(
+      (user) => user?._id !== currentUserId
+    );
+    
+    return (
+      <div className="mt-2 text-sm text-gray-600">
+        {currentUserLiked && <span className="font-medium">You</span>}
+        {currentUserLiked && otherLikedUsers.length > 0 && " and "}
+        {otherLikedUsers.length > 0 && (
+          <button
+            onClick={() => setShowLikesModal(true)}
+            className="text-teal-600 hover:text-teal-700 hover:underline"
+          >
+            {otherLikedUsers.length === 1
+              ? `${otherLikedUsers[0].FirstName} ${otherLikedUsers[0].LastName}`
+              : `${otherLikedUsers[0].FirstName} ${otherLikedUsers[0].LastName} and ${otherLikedUsers.length - 1} others`}
+          </button>
+        )}
+        {" liked this post"}
       </div>
     );
   };
@@ -284,12 +336,12 @@ function PostCard({ post, job }) {
             <h3 className="font-medium text-gray-800 text-sm truncate">
               {fullName}
             </h3>
-            <span className="text-xs text-gray-500 flex-shrink-0 ml-1">{postDate}</span>
+            <span className="text-xs text-gray-500 flex-shrink-0 ml-1">
+              {postDate}
+            </span>
           </div>
           {passoutYear && (
-            <p className="text-xs text-gray-500">
-              Class of {passoutYear}
-            </p>
+            <p className="text-xs text-gray-500">Class of {passoutYear}</p>
           )}
         </div>
       </div>
@@ -315,17 +367,12 @@ function PostCard({ post, job }) {
         </div>
       )}
 
-      {/* Post content */}
-      <div className="text-gray-700 whitespace-pre-line text-sm">
-        {data.content || data.Content || ""}
-      </div>
-
-      {/* Media content */}
+      {/* Media content - Show first for media posts */}
       {data.mediaUrl && (
         <div className="mt-3 rounded-lg overflow-hidden bg-gray-100 relative">
-          <img 
-            src={data.mediaUrl} 
-            alt="Post media" 
+          <img
+            src={data.mediaUrl}
+            alt="Post media"
             className="w-full h-auto object-cover"
           />
           <button
@@ -337,75 +384,47 @@ function PostCard({ post, job }) {
         </div>
       )}
 
-      {/* Media Modal */}
-      {showMediaModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4" onClick={() => setShowMediaModal(false)}>
-          <div className="relative w-full h-full bg-white rounded-xl overflow-hidden">
-            <button 
-              onClick={() => setShowMediaModal(false)}
-              className="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-75 transition-all duration-300 z-10"
-            >
-              <X size={24} />
-            </button>
-            <div className="relative w-full h-full">
-              <img 
-                src={data.mediaUrl} 
-                alt="Post media" 
-                className="w-full h-full object-contain max-h-[90vh]"
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Post content - Show after media */}
+      <div className="text-gray-700 whitespace-pre-line text-sm mt-3">
+        {data.content || data.Content || ""}
+      </div>
 
       {/* Job or event details */}
       {renderJobDetails()}
       {renderEventDetails()}
-      
+
       {/* Social interaction buttons */}
-      <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between">
-        <button
-          onClick={handleLike}
-          disabled={isLoading}
-          className={`flex items-center text-gray-500 hover:text-teal-500 transition-all duration-300 py-1 px-2 rounded-lg ${
-            liked ? 'bg-teal-50 text-teal-500 scale-110' : 'hover:bg-teal-50'
-          }`}
-        >
-          <Heart 
-            size={16} 
-            className={`mr-1 transition-all duration-300 ${
-              liked ? 'fill-current scale-110' : ''
+      <div className="mt-4 border-t border-gray-100 pt-3">
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={handleLike}
+            disabled={isLoading}
+            className={`flex items-center space-x-1 text-sm ${
+              liked ? "text-red-500" : "text-gray-500 hover:text-red-500"
             }`}
-          />
-          <span className="text-xs">
-            {liked ? "Liked" : "Like"} ({likeCount})
-          </span>
-        </button>
-        <button
-          onClick={handleToggleComments}
-          disabled={isLoading}
-          className={`flex items-center text-gray-500 hover:text-teal-500 transition-all duration-300 py-1 px-2 rounded-lg ${
-            commentVisible ? 'bg-teal-50 text-teal-500' : 'hover:bg-teal-50'
-          }`}
-        >
-          <MessageCircle size={16} className="mr-1" />
-          <span className="text-xs">Comment ({comments.length})</span>
-        </button>
-        <button
-          onClick={handleSave}
-          disabled={isLoading}
-          className={`flex items-center text-gray-500 hover:text-teal-500 transition-all duration-300 py-1 px-2 rounded-lg ${
-            saved ? 'bg-teal-50 text-teal-500 scale-110' : 'hover:bg-teal-50'
-          }`}
-        >
-          <Bookmark 
-            size={16} 
-            className={`mr-1 transition-all duration-300 ${
-              saved ? 'fill-current scale-110' : ''
+          >
+            <Heart size={18} className={liked ? "fill-current" : ""} />
+            <span>{likeCount}</span>
+          </button>
+          <button
+            onClick={handleToggleComments}
+            disabled={isLoading}
+            className="flex items-center space-x-1 text-gray-500 hover:text-blue-500 text-sm"
+          >
+            <MessageCircle size={18} />
+            <span>{comments.length}</span>
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={isLoading}
+            className={`flex items-center space-x-1 text-sm ${
+              saved ? "text-teal-500" : "text-gray-500 hover:text-teal-500"
             }`}
-          />
-          <span className="text-xs">{saved ? "Saved" : "Save"}</span>
-        </button>
+          >
+            <Bookmark size={18} className={saved ? "fill-current" : ""} />
+          </button>
+        </div>
+        {renderLikedUsers()}
       </div>
 
       {/* Comments Section */}
@@ -429,7 +448,10 @@ function PostCard({ post, job }) {
                       </span>
                       <div className="flex items-center space-x-2">
                         <span className="text-xs text-gray-500">
-                          {new Date(comment.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(comment.timestamp).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
                         </span>
                         <button
                           onClick={() => handleDeleteComment(comment._id)}
@@ -475,8 +497,70 @@ function PostCard({ post, job }) {
           </div>
         </div>
       )}
+
+      {/* Likes Modal */}
+      {showLikesModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-md mx-4 max-h-[80vh] overflow-hidden">
+            <div className="p-4 border-b flex justify-between items-center">
+              <h3 className="text-lg font-semibold flex items-center">
+                <Users size={20} className="mr-2 text-teal-500" />
+                Liked by
+              </h3>
+              <button
+                onClick={() => setShowLikesModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div className="overflow-y-auto max-h-[calc(80vh-4rem)]">
+              <div className="divide-y">
+                {likedUsers.map((user) => (
+                  <div key={user._id} className="p-4 flex items-center">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white font-semibold text-lg mr-3">
+                      {user.FirstName[0]}
+                      {user.LastName[0]}
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-800">
+                        {user.FirstName} {user.LastName}
+                      </h4>
+                      <p className="text-sm text-gray-500">{user.Email}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Media Modal */}
+      {showMediaModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowMediaModal(false)}
+        >
+          <div className="relative w-full h-full bg-white rounded-xl overflow-hidden">
+            <button
+              onClick={() => setShowMediaModal(false)}
+              className="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-75 transition-all duration-300 z-10"
+            >
+              <X size={24} />
+            </button>
+            <div className="relative w-full h-full">
+              <img
+                src={data.mediaUrl}
+                alt="Post media"
+                className="w-full h-full object-contain max-h-[90vh]"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-export default PostCard; 
+export default PostCard;
