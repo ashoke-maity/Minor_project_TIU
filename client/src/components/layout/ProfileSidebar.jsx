@@ -77,7 +77,7 @@ function ProfileSidebar({
                 navigate && navigate("/my-posts?view=bookmarks");
               }}
             >
-              View Saved Bookmarks
+              Saved Items
             </a>
           </div>
           <a
