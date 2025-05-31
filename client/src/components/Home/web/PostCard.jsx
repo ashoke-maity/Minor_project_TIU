@@ -14,7 +14,7 @@ import {
   X,
 } from "lucide-react";
 
-function PostCard({ post, job, currentUserId }) {
+function PostCard({ post, job, currentUserId, hideInteractions }) {
   // Determine if we're rendering a job or a regular post
   const data = job || post;
   if (!data) return null;
@@ -283,192 +283,162 @@ function PostCard({ post, job, currentUserId }) {
   };
 
   return (
-    <div>
-      {/* Post header with user info and date */}
-      <div className="flex items-start space-x-3 mb-3">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
+    <div className="bg-white rounded-lg p-4">
+      {/* Post header */}
+      <div className="flex items-start space-x-3">
+        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-base font-semibold">
           {initials}
         </div>
-        <div className="flex-1 min-w-0">
+        <div className="flex-1">
           <div className="flex items-center justify-between">
-            <h3 className="font-medium text-gray-800 truncate">{fullName}</h3>
-            <span className="text-xs text-gray-500">{postDate}</span>
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900">{fullName}</h3>
+              <p className="text-xs text-gray-500">
+                {passoutYear ? `Class of ${passoutYear}` : ""} • {postDate}
+              </p>
+            </div>
           </div>
-          {passoutYear && (
-            <p className="text-xs text-gray-500">Class of {passoutYear}</p>
-          )}
         </div>
       </div>
 
-      {/* Post type indicator */}
-      {postType !== "regular" && (
-        <div className="mb-2">
-          {postType === "job" && (
-            <span className="inline-flex items-center text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded-full">
-              <Briefcase size={12} className="mr-1" /> Job
-            </span>
-          )}
-          {postType === "event" && (
-            <span className="inline-flex items-center text-xs px-2 py-1 bg-amber-50 text-amber-600 rounded-full">
-              <Calendar size={12} className="mr-1" /> Event
-            </span>
-          )}
-          {postType === "media" && (
-            <span className="inline-flex items-center text-xs px-2 py-1 bg-purple-50 text-purple-600 rounded-full">
-              <FileText size={12} className="mr-1" /> Media
-            </span>
-          )}
-        </div>
-      )}
-
       {/* Post content */}
-      <div className="text-gray-700 whitespace-pre-line text-sm">
-        {data.content || data.Content || ""}
+      <div className="mt-3">
+        <p className="text-sm text-gray-800 whitespace-pre-wrap">{data.content}</p>
+        {renderJobDetails()}
+        {renderEventDetails()}
       </div>
 
       {/* Media content */}
-      {data.mediaUrl && (
-        <div className="mt-3 rounded-lg overflow-hidden bg-gray-100 relative">
-          <img
-            src={data.mediaUrl}
-            alt="Post media"
-            className="w-full h-auto object-cover"
-          />
+      {data.media && data.media.length > 0 && (
+        <div className="mt-3">
+          {data.media.map((media, index) => (
+            <div key={index} className="relative">
+              {media.type.startsWith("image/") ? (
+                <img
+                  src={media.url}
+                  alt={`Post media ${index + 1}`}
+                  className="rounded-lg w-full object-cover cursor-pointer"
+                  onClick={() => setShowMediaModal(true)}
+                />
+              ) : media.type.startsWith("video/") ? (
+                <video
+                  src={media.url}
+                  controls
+                  className="rounded-lg w-full"
+                />
+              ) : (
+                <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
+                  <FileText size={20} className="text-gray-500" />
+                  <span className="text-sm text-gray-700">
+                    {media.name || "Document"}
+                  </span>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Interaction buttons - only show if not in editing mode */}
+      {!hideInteractions && (
+        <div className="mt-4 flex items-center space-x-4 border-t border-gray-100 pt-3">
           <button
-            onClick={() => setShowMediaModal(true)}
-            className="absolute bottom-3 right-3 bg-black bg-opacity-50 hover:bg-opacity-75 text-white rounded-full p-2 transition-all duration-300"
+            onClick={handleLike}
+            className={`flex items-center space-x-1 text-sm ${
+              liked ? "text-red-500" : "text-gray-500 hover:text-red-500"
+            }`}
           >
-            <Maximize2 size={18} />
+            <Heart size={18} className={liked ? "fill-current" : ""} />
+            <span>{likeCount}</span>
+          </button>
+          <button
+            onClick={handleToggleComments}
+            className="flex items-center space-x-1 text-gray-500 hover:text-blue-500 text-sm"
+          >
+            <MessageCircle size={18} />
+            <span>{comments.length}</span>
+          </button>
+          <button
+            onClick={handleSave}
+            className={`flex items-center space-x-1 text-sm ${
+              saved ? "text-teal-500" : "text-gray-500 hover:text-teal-500"
+            }`}
+          >
+            <Bookmark size={18} className={saved ? "fill-current" : ""} />
           </button>
         </div>
       )}
 
-      {/* Media Modal */}
-      {showMediaModal && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4"
-          onClick={() => setShowMediaModal(false)}
-        >
-          <div className="relative max-w-4xl w-full max-h-[90vh] bg-white rounded-xl overflow-hidden">
+      {/* Comments section - only show if not in editing mode */}
+      {!hideInteractions && commentVisible && (
+        <div className="mt-4 space-y-3">
+          {/* Comment input */}
+          <div className="flex space-x-2">
+            <input
+              type="text"
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Write a comment..."
+              className="flex-1 text-sm border border-gray-200 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+            />
             <button
-              onClick={() => setShowMediaModal(false)}
-              className="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-75 transition-all duration-300 z-10"
+              onClick={handlePostComment}
+              className="px-4 py-2 bg-teal-500 text-white rounded-full text-sm font-medium hover:bg-teal-600 transition-colors duration-200"
             >
-              <X size={24} />
+              Post
             </button>
-            <div className="relative w-full h-full">
-              <img
-                src={data.mediaUrl}
-                alt="Post media"
-                className="w-full h-full object-contain max-h-[90vh]"
-              />
-            </div>
+          </div>
+
+          {/* Comments list */}
+          <div className="space-y-3">
+            {comments.map((comment) => (
+              <div key={comment._id} className="flex items-start space-x-2">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-xs font-semibold">
+                  {comment.userId?.FirstName?.[0]}
+                  {comment.userId?.LastName?.[0]}
+                </div>
+                <div className="flex-1">
+                  <div className="bg-gray-50 rounded-lg px-3 py-2">
+                    <p className="text-sm font-medium text-gray-900">
+                      {comment.userId?.FirstName} {comment.userId?.LastName}
+                    </p>
+                    <p className="text-sm text-gray-700">{comment.commentText}</p>
+                  </div>
+                  <div className="mt-1 flex items-center space-x-2">
+                    <span className="text-xs text-gray-500">
+                      {getFormattedDate(comment.createdAt)}
+                    </span>
+                    {comment.userId?._id === currentUserId && (
+                      <button
+                        onClick={() => handleDeleteComment(comment._id)}
+                        className="text-xs text-red-500 hover:text-red-600"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Job or event details */}
-      {renderJobDetails()}
-      {renderEventDetails()}
-
-      {/* Social interaction buttons */}
-      <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between">
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={handleLike}
-            className={`flex items-center space-x-1 transition-all duration-300 ${
-              liked 
-                ? "text-red-500 bg-red-50 hover:bg-red-100" 
-                : "text-gray-500 hover:text-red-500 hover:bg-red-50"
-            } px-3 py-1 rounded-full`}
-          >
-            <Heart size={20} className={liked ? "fill-current" : ""} />
-            <span className="ml-1">{likeCount}</span>
-          </button>
-          {renderLikedUsers()}
-        </div>
-        <button
-          onClick={handleToggleComments}
-          className={`flex items-center text-gray-500 hover:text-teal-500 transition-all duration-300 py-1 px-2 rounded-lg ${
-            commentVisible ? "bg-teal-50 text-teal-500" : "hover:bg-teal-50"
-          }`}
-        >
-          <MessageCircle size={18} className="mr-1" />
-          <span className="text-xs">Comment ({comments.length})</span>
-        </button>
-        <button
-          onClick={handleSave}
-          className={`flex items-center text-gray-500 hover:text-teal-500 transition-all duration-300 py-1 px-2 rounded-lg ${
-            saved ? "bg-teal-50 text-teal-500 scale-110" : "hover:bg-teal-50"
-          }`}
-        >
-          <Bookmark
-            size={18}
-            className={`mr-1 transition-all duration-300 ${
-              saved ? "fill-current scale-110" : ""
-            }`}
-          />
-          <span className="text-xs">{saved ? "Saved" : "Save"}</span>
-        </button>
-      </div>
-
-      {/* Comments Section */}
-      {commentVisible && (
-        <div className="mt-3 pt-3 border-t border-gray-100">
-          <div className="space-y-3">
-            {/* Existing Comments */}
-            {comments.length > 0 ? (
-              comments.map((comment) => (
-                <div
-                  key={comment._id}
-                  className="flex items-start space-x-2 bg-gray-50 p-3 rounded-lg"
-                >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
-                    {comment.userId?.FirstName?.[0] || "U"}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-sm text-gray-800">
-                        {comment.userId?.FirstName} {comment.userId?.LastName}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {new Date(comment.createdAt).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-700 mt-1">{comment.text}</p>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-4 text-gray-500 text-sm">
-                No comments yet. Be the first to comment!
-              </div>
-            )}
-
-            {/* New Comment Input */}
-            <div className="flex items-center space-x-2 mt-4">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
-                {initials}
-              </div>
-              <div className="flex-1 flex items-center space-x-2">
-                <input
-                  type="text"
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  className="flex-1 border rounded-lg px-3 py-1 text-sm"
-                  placeholder="Write a comment..."
-                />
-                <button
-                  onClick={handlePostComment}
-                  className="bg-teal-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-teal-600 transition"
-                >
-                  Post
-                </button>
-              </div>
-            </div>
+      {/* Media modal */}
+      {showMediaModal && data.media && data.media.length > 0 && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="relative max-w-4xl w-full">
+            <button
+              onClick={() => setShowMediaModal(false)}
+              className="absolute top-4 right-4 text-white hover:text-gray-300"
+            >
+              <X size={24} />
+            </button>
+            <img
+              src={data.media[0].url}
+              alt="Post media"
+              className="max-h-[80vh] w-full object-contain"
+            />
           </div>
         </div>
       )}
