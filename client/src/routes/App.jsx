@@ -48,7 +48,6 @@ function App() {
         <Route path="/network" element={<Network />} />
         <Route path="settings" element={<UserSettings />} />
         <Route path="/privacypolicy" element={<UserPrivacyPolicy />} />
-        <Route path="/home/jobportal" element={<UserJobPortal />} />
         
         {/* Admin Routes */}
         <Route path={`${adminRoute}/admin/login`} element={<AdminLogin />} />

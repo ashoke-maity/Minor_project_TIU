@@ -491,7 +491,7 @@ function MainLayout({ jobs, loading }) {
                   <div className="flex justify-between items-center">
                     <h3 className="text-lg font-semibold text-gray-800 flex items-center">
                       <Users size={18} className="text-teal-500 mr-2" />
-                      People You May Know
+                      People You Know
                     </h3>
                     <button
                       onClick={() => navigate("/network")}

@@ -7,8 +7,12 @@ import {
   Calendar,
   Briefcase,
   X,
+  Save,
+  XCircle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import PostCard from "../components/Home/web/PostCard";
 import ProfileSidebar from "../components/layout/ProfileSidebar";
 import Header from "../components/layout/Header";
@@ -30,7 +34,9 @@ function MyPosts() {
   const [followingList, setFollowingList] = useState([]);
   const [showConnectionsPopup, setShowConnectionsPopup] = useState(false);
   const [showFollowingPopup, setShowFollowingPopup] = useState(false);
-  const [activeView, setActiveView] = useState("posts"); // "posts", "bookmarks", "events", or "jobs"
+  const [activeView, setActiveView] = useState("posts");
+  const [editingPostId, setEditingPostId] = useState(null);
+  const [editContent, setEditContent] = useState("");
 
   useEffect(() => {
     fetchUserProfile();
@@ -127,18 +133,19 @@ function MyPosts() {
     }
   };
 
+  // function to handle post viewing (self)
   const fetchMyPosts = async () => {
     setLoading(true);
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_USER_API_URL}/posts/my-posts`,
+        `${import.meta.env.VITE_USER_API_URL}/view/my/posts`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("authToken")}`,
           },
         }
       );
-      setPosts(response.data.posts);
+      setPosts(response.data); // or response.data.posts if your backend wraps it
       setLoading(false);
     } catch (err) {
       console.error("Error fetching posts:", err);
@@ -232,6 +239,80 @@ function MyPosts() {
     }
   };
 
+  const handleDelete = async (postId) => {
+    if (window.confirm("Are you sure you want to delete this post?")) {
+      try {
+        const token = localStorage.getItem("authToken");
+        await axios.delete(
+          `${import.meta.env.VITE_USER_API_URL}/delete/post/${postId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setPosts((prev) => prev.filter((p) => p._id !== postId));
+        toast.success("Post deleted successfully!");
+      } catch (err) {
+        toast.error("Failed to delete post");
+      }
+    }
+  };
+
+  // handle post edit functionality
+  const handleEdit = async (postId) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await axios.put(
+        `${import.meta.env.VITE_USER_API_URL}/user/edit/post/${postId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (response.data.success) {
+        setEditingPostId(postId);
+        setEditContent(post.content);
+        toast.info("Editing mode activated");
+      } else {
+        toast.error("Failed to fetch post for editing");
+      }
+    } catch (err) {
+      console.error("Error navigating to edit post:", err);
+      toast.error("Failed to navigate to edit post");
+    }
+  };
+
+  // function to save the edit after editing
+  const handleSaveEdit = async (postId) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await axios.put(
+        `${import.meta.env.VITE_USER_API_URL}/user/edit/post/${postId}`,
+        { content: editContent },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (response.data.success) {
+        setPosts((prev) =>
+          prev.map((p) =>
+            p._id === postId ? { ...p, content: editContent } : p
+          )
+        );
+        setEditingPostId(null);
+        toast.success("Post updated successfully!");
+      } else {
+        toast.error("Failed to update post");
+      }
+    } catch (err) {
+      toast.error("Failed to update post");
+    }
+  };
+
   const initials = userProfile
     ? `${userProfile.FirstName?.[0] ?? ""}${
         userProfile.LastName?.[0] ?? ""
@@ -293,7 +374,7 @@ function MyPosts() {
                 Start sharing your thoughts with your alumni network!
               </p>
               <button
-                onClick={() => navigate("/")}
+                onClick={() => navigate("/home")}
                 className="mt-4 bg-gradient-to-r from-teal-500 to-emerald-400 hover:from-teal-600 hover:to-emerald-500 text-white py-2 px-6 rounded-lg transition-colors duration-300 shadow-md hover:shadow-lg"
               >
                 Create Post
@@ -302,13 +383,62 @@ function MyPosts() {
           );
         }
         return (
-          <div className="space-y-6">
+          <div className="space-y-3">
             {posts.map((post) => (
               <div
                 key={post._id}
-                className="bg-white rounded-xl shadow-lg border border-gray-100 p-4 hover:shadow-xl transition-shadow duration-300"
+                className="bg-white rounded-lg shadow-lg border border-gray-100 p-3 hover:shadow-md transition-shadow duration-200"
               >
-                <PostCard post={post} />
+                {editingPostId === post._id ? (
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <textarea
+                      className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none transition-all duration-200"
+                      value={editContent}
+                      onChange={(e) => setEditContent(e.target.value)}
+                      rows={4}
+                    />
+                    <div className="flex gap-3 mt-3">
+                      <button
+                        onClick={() => handleSaveEdit(post._id)}
+                        className="flex items-center gap-2 px-4 py-2 bg-teal-500 text-white rounded-lg text-sm font-medium hover:bg-teal-600 transition-colors duration-200"
+                      >
+                        <Save size={16} />
+                        Save Changes
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingPostId(null);
+                          toast.info("Edit cancelled");
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors duration-200"
+                      >
+                        <XCircle size={16} />
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <PostCard post={post} hideInteractions={editingPostId === post._id} />
+                    <div className="flex gap-2 mt-2">
+                      <button
+                        onClick={() => {
+                          setEditingPostId(post._id);
+                          setEditContent(post.content);
+                        }}
+                        className="px-3 py-1 text-blue-600 border border-blue-200 rounded-md hover:bg-blue-50 text-xs font-medium"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(post._id)}
+                        className="px-3 py-1 text-red-600 border border-red-200 rounded-md hover:bg-red-50 text-xs font-medium"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             ))}
           </div>
@@ -471,7 +601,6 @@ function MyPosts() {
         </div>
       </div>
 
-      {/* Connections Popup */}
       {/* Connections Popup */}
       {showConnectionsPopup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
