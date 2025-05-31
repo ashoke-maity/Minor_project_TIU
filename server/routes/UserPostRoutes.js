@@ -12,6 +12,8 @@ const {
   deleteComment,
   savePost,
   unsavePost,
+  editPost,
+  getMyPosts,
 } = require("../controllers/UserPostController");
 const upload = require("../middlewares/uploadMiddleware");
 
@@ -23,11 +25,14 @@ router.post(
   createPost
 );
 
-// see the other users posts
+// see the other users posts in the feed
 router.get("/view/others", verifyUserToken, getUserPosts);
 
-// see own post
+// see own post in the feed
 router.get("/view/post", verifyUserToken, getAllPosts);
+
+// see own post in the (my posts) section
+router.get("/view/my/posts", verifyUserToken, getMyPosts);
 
 // delete post
 router.delete("/delete/post/:id", verifyUserToken, deletePost);
@@ -50,6 +55,14 @@ router.delete(
   "/user/delete/comment/:postId/:commentId",
   verifyUserToken,
   deleteComment
+);
+
+// edit a post
+router.put(
+  "/user/edit/post/:id",
+  verifyUserToken,
+  upload.single("media"),
+  editPost
 );
 
 // save a post
