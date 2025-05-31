@@ -12,6 +12,7 @@ import {
   FileText,
   Maximize2,
   X,
+  Users,
 } from "lucide-react";
 
 function PostCard({ post, job, currentUserId, hideInteractions }) {
@@ -39,7 +40,7 @@ function PostCard({ post, job, currentUserId, hideInteractions }) {
 
   const postType = getPostType();
   const postDate = getFormattedDate(data.createdAt || data.Date || new Date());
-  const [liked, setLiked] = useState(data?.isLiked || false);
+  const [liked, setLiked] = useState(post.isLiked || false);
   const [saved, setSaved] = useState(data?.savedBy?.includes(currentUserId));
   const [likeCount, setLikeCount] = useState(data?.likes?.length || 0);
   const [likedUsers, setLikedUsers] = useState(data?.likes || []);
@@ -47,6 +48,7 @@ function PostCard({ post, job, currentUserId, hideInteractions }) {
   const [newComment, setNewComment] = useState("");
   const [comments, setComments] = useState(data?.comments || []);
   const [showMediaModal, setShowMediaModal] = useState(false);
+  const [showLikesModal, setShowLikesModal] = useState(false);
 
   const handleLike = async () => {
     const token = localStorage.getItem("authToken");
@@ -272,14 +274,16 @@ function PostCard({ post, job, currentUserId, hideInteractions }) {
         {currentUserLiked && <span className="font-medium">You</span>}
         {currentUserLiked && otherLikedUsers.length > 0 && " and "}
         {otherLikedUsers.length > 0 && (
-          <span>
-            {otherLikedUsers.map((user, index) => (
-              <span key={user?._id || index}>
-                {user?.FirstName} {user?.LastName}
-                {index < otherLikedUsers.length - 1 ? ", " : ""}
-              </span>
-            ))}
-          </span>
+          <button
+            onClick={() => setShowLikesModal(true)}
+            className="text-teal-600 hover:text-teal-700 hover:underline"
+          >
+            {otherLikedUsers.length === 1
+              ? `${otherLikedUsers[0].FirstName} ${otherLikedUsers[0].LastName}`
+              : `${otherLikedUsers[0].FirstName} ${
+                  otherLikedUsers[0].LastName
+                } and ${otherLikedUsers.length - 1} others`}
+          </button>
         )}
         {" liked this post"}
       </div>
@@ -307,16 +311,7 @@ function PostCard({ post, job, currentUserId, hideInteractions }) {
         </div>
       </div>
 
-      {/* Post content */}
-      <div className="mt-3">
-        <p className="text-sm text-gray-800 whitespace-pre-wrap">
-          {data.content}
-        </p>
-        {renderJobDetails()}
-        {renderEventDetails()}
-      </div>
-
-      {/* Media content */}
+      {/* Media content - Show first */}
       {data.media && data.media.length > 0 && (
         <div className="mt-3">
           {data.media.map((media, index) => (
@@ -353,33 +348,46 @@ function PostCard({ post, job, currentUserId, hideInteractions }) {
           />
         </div>
       )}
+
+      {/* Post content - Show after media */}
+      <div className="mt-3">
+        <p className="text-sm text-gray-800 whitespace-pre-wrap">
+          {data.content}
+        </p>
+        {renderJobDetails()}
+        {renderEventDetails()}
+      </div>
+
       {/* Interaction buttons - only show if not in editing mode */}
       {!hideInteractions && (
-        <div className="mt-4 flex items-center space-x-4 border-t border-gray-100 pt-3">
-          <button
-            onClick={handleLike}
-            className={`flex items-center space-x-1 text-sm ${
-              liked ? "text-red-500" : "text-gray-500 hover:text-red-500"
-            }`}
-          >
-            <Heart size={18} className={liked ? "fill-current" : ""} />
-            <span>{likeCount}</span>
-          </button>
-          <button
-            onClick={handleToggleComments}
-            className="flex items-center space-x-1 text-gray-500 hover:text-blue-500 text-sm"
-          >
-            <MessageCircle size={18} />
-            <span>{comments.length}</span>
-          </button>
-          <button
-            onClick={handleSave}
-            className={`flex items-center space-x-1 text-sm ${
-              saved ? "text-teal-500" : "text-gray-500 hover:text-teal-500"
-            }`}
-          >
-            <Bookmark size={18} className={saved ? "fill-current" : ""} />
-          </button>
+        <div className="mt-4 border-t border-gray-100 pt-3">
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={handleLike}
+              className={`flex items-center space-x-1 text-sm ${
+                liked ? "text-red-500" : "text-gray-500 hover:text-red-500"
+              }`}
+            >
+              <Heart size={18} className={liked ? "fill-current" : ""} />
+              <span>{likeCount}</span>
+            </button>
+            <button
+              onClick={handleToggleComments}
+              className="flex items-center space-x-1 text-gray-500 hover:text-blue-500 text-sm"
+            >
+              <MessageCircle size={18} />
+              <span>{comments.length}</span>
+            </button>
+            <button
+              onClick={handleSave}
+              className={`flex items-center space-x-1 text-sm ${
+                saved ? "text-teal-500" : "text-gray-500 hover:text-teal-500"
+              }`}
+            >
+              <Bookmark size={18} className={saved ? "fill-current" : ""} />
+            </button>
+          </div>
+          {renderLikedUsers()}
         </div>
       )}
 
@@ -455,6 +463,44 @@ function PostCard({ post, job, currentUserId, hideInteractions }) {
               alt="Post media"
               className="max-h-[80vh] w-full object-contain"
             />
+          </div>
+        </div>
+      )}
+
+      {/* Likes Modal */}
+      {showLikesModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-md mx-4 max-h-[80vh] overflow-hidden">
+            <div className="p-4 border-b flex justify-between items-center">
+              <h3 className="text-lg font-semibold flex items-center">
+                <Users size={20} className="mr-2 text-teal-500" />
+                Liked by
+              </h3>
+              <button
+                onClick={() => setShowLikesModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div className="overflow-y-auto max-h-[calc(80vh-4rem)]">
+              <div className="divide-y">
+                {likedUsers.map((user) => (
+                  <div key={user._id} className="p-4 flex items-center">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white font-semibold text-lg mr-3">
+                      {user.FirstName[0]}
+                      {user.LastName[0]}
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-800">
+                        {user.FirstName} {user.LastName}
+                      </h4>
+                      <p className="text-sm text-gray-500">{user.Email}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}

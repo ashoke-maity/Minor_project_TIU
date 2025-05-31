@@ -97,14 +97,22 @@ const createPost = async (req, res) => {
 // Get all posts for other users (excluding current user)
 const getUserPosts = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.id;
 
     // Find posts where userId is NOT current user, and populate user details
-    const posts = await UserPost.find({ userId: { $ne: userId } })
+    const posts = await UserPost.find()
       .sort({ createdAt: -1 })
-      .populate("userId", "FirstName LastName"); // <-- populate userId with these fields only
+      .populate("userId", "FirstName LastName") // <-- populate userId with these fields only
+      .populate("likes", "FirstName LastName");
 
-    res.status(200).json(posts);
+          const postsWithLikeStatus = posts.map((post) => ({
+      ...post.toObject(),
+      isLiked: post.likes.some(
+        (like) => like._id.toString() === userId.toString()
+      ),
+    }));
+
+    res.status(200).json(postsWithLikeStatus);
   } catch (err) {
     res.status(500).json({ message: "Failed to fetch posts" });
   }
@@ -389,6 +397,28 @@ const savePost = async (req, res) => {
   }
 };
 
+// fetch the saved posts of the user
+const getSavedPosts = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const posts = await UserPost.find({ savedBy: userId })
+      .sort({ createdAt: -1 })
+      .populate("userId", "FirstName LastName")
+      .populate("likes", "FirstName LastName");
+
+    const postsWithLikeStatus = posts.map((post) => ({
+      ...post.toObject(),
+      isLiked: post.likes.some(
+        (like) => like._id.toString() === userId.toString()
+      ),
+    }));
+
+    res.status(200).json(postsWithLikeStatus);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch saved posts" });
+  }
+};
+
 // unsave a post
 const unsavePost = async (req, res) => {
   try {
@@ -415,7 +445,14 @@ const getMyPosts = async (req, res) => {
       .populate("userId", "FirstName LastName")
       .populate("likes", "FirstName LastName");
 
-    res.status(200).json(posts);
+        const postsWithLikeStatus = posts.map((post) => ({
+      ...post.toObject(),
+      isLiked: post.likes.some(
+        (like) => like._id.toString() === userId.toString()
+      ),
+    }));
+
+    res.status(200).json(postsWithLikeStatus);
   } catch (err) {
     res.status(500).json({ message: "Failed to fetch posts" });
   }
@@ -434,4 +471,5 @@ module.exports = {
   unsavePost,
   editPost,
   getMyPosts,
+  getSavedPosts,
 };
