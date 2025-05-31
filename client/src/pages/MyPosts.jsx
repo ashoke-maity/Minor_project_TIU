@@ -1,8 +1,17 @@
-import React, { useState, useEffect } from "react";
+import { React, useState, useEffect } from "react";
 import axios from "axios";
-import { ChevronLeft, Image, Bookmark, Calendar, Briefcase, IndianRupee, ChevronRight, UserPlus, UserCheck } from "lucide-react";
+import {
+  ChevronLeft,
+  Image,
+  Bookmark,
+  Calendar,
+  Briefcase,
+  X,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import PostCard from "../components/Home/web/PostCard";
+import ProfileSidebar from "../components/layout/ProfileSidebar";
+import Header from "../components/layout/Header";
 
 function MyPosts() {
   const navigate = useNavigate();
@@ -15,13 +24,16 @@ function MyPosts() {
   const [userProfile, setUserProfile] = useState(null);
   const [connectionStats, setConnectionStats] = useState({
     connections: 0,
-    following: 0
+    following: 0,
   });
+  const [connectionsList, setConnectionsList] = useState([]);
+  const [followingList, setFollowingList] = useState([]);
+  const [showConnectionsPopup, setShowConnectionsPopup] = useState(false);
+  const [showFollowingPopup, setShowFollowingPopup] = useState(false);
   const [activeView, setActiveView] = useState("posts"); // "posts", "bookmarks", "events", or "jobs"
 
   useEffect(() => {
     fetchUserProfile();
-    fetchConnectionStats();
     switch (activeView) {
       case "posts":
         fetchMyPosts();
@@ -36,6 +48,7 @@ function MyPosts() {
         fetchJobs();
         break;
     }
+    // eslint-disable-next-line
   }, [activeView]);
 
   const fetchEvents = async () => {
@@ -114,25 +127,6 @@ function MyPosts() {
     }
   };
 
-  const fetchConnectionStats = async () => {
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_USER_API_URL}/user/connections`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-          },
-        }
-      );
-      setConnectionStats({
-        connections: response.data.connections?.length || 0,
-        following: response.data.following?.length || 0
-      });
-    } catch (err) {
-      console.error("Error fetching connection stats:", err);
-    }
-  };
-
   const fetchMyPosts = async () => {
     setLoading(true);
     try {
@@ -153,7 +147,96 @@ function MyPosts() {
     }
   };
 
-  const initials = userProfile ? `${userProfile.FirstName?.[0] ?? ""}${userProfile.LastName?.[0] ?? ""}`.toUpperCase() : "";
+  useEffect(() => {
+    const fetchConnectionStats = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+
+        // Fetch followers (connections)
+        const followersRes = await axios.get(
+          `${import.meta.env.VITE_USER_API_URL}/followers`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        // Fetch following
+        const followingRes = await axios.get(
+          `${import.meta.env.VITE_USER_API_URL}/following`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        setConnectionStats({
+          connections: followersRes.data.followers?.length || 0,
+          following: followingRes.data.following?.length || 0,
+        });
+        setConnectionsList(followersRes.data.followers || []);
+        setFollowingList(followingRes.data.following || []);
+      } catch (err) {
+        console.error("Error fetching connection stats:", err);
+      }
+    };
+
+    fetchConnectionStats();
+  }, []);
+
+  const handleRemoveFollower = async (followerId) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      await axios.post(
+        `${import.meta.env.VITE_USER_API_URL}/remove-follower`,
+        { followerId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      // Update UI after removal
+      setConnectionsList((prev) => prev.filter((u) => u._id !== followerId));
+      setConnectionStats((prev) => ({
+        ...prev,
+        connections: prev.connections - 1,
+      }));
+    } catch (err) {
+      console.error("Failed to remove follower:", err);
+    }
+  };
+
+  const handleUnfollow = async (followingId) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      await axios.post(
+        `${import.meta.env.VITE_USER_API_URL}/unfollow`,
+        { followingId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      // Update UI after unfollow
+      setFollowingList((prev) => prev.filter((u) => u._id !== followingId));
+      setConnectionStats((prev) => ({
+        ...prev,
+        following: prev.following - 1,
+      }));
+    } catch (err) {
+      console.error("Failed to unfollow user:", err);
+    }
+  };
+
+  const initials = userProfile
+    ? `${userProfile.FirstName?.[0] ?? ""}${
+        userProfile.LastName?.[0] ?? ""
+      }`.toUpperCase()
+    : "";
 
   const renderContent = () => {
     if (loading) {
@@ -168,7 +251,7 @@ function MyPosts() {
       return (
         <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 text-center">
           <p className="text-red-500 font-medium">{error}</p>
-          <button 
+          <button
             onClick={() => {
               switch (activeView) {
                 case "posts":
@@ -203,7 +286,9 @@ function MyPosts() {
                   <Image size={24} className="text-teal-500" />
                 </div>
               </div>
-              <h3 className="text-lg font-semibold text-gray-800">No posts yet</h3>
+              <h3 className="text-lg font-semibold text-gray-800">
+                No posts yet
+              </h3>
               <p className="text-gray-500 mt-2">
                 Start sharing your thoughts with your alumni network!
               </p>
@@ -238,7 +323,9 @@ function MyPosts() {
                   <Bookmark size={24} className="text-teal-500" />
                 </div>
               </div>
-              <h3 className="text-lg font-semibold text-gray-800">No bookmarks yet</h3>
+              <h3 className="text-lg font-semibold text-gray-800">
+                No bookmarks yet
+              </h3>
               <p className="text-gray-500 mt-2">
                 Save posts you want to revisit later!
               </p>
@@ -273,7 +360,9 @@ function MyPosts() {
                   <Calendar size={24} className="text-teal-500" />
                 </div>
               </div>
-              <h3 className="text-lg font-semibold text-gray-800">No upcoming events</h3>
+              <h3 className="text-lg font-semibold text-gray-800">
+                No upcoming events
+              </h3>
               <p className="text-gray-500 mt-2">
                 Check back later for new events!
               </p>
@@ -289,11 +378,15 @@ function MyPosts() {
               >
                 <div className="flex items-start justify-between">
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-800">{event.title}</h3>
+                    <h3 className="text-xl font-semibold text-gray-800">
+                      {event.title}
+                    </h3>
                     <p className="text-gray-600 mt-2">{event.description}</p>
                     <div className="mt-4 flex items-center text-sm text-gray-500">
                       <Calendar size={16} className="mr-2" />
-                      <span>{new Date(event.eventDate).toLocaleDateString()}</span>
+                      <span>
+                        {new Date(event.eventDate).toLocaleDateString()}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -311,7 +404,9 @@ function MyPosts() {
                   <Briefcase size={24} className="text-teal-500" />
                 </div>
               </div>
-              <h3 className="text-lg font-semibold text-gray-800">No job opportunities</h3>
+              <h3 className="text-lg font-semibold text-gray-800">
+                No job opportunities
+              </h3>
               <p className="text-gray-500 mt-2">
                 Check back later for new job postings!
               </p>
@@ -327,7 +422,9 @@ function MyPosts() {
               >
                 <div className="flex items-start justify-between">
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-800">{job.title}</h3>
+                    <h3 className="text-xl font-semibold text-gray-800">
+                      {job.title}
+                    </h3>
                     <p className="text-gray-600 mt-2">{job.description}</p>
                     <div className="mt-4 flex items-center text-sm text-gray-500">
                       <Briefcase size={16} className="mr-2" />
@@ -345,189 +442,125 @@ function MyPosts() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <button 
-                onClick={() => navigate(-1)} 
-                className="mr-4 text-gray-600 hover:text-teal-600"
-              >
-                <ChevronLeft size={24} />
-              </button>
-              <h1 className="text-xl font-semibold text-gray-800">
-                {activeView === "posts" && "My Posts"}
-                {activeView === "bookmarks" && "Saved Bookmarks"}
-                {activeView === "events" && "Upcoming Events"}
-                {activeView === "jobs" && "Available Opportunities"}
-              </h1>
-            </div>
-          </div>
-        </div>
-      </div>
-
+      <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Left Sidebar */}
           <div className="lg:col-span-1 space-y-6">
-            {/* Profile Card */}
-            <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow duration-300">
-              <div className="bg-gradient-to-r from-teal-400 via-emerald-500 to-teal-600 h-24 relative">
-                <div className="absolute inset-0 bg-black opacity-10"></div>
-              </div>
-              <div className="px-6 pb-6 pt-0 -mt-14 flex flex-col items-center">
-                <div className="w-24 h-24 rounded-full border-4 border-white bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-2xl font-bold shadow-xl">
-                  {initials}
-                </div>
-                <h2 className="text-xl font-bold text-gray-800 mt-4">
-                  {userProfile?.FirstName || ""} {userProfile?.LastName || ""}
-                </h2>
-                
-                {/* Connection Stats */}
-                <div className="grid grid-cols-2 gap-6 mt-4 w-full">
-                  <div className="text-center cursor-pointer hover:bg-teal-50 p-2 rounded-lg transition-colors duration-300">
-                    <div className="flex items-center justify-center space-x-2 text-teal-600 mb-1">
-                      <UserCheck size={18} />
-                      <span className="text-lg font-semibold">{connectionStats.connections}</span>
-                    </div>
-                    <p className="text-sm text-gray-600">Connections</p>
-                  </div>
-                  <div className="text-center cursor-pointer hover:bg-teal-50 p-2 rounded-lg transition-colors duration-300">
-                    <div className="flex items-center justify-center space-x-2 text-teal-600 mb-1">
-                      <UserPlus size={18} />
-                      <span className="text-lg font-semibold">{connectionStats.following}</span>
-                    </div>
-                    <p className="text-sm text-gray-600">Following</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Links Card */}
-            <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden p-5 hover:shadow-xl transition-shadow duration-300">
-              <h2 className="text-lg font-bold text-gray-800 mb-4">
-                Quick Links
-              </h2>
-              <div className="space-y-3">
-                <a
-                  href="#"
-                  className="flex items-center py-2 px-3 hover:bg-teal-50 rounded-lg transition-colors duration-300"
-                >
-                  <Bookmark size={18} className="text-teal-500 mr-3" />
-                  <span className="text-gray-700">Bookmarks</span>
-                  <ChevronRight size={16} className="ml-auto text-gray-400" />
-                </a>
-                <div className="pl-8 space-y-1">
-                  <a
-                    href="#"
-                    className="block text-sm text-teal-600 hover:underline py-1"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setActiveView("bookmarks");
-                    }}
-                  >
-                    View Saved Bookmarks
-                  </a>
-                </div>
-                <a
-                  href="#"
-                  className="flex items-center py-2 px-3 hover:bg-teal-50 rounded-lg transition-colors duration-300"
-                >
-                  <Calendar size={18} className="text-teal-500 mr-3" />
-                  <span className="text-gray-700">Events</span>
-                  <ChevronRight size={16} className="ml-auto text-gray-400" />
-                </a>
-                <div className="pl-8 space-y-1">
-                  <a
-                    href="#"
-                    className="block text-sm text-teal-600 hover:underline py-1"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setActiveView("events");
-                    }}
-                  >
-                    Upcoming Events
-                  </a>
-                </div>
-                <a
-                  href="#"
-                  className="flex items-center py-2 px-3 hover:bg-teal-50 rounded-lg transition-colors duration-300"
-                >
-                  <Briefcase size={18} className="text-teal-500 mr-3" />
-                  <span className="text-gray-700">Jobs</span>
-                  <ChevronRight size={16} className="ml-auto text-gray-400" />
-                </a>
-                <div className="pl-8 space-y-1">
-                  <a
-                    href="#"
-                    className="block text-sm text-teal-600 hover:underline py-1"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setActiveView("jobs");
-                    }}
-                  >
-                    Available Opportunities
-                  </a>
-                </div>
-                <a
-                  href="#"
-                  className="flex items-center py-2 px-3 hover:bg-teal-50 rounded-lg transition-colors duration-300"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setActiveView("posts");
-                  }}
-                >
-                  <Image size={18} className="text-teal-500 mr-3" />
-                  <span className="text-gray-700">My Posts</span>
-                  <ChevronRight size={16} className="ml-auto text-gray-400" />
-                </a>
-                <a
-                  href="#"
-                  className="flex items-center py-2 px-3 hover:bg-teal-50 rounded-lg transition-colors duration-300"
-                >
-                  <IndianRupee size={18} className="text-teal-500 mr-3" />
-                  <span className="text-gray-700">Donations</span>
-                  <ChevronRight size={16} className="ml-auto text-gray-400" />
-                </a>
-              </div>
-
-              {/* Footer for credits */}
-              <div className="mt-6 pt-4 border-t border-gray-100 text-xs text-gray-400">
-                <p className="mb-1">© 2024 AlumniConnect</p>
-                <div className="flex space-x-2">
-                  <a
-                    href="#"
-                    className="hover:text-teal-500 transition-colors"
-                  >
-                    About
-                  </a>
-                  <span>•</span>
-                  <a
-                    href="#"
-                    className="hover:text-teal-500 transition-colors"
-                  >
-                    Terms
-                  </a>
-                  <span>•</span>
-                  <a
-                    href="#"
-                    className="hover:text-teal-500 transition-colors"
-                  >
-                    Contact
-                  </a>
-                </div>
-              </div>
-            </div>
+            <ProfileSidebar
+              initials={initials}
+              firstName={userProfile?.FirstName}
+              lastName={userProfile?.LastName}
+              connectionStats={connectionStats}
+              setShowConnectionsPopup={setShowConnectionsPopup}
+              setShowFollowingPopup={setShowFollowingPopup}
+              navigate={(path) => {
+                if (path === "/my-posts?view=bookmarks")
+                  setActiveView("bookmarks");
+                else if (path === "/my-posts?view=events")
+                  setActiveView("events");
+                else if (path === "/my-posts?view=jobs") setActiveView("jobs");
+                else if (path === "/my-posts?view=posts")
+                  setActiveView("posts");
+                else navigate(path);
+              }}
+            />
           </div>
-
           {/* Main Content */}
-          <div className="lg:col-span-3">
-            {renderContent()}
-          </div>
+          <div className="lg:col-span-3">{renderContent()}</div>
         </div>
       </div>
+
+      {/* Connections Popup */}
+      {/* Connections Popup */}
+      {showConnectionsPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden">
+            <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+                Connections
+              </h3>
+              <button
+                onClick={() => setShowConnectionsPopup(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto max-h-[calc(80vh-4rem)]">
+              {connectionsList && connectionsList.length === 0 ? (
+                <p className="text-gray-500 text-center py-4">
+                  No connections yet.
+                </p>
+              ) : (
+                connectionsList.map((user) => (
+                  <div key={user._id} className="flex items-center mb-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-base font-semibold mr-3">
+                      {user.FirstName?.[0]}
+                      {user.LastName?.[0]}
+                    </div>
+                    <span className="text-gray-800 font-medium">
+                      {user.FirstName} {user.LastName}
+                    </span>
+                    <button
+                      onClick={() => handleRemoveFollower(user._id)}
+                      className="ml-auto px-3 py-1 text-red-600 text-xs font-medium border border-red-200 rounded-md hover:bg-red-50 transition-colors duration-300"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Following Popup */}
+      {showFollowingPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden">
+            <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+                Following
+              </h3>
+              <button
+                onClick={() => setShowFollowingPopup(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto max-h-[calc(80vh-4rem)]">
+              {followingList && followingList.length === 0 ? (
+                <p className="text-gray-500 text-center py-4">
+                  Not following anyone yet.
+                </p>
+              ) : (
+                followingList.map((user) => (
+                  <div key={user._id} className="flex items-center mb-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 text-white flex items-center justify-center text-base font-semibold mr-3">
+                      {user.FirstName?.[0]}
+                      {user.LastName?.[0]}
+                    </div>
+                    <span className="text-gray-800 font-medium">
+                      {user.FirstName} {user.LastName}
+                    </span>
+                    <button
+                      onClick={() => handleUnfollow(user._id)}
+                      className="ml-auto px-3 py-1 text-red-600 text-xs font-medium border border-red-200 rounded-md hover:bg-red-50 transition-colors duration-300"
+                    >
+                      Unfollow
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-export default MyPosts; 
+export default MyPosts;

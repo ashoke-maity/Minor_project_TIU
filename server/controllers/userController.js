@@ -328,6 +328,101 @@ const getPendingFollowRequests = async (req, res) => {
   }
 };
 
+// fetch followers
+const getFollowers = async (req, res) => {
+  try {
+    const user = await userDatabase
+      .findById(req.user?.id)
+      .populate("Followers", "FirstName LastName Email");
+
+    if (!user) {
+      return res.status(404).json({ status: 0, msg: "User not found" });
+    }
+
+    res.status(200).json({ status: 1, followers: user.Followers });
+  } catch (err) {
+    console.error("Get Followers Error:", err);
+    res.status(500).json({ status: 0, msg: "Server error" });
+  }
+};
+
+// fetch following
+const getFollowing = async (req, res) => {
+  try {
+    const user = await userDatabase
+      .findById(req.user?.id)
+      .populate("Following", "FirstName LastName Email");
+
+    if (!user) {
+      return res.status(404).json({ status: 0, msg: "User not found" });
+    }
+
+    res.status(200).json({ status: 1, following: user.Following });
+  } catch (err) {
+    console.error("Get Following Error:", err);
+    res.status(500).json({ status: 0, msg: "Server error" });
+  }
+};
+
+// remove follower
+const removeFollower = async (req, res) => {
+  try {
+    const userId = req.user?.id; // The logged-in user
+    const { followerId } = req.body; // The follower to remove
+
+    if (!followerId) {
+      return res.status(400).json({ status: 0, msg: "Follower ID is required" });
+    }
+
+    // Remove followerId from user's Followers array
+    const user = await userDatabase.findByIdAndUpdate(
+      userId,
+      { $pull: { Followers: followerId } },
+      { new: true }
+    );
+
+    // Remove userId from follower's Following array
+    await userDatabase.findByIdAndUpdate(
+      followerId,
+      { $pull: { Following: userId } }
+    );
+
+    res.status(200).json({ status: 1, msg: "Follower removed successfully" });
+  } catch (err) {
+    console.error("Remove Follower Error:", err);
+    res.status(500).json({ status: 0, msg: "Server error" });
+  }
+};
+
+const unfollowUser = async (req, res) => {
+  try {
+    const userId = req.user?.id; // The logged-in user
+    const { followingId } = req.body; // The user to unfollow
+
+    if (!followingId) {
+      return res.status(400).json({ status: 0, msg: "Following ID is required" });
+    }
+
+    // Remove followingId from user's Following array
+    const user = await userDatabase.findByIdAndUpdate(
+      userId,
+      { $pull: { Following: followingId } },
+      { new: true }
+    );
+
+    // Remove userId from following user's Followers array
+    await userDatabase.findByIdAndUpdate(
+      followingId,
+      { $pull: { Followers: userId } }
+    );
+
+    res.status(200).json({ status: 1, msg: "Unfollowed user successfully" });
+  } catch (err) {
+    console.error("Unfollow User Error:", err);
+    res.status(500).json({ status: 0, msg: "Server error" });
+  }
+};
+
 module.exports = {
   userLogin,
   userDashboard,
@@ -337,5 +432,9 @@ module.exports = {
   sendFollowRequest,
   acceptFollowRequest,
   rejectFollowRequest,
+  getFollowers,
+  getFollowing,
   getPendingFollowRequests,
+  removeFollower,
+  unfollowUser,
 };

@@ -15,7 +15,8 @@ import {
   Home as HomeIcon,
   Settings,
   Image,
-  X
+  X,
+  UserCheck
 } from "lucide-react";
 import axios from "axios";
 import { io } from "socket.io-client";
@@ -39,6 +40,10 @@ function MobileMainLayout({ jobs, loading }) {
   const [showFollowersModal, setShowFollowersModal] = useState(false);
   const [followingLoading, setFollowingLoading] = useState(true);
   const [followersLoading, setFollowersLoading] = useState(true);
+
+  // Add connectionIds and followingIds Sets
+  const connectionIds = new Set(followers.map((u) => u._id));
+  const followingIds = new Set(following.map((u) => u._id));
 
   // Posts state and loading/error for posts
   const [posts, setPosts] = useState([]);
@@ -545,31 +550,61 @@ function MobileMainLayout({ jobs, loading }) {
               <div className="divide-y divide-gray-100">
                 {suggestedUsers.slice(0, 5).map((user) => {
                   const isRequested = sentRequests.includes(user._id);
+                  const isConnected = connectionIds.has(user._id) || followingIds.has(user._id);
+                  const isInConnectionsList = followers.some(
+                    (conn) => conn._id === user._id
+                  );
+                  const isInFollowingList = following.some(
+                    (follow) => follow._id === user._id
+                  );
+
                   return (
-                    <div key={user._id} className="flex items-center py-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white font-semibold text-lg mr-3">
+                    <div key={user._id} className={`flex items-center py-3 hover:bg-gray-50 transition-colors duration-300 ${
+                      isConnected || isInConnectionsList || isInFollowingList ? 'bg-teal-50' : ''
+                    }`}>
+                      <div className={`w-10 h-10 rounded-full ${
+                        isConnected || isInConnectionsList || isInFollowingList
+                          ? 'bg-gradient-to-br from-teal-500 to-emerald-400'
+                          : 'bg-gradient-to-br from-teal-400 to-emerald-500'
+                      } flex items-center justify-center text-white font-semibold text-lg mr-3`}>
                         {user.FirstName[0]}
                         {user.LastName[0]}
                       </div>
-                      <div>
-                        <h3 className="text-base font-semibold text-gray-800">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-base font-semibold text-gray-800 truncate">
                           {user.FirstName} {user.LastName}
                         </h3>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 truncate">
                           {user.Email}
                         </p>
                       </div>
-                      <button 
-                        onClick={() => handleFollow(user._id)}
-                        disabled={isRequested}
-                        className={`ml-auto px-3 py-1 text-sm font-medium rounded-md transition-colors duration-300 ${
-                          isRequested 
-                            ? 'text-gray-500 bg-gray-100 cursor-not-allowed'
-                            : 'text-teal-600 border border-teal-200 hover:bg-teal-50'
-                        }`}
-                      >
-                        {isRequested ? 'Request Sent' : 'Connect'}
-                      </button>
+                      <div className="ml-4 flex-shrink-0">
+                        {isConnected || isInConnectionsList || isInFollowingList ? (
+                          <button
+                            disabled
+                            className="px-3 py-1.5 text-sm font-medium text-teal-600 bg-teal-50 rounded-md cursor-not-allowed border border-teal-200"
+                          >
+                            <div className="flex items-center">
+                              <UserCheck size={16} className="mr-1.5" />
+                              Connected
+                            </div>
+                          </button>
+                        ) : isRequested ? (
+                          <button
+                            disabled
+                            className="px-3 py-1.5 text-sm font-medium text-gray-500 bg-gray-100 rounded-md cursor-not-allowed"
+                          >
+                            Request Sent
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleFollow(user._id)}
+                            className="px-3 py-1.5 text-sm font-medium text-white bg-teal-500 hover:bg-teal-600 rounded-md transition-colors duration-300"
+                          >
+                            Connect
+                          </button>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
