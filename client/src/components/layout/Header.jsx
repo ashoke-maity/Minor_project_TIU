@@ -27,7 +27,9 @@ function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
 
-  const initials = `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase();
+  const initials = `${firstName?.[0] ?? ""}${
+    lastName?.[0] ?? ""
+  }`.toUpperCase();
 
   const fetchNotifications = async () => {
     try {
@@ -71,7 +73,10 @@ function Header() {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setDropdownOpen(false);
       }
-      if (notificationRef.current && !notificationRef.current.contains(e.target)) {
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(e.target)
+      ) {
         setNotificationOpen(false);
       }
     };
@@ -233,7 +238,8 @@ function Header() {
                             {notif.timeAgo || notif.createdAt}
                           </span>
 
-                          {notif.sender && (
+                          {/* Only show buttons for pending follow requests */}
+                          {notif.type === "follow-request" && notif.sender && (
                             <div className="mt-2 flex gap-2">
                               <button
                                 onClick={() => handleAccept(notif.sender._id)}
@@ -278,7 +284,10 @@ function Header() {
 
           <div className="w-px h-6 bg-gray-300"></div>
 
-          <Link to="/network" className="flex items-center gap-1 hover:text-teal-600 transition-colors">
+          <Link
+            to="/network"
+            className="flex items-center gap-1 hover:text-teal-600 transition-colors"
+          >
             <Users size={20} />
             <span className="hidden lg:inline">My Network</span>
           </Link>

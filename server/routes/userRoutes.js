@@ -6,11 +6,14 @@ const {
   userDelete,
   userGoogleSignIn,
   getAllUsersExceptCurrent,
-  getUserNotifications,
   sendFollowRequest,
   acceptFollowRequest,
   rejectFollowRequest,
   getPendingFollowRequests,
+  getFollowers,
+  getFollowing,
+  removeFollower,
+  unfollowUser,
 } = require("../controllers/userController");
 const verifyUserToken = require("../middlewares/userAuthMiddleware");
 
@@ -40,5 +43,17 @@ router.post("/reject-request", verifyUserToken, rejectFollowRequest)
 
 // get all the pending request
 router.get("/all-request", verifyUserToken, getPendingFollowRequests);
+
+// fetch followers
+router.get("/followers", verifyUserToken, getFollowers);
+
+// fetch following
+router.get("/following", verifyUserToken, getFollowing);
+
+// remove follower
+router.post("/remove-follower", verifyUserToken, removeFollower);
+
+//  unfollow user
+router.post("/unfollow", verifyUserToken, unfollowUser);
 
 module.exports = router;
