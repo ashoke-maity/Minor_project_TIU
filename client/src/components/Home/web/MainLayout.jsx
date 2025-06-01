@@ -24,7 +24,7 @@ import axios from "axios";
 import { io } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
 
-function MainLayout({ jobs, loading }) {
+function MainLayout({ loading }) {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [showPostModal, setShowPostModal] = useState(false);

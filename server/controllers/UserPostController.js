@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const UserPost = require("../models/UserPostModel");
 const cloudinary = require("../config/cloudinary");
 const streamifier = require("streamifier");
@@ -105,7 +106,7 @@ const getUserPosts = async (req, res) => {
       .populate("userId", "FirstName LastName") // <-- populate userId with these fields only
       .populate("likes", "FirstName LastName");
 
-          const postsWithLikeStatus = posts.map((post) => ({
+    const postsWithLikeStatus = posts.map((post) => ({
       ...post.toObject(),
       isLiked: post.likes.some(
         (like) => like._id.toString() === userId.toString()
@@ -124,19 +125,40 @@ const getAllPosts = async (req, res) => {
     const userId = req.user._id;
     const posts = await UserPost.find()
       .sort({ createdAt: -1 })
-      .populate("userId", "FirstName LastName")
-      .populate("likes", "FirstName LastName");
+      .populate({
+        path: "userId",
+        select: "FirstName LastName"
+      })
+      .populate({
+        path: "likes",
+        select: "FirstName LastName Email"
+      })
+      .populate({
+        path: "comments.userId",
+        select: "FirstName LastName _id"
+      });
 
-    // Add isLiked field to each post
-    const postsWithLikeStatus = posts.map((post) => ({
-      ...post.toObject(),
-      isLiked: post.likes.some(
-        (like) => like._id.toString() === userId.toString()
-      ),
-    }));
+    const postsWithDetails = posts.map(post => {
+      const postObj = post.toObject();
+      return {
+        ...postObj,
+        isLiked: post.likes.some(like => like._id.toString() === userId.toString()),
+        comments: post.comments.map(comment => ({
+          _id: comment._id,
+          text: comment.text,
+          createdAt: comment.createdAt,
+          userId: {
+            _id: comment.userId._id,
+            FirstName: comment.userId.FirstName,
+            LastName: comment.userId.LastName
+          }
+        }))
+      };
+    });
 
-    res.status(200).json(postsWithLikeStatus);
+    res.status(200).json(postsWithDetails);
   } catch (err) {
+    console.error("Error fetching posts:", err);
     res.status(500).json({ message: "Failed to fetch posts" });
   }
 };
@@ -218,7 +240,10 @@ const editPost = async (req, res) => {
       { $set: update },
       { new: true }
     );
-    if (!post) return res.status(404).json({ success: false, message: "Post not found" });
+    if (!post)
+      return res
+        .status(404)
+        .json({ success: false, message: "Post not found" });
 
     res.status(200).json({ success: true, post });
   } catch (err) {
@@ -314,68 +339,66 @@ const commentOnPost = async (req, res) => {
       return res.status(400).json({ message: "Comment text is required" });
     }
 
-    // Create new comment
+    // Create new comment with user details
     const newComment = {
+      _id: new mongoose.Types.ObjectId(),
       userId: req.user.id,
       text: commentText,
+      createdAt: new Date(),
+      userDetails: {
+        FirstName: req.user.FirstName,
+        LastName: req.user.LastName
+      }
     };
 
-    // Add comment to post
     post.comments.push(newComment);
     await post.save();
 
-    // Fetch the updated post with populated comment data
-    const updatedPost = await UserPost.findById(post.id).populate({
-      path: "comments.userId",
-      select: "FirstName LastName",
-    });
-
-    // Get the last added comment
-    const addedComment = updatedPost.comments[updatedPost.comments.length - 1];
-
-    // Emit socket event
-    req.app.get("io").emit("postCommented", {
-      postId: post.id,
-      comment: addedComment,
-    });
-
+    // Send response with complete user information
     res.status(201).json({
       message: "Comment added successfully",
-      comment: addedComment,
+      comment: {
+        ...newComment,
+        userId: {
+          _id: req.user.id,
+          FirstName: req.user.FirstName,
+          LastName: req.user.LastName
+        }
+      }
     });
   } catch (err) {
     console.error("Comment error:", err);
-    res.status(500).json({
-      message: "Failed to add comment",
-      error: err.message,
-    });
+    res.status(500).json({ message: "Failed to add comment" });
   }
 };
 
-// delete a comment
+// Update the deleteComment function
 const deleteComment = async (req, res) => {
   try {
-    const post = await UserPost.findById(req.params.id);
+    const post = await UserPost.findById(req.params.postId);
     if (!post) return res.status(404).json({ message: "Post not found" });
 
     const commentId = req.params.commentId;
     const commentIndex = post.comments.findIndex(
-      (c) =>
-        c._id.toString() === commentId &&
-        c.userId.toString() === req.user._id.toString()
+      (c) => c._id.toString() === commentId
     );
 
     if (commentIndex === -1)
       return res.status(404).json({ message: "Comment not found" });
 
+    // Check if the user is authorized to delete the comment
+    if (post.comments[commentIndex].userId.toString() !== req.user.id) {
+      return res
+        .status(403)
+        .json({ message: "Unauthorized to delete this comment" });
+    }
+
     post.comments.splice(commentIndex, 1);
     await post.save();
 
-    // Emit socket event to all connected clients
-    req.app.get("io").emit("commentDeleted", { postId: post.id, commentId });
-
-    res.status(200).json({ message: "Comment deleted successfully", post });
+    res.status(200).json({ message: "Comment deleted successfully" });
   } catch (err) {
+    console.error("Delete comment error:", err);
     res.status(500).json({ message: "Failed to delete comment" });
   }
 };
@@ -445,7 +468,7 @@ const getMyPosts = async (req, res) => {
       .populate("userId", "FirstName LastName")
       .populate("likes", "FirstName LastName");
 
-        const postsWithLikeStatus = posts.map((post) => ({
+    const postsWithLikeStatus = posts.map((post) => ({
       ...post.toObject(),
       isLiked: post.likes.some(
         (like) => like._id.toString() === userId.toString()
