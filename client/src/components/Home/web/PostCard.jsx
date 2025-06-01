@@ -1,6 +1,7 @@
-import { React, useState } from "react";
+import { React, useState, useEffect } from "react";
 import { formatDistanceToNow } from "date-fns";
 import axios from "axios";
+import { getTokenData } from "../../../utils/helpers";
 import {
   Calendar,
   Briefcase,
@@ -10,15 +11,67 @@ import {
   MapPin,
   Clock,
   FileText,
-  Maximize2,
   X,
   Users,
 } from "lucide-react";
 
-function PostCard({ post, job, currentUserId, hideInteractions }) {
-  // Determine if we're rendering a job or a regular post
+function PostCard({ post, job, hideInteractions }) {
+  // Initialize userId first with better token handling
+  const [userId, setUserId] = useState(() => {
+    const tokenData = getTokenData();
+    return tokenData?.id || null;
+  });
+
+  // Get post data
   const data = job || post;
   if (!data) return null;
+
+  // Initialize all state variables
+  const [liked, setLiked] = useState(post.isLiked || false);
+  const [saved, setSaved] = useState(data?.savedBy?.includes(userId));
+  const [likeCount, setLikeCount] = useState(data?.likes?.length || 0);
+  const [likedUsers, setLikedUsers] = useState(data?.likes || []);
+  const [commentVisible, setCommentVisible] = useState(false);
+  const [newComment, setNewComment] = useState("");
+  const [showMediaModal, setShowMediaModal] = useState(false);
+  const [showLikesModal, setShowLikesModal] = useState(false);
+
+  // Initialize comments state with proper user data
+  const [comments, setComments] = useState(() => {
+    return (data?.comments || []).map((comment) => ({
+      _id: comment._id,
+      text: comment.text,
+      createdAt: comment.createdAt,
+      userId: {
+        _id: comment.userId?._id || comment.userId,
+        FirstName: comment.userDetails?.FirstName || comment.userId?.FirstName || "",
+        LastName: comment.userDetails?.LastName || comment.userId?.LastName || "",
+      },
+    }));
+  });
+
+  // Helper function for user comparison with improved type handling
+  const isSameUser = (commentUserId) => {
+    if (!commentUserId || !userId) {
+      return false;
+    }
+    
+    // Handle both string and object IDs
+    const commentId = typeof commentUserId === 'object' ? commentUserId._id : commentUserId;
+    const isMatch = String(commentId).trim() === String(userId).trim();
+    
+    return isMatch;
+  };
+
+  // Effects
+  useEffect(() => {
+    const tokenData = getTokenData();
+    if (tokenData?.id) {
+      setUserId(tokenData.id);
+    }
+  }, []);
+
+
   // Format the date
   const getFormattedDate = (dateString) => {
     try {
@@ -40,22 +93,13 @@ function PostCard({ post, job, currentUserId, hideInteractions }) {
 
   const postType = getPostType();
   const postDate = getFormattedDate(data.createdAt || data.Date || new Date());
-  const [liked, setLiked] = useState(post.isLiked || false);
-  const [saved, setSaved] = useState(data?.savedBy?.includes(currentUserId));
-  const [likeCount, setLikeCount] = useState(data?.likes?.length || 0);
-  const [likedUsers, setLikedUsers] = useState(data?.likes || []);
-  const [commentVisible, setCommentVisible] = useState(false);
-  const [newComment, setNewComment] = useState("");
-  const [comments, setComments] = useState(data?.comments || []);
-  const [showMediaModal, setShowMediaModal] = useState(false);
-  const [showLikesModal, setShowLikesModal] = useState(false);
 
   const handleLike = async () => {
     const token = localStorage.getItem("authToken");
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_USER_API_URL}/user/like/post/${data._id}`,
-        { userId: currentUserId },
+        { userId }, // Changed from currentUserId
         {
           headers: {
             "Content-Type": "application/json",
@@ -64,7 +108,6 @@ function PostCard({ post, job, currentUserId, hideInteractions }) {
         }
       );
 
-      // Update the like status based on the response
       setLiked(response.data.isLiked);
       setLikeCount(response.data.likeCount);
       setLikedUsers(response.data.likedUsers || []);
@@ -78,9 +121,10 @@ function PostCard({ post, job, currentUserId, hideInteractions }) {
     setCommentVisible(!commentVisible);
   };
 
-  // Function to post a new comment
+  // Add this after handleToggleComments and before the useEffect
   const handlePostComment = async () => {
     if (!newComment.trim()) return;
+
     try {
       const token = localStorage.getItem("authToken");
       const response = await axios.post(
@@ -96,20 +140,32 @@ function PostCard({ post, job, currentUserId, hideInteractions }) {
         }
       );
 
-      // Add returned comment to state
       if (response.data.comment) {
-        const updatedComments = [...comments, response.data.comment];
-        setComments(updatedComments);
+        const newCommentData = {
+          _id: response.data.comment._id,
+          text: response.data.comment.text,
+          createdAt: response.data.comment.createdAt,
+          userId: {
+            _id: response.data.comment.userId._id,
+            FirstName:
+              response.data.comment.userDetails?.FirstName ||
+              response.data.comment.userId.FirstName,
+            LastName:
+              response.data.comment.userDetails?.LastName ||
+              response.data.comment.userId.LastName,
+          },
+        };
+
+        setComments((prevComments) => [...prevComments, newCommentData]);
         setNewComment("");
       }
     } catch (error) {
       console.error("Failed to post comment:", error);
-      // Show error message to user
       alert("Failed to post comment. Please try again.");
     }
   };
 
-  // Function to delete a comment
+  // delete a Comment
   const handleDeleteComment = async (commentId) => {
     try {
       const token = localStorage.getItem("authToken");
@@ -119,7 +175,6 @@ function PostCard({ post, job, currentUserId, hideInteractions }) {
         }/${commentId}`,
         {
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
         }
@@ -127,6 +182,7 @@ function PostCard({ post, job, currentUserId, hideInteractions }) {
       setComments(comments.filter((comment) => comment._id !== commentId));
     } catch (error) {
       console.error("Failed to delete comment:", error);
+      alert("Failed to delete comment. Please try again.");
     }
   };
 
@@ -138,7 +194,7 @@ function PostCard({ post, job, currentUserId, hideInteractions }) {
     try {
       const response = await axios.post(
         url,
-        { userId: currentUserId },
+        { userId }, // Changed from currentUserId
         {
           headers: {
             "Content-Type": "application/json",
@@ -263,10 +319,10 @@ function PostCard({ post, job, currentUserId, hideInteractions }) {
     if (!likedUsers || likedUsers.length === 0) return null;
 
     const currentUserLiked = likedUsers.some(
-      (user) => user?._id === currentUserId
+      (user) => user?._id === userId // Changed from currentUserId
     );
     const otherLikedUsers = likedUsers.filter(
-      (user) => user?._id !== currentUserId
+      (user) => user?._id !== userId // Changed from currentUserId
     );
 
     return (
@@ -416,30 +472,32 @@ function PostCard({ post, job, currentUserId, hideInteractions }) {
             {comments.map((comment) => (
               <div key={comment._id} className="flex items-start space-x-2">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-xs font-semibold">
-                  {comment.userId?.FirstName?.[0]}
-                  {comment.userId?.LastName?.[0]}
+                  {(comment.userId?.FirstName?.[0] || "").toUpperCase()}
+                  {(comment.userId?.LastName?.[0] || "").toUpperCase()}
                 </div>
                 <div className="flex-1">
                   <div className="bg-gray-50 rounded-lg px-3 py-2">
                     <p className="text-sm font-medium text-gray-900">
-                      {comment.userId?.FirstName} {comment.userId?.LastName}
+                      {`${comment.userId?.FirstName || ""} ${
+                        comment.userId?.LastName || ""
+                      }`}
                     </p>
-                    <p className="text-sm text-gray-700">
-                      {comment.commentText}
-                    </p>
+                    <p className="text-sm text-gray-700">{comment.text}</p>
                   </div>
                   <div className="mt-1 flex items-center space-x-2">
                     <span className="text-xs text-gray-500">
                       {getFormattedDate(comment.createdAt)}
                     </span>
-                    {comment.userId?._id === currentUserId && (
-                      <button
-                        onClick={() => handleDeleteComment(comment._id)}
-                        className="text-xs text-red-500 hover:text-red-600"
-                      >
-                        Delete
-                      </button>
-                    )}
+                    {comment.userId?._id &&
+                      userId &&
+                      isSameUser(comment.userId._id) && (
+                        <button
+                          onClick={() => handleDeleteComment(comment._id)}
+                          className="text-xs text-red-500 hover:text-red-600"
+                        >
+                          Delete
+                        </button>
+                      )}
                   </div>
                 </div>
               </div>

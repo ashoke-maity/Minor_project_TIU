@@ -22,7 +22,7 @@ import {
 import axios from "axios";
 import { io } from "socket.io-client";
 
-function MobileMainLayout() {
+function MobileMainLayout({ loading }) {
   const navigate = useNavigate();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
