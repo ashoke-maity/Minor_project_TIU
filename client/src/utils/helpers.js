@@ -70,3 +70,25 @@ export function truncateText(str, length = 100) {
 export function generateId() {
   return Math.random().toString(36).substring(2, 9);
 } 
+
+// updating the getTokenData function to decode JWT token and return user data
+export const getTokenData = () => {
+  try {
+    const token = localStorage.getItem('authToken');
+    if (!token) return null;
+
+    // Get payload part of token (second part between dots)
+    const payload = token.split('.')[1];
+    // Decode base64
+    const decoded = JSON.parse(atob(payload));
+    
+    return {
+      id: decoded.id,
+      email: decoded.email,
+      firstName: decoded.FirstName,
+      lastName: decoded.LastName
+    };
+  } catch (error) {
+    return null;
+  }
+};
