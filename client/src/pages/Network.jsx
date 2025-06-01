@@ -191,6 +191,11 @@ function Network() {
     }
   };
 
+  // Users who follow you but you don't follow back
+  const getFollowBackUsers = () => {
+    return connectionsList.filter((user) => !followingIds.has(user._id));
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -204,6 +209,9 @@ function Network() {
         userProfile.LastName?.[0] ?? ""
       }`.toUpperCase()
     : "";
+
+  // Get follow back users for this render
+  const followBackUsers = getFollowBackUsers();
 
   return (
     <>
@@ -233,10 +241,57 @@ function Network() {
                     My Network
                   </h2>
                   <p className="mt-1 text-gray-600">
-                    Connect with other alumni and expand your professional network
+                    Connect with other alumni and expand your professional
+                    network
                   </p>
                 </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Show Follow Back users first */}
+                  {activeTab === "all" &&
+                    followBackUsers.map((user) => {
+                      const isRequested = sentRequests.includes(user._id);
+                      return (
+                        <div
+                          key={user._id + "-followback"}
+                          className="bg-white rounded-lg border border-yellow-200 bg-yellow-50 p-4 hover:shadow-md transition-shadow duration-300"
+                        >
+                          <div className="flex items-center space-x-4">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center text-white font-semibold text-lg">
+                              {user.FirstName[0]}
+                              {user.LastName[0]}
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="text-lg font-semibold text-yellow-700">
+                                {user.FirstName} {user.LastName}
+                              </h3>
+                              <p className="text-sm text-yellow-600 hidden md:block">
+                                {user.Email}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="mt-4 flex gap-2">
+                            {isRequested ? (
+                              <button
+                                disabled
+                                className="w-full px-4 py-2 text-sm font-medium text-gray-500 bg-gray-100 rounded-md cursor-not-allowed"
+                              >
+                                Request Sent
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleFollow(user._id)}
+                                className="w-full px-4 py-2 text-sm font-medium text-white bg-yellow-500 hover:bg-yellow-600 rounded-md transition-colors duration-300"
+                              >
+                                Follow Back
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+                
                 {/* Mobile Tabs - Visible only on mobile */}
                 <div className="lg:hidden border-b border-gray-200">
                   <div className="flex space-x-4 px-4 py-2">
@@ -289,100 +344,128 @@ function Network() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {getFilteredUsersByTab().map((user) => {
-                      const isRequested = sentRequests.includes(user._id);
-                      const isConnected =
-                        connectionIds.has(user._id) || followingIds.has(user._id);
-                      const isInConnectionsList = connectionsList.some(
-                        (conn) => conn._id === user._id
-                      );
-                      const isInFollowingList = followingList.some(
-                        (follow) => follow._id === user._id
-                      );
+                    {getFilteredUsersByTab()
+                      // Exclude follow back users from main list in "all" tab
+                      .filter(
+                        (user) =>
+                          !(
+                            activeTab === "all" &&
+                            followBackUsers.some((fb) => fb._id === user._id)
+                          )
+                      )
+                      .map((user) => {
+                        const isRequested = sentRequests.includes(user._id);
+                        const isConnected =
+                          connectionIds.has(user._id) ||
+                          followingIds.has(user._id);
+                        const isInConnectionsList = connectionsList.some(
+                          (conn) => conn._id === user._id
+                        );
+                        const isInFollowingList = followingList.some(
+                          (follow) => follow._id === user._id
+                        );
 
-                      return (
-                        <div
-                          key={user._id}
-                          className={`bg-white rounded-lg border ${
-                            isConnected || isInConnectionsList || isInFollowingList
-                              ? "border-teal-200 bg-teal-50"
-                              : "border-gray-200"
-                          } p-4 hover:shadow-md transition-shadow duration-300`}
-                        >
-                          <div className="flex items-center space-x-4">
-                            <div className={`w-12 h-12 rounded-full ${
-                              isConnected || isInConnectionsList || isInFollowingList
-                                ? "bg-gradient-to-br from-teal-500 to-emerald-400"
-                                : "bg-gradient-to-br from-teal-400 to-emerald-500"
-                            } flex items-center justify-center text-white font-semibold text-lg`}>
-                              {user.FirstName[0]}
-                              {user.LastName[0]}
+                        return (
+                          <div
+                            key={user._id}
+                            className={`bg-white rounded-lg border ${
+                              isConnected ||
+                              isInConnectionsList ||
+                              isInFollowingList
+                                ? "border-teal-200 bg-teal-50"
+                                : "border-gray-200"
+                            } p-4 hover:shadow-md transition-shadow duration-300`}
+                          >
+                            <div className="flex items-center space-x-4">
+                              <div
+                                className={`w-12 h-12 rounded-full ${
+                                  isConnected ||
+                                  isInConnectionsList ||
+                                  isInFollowingList
+                                    ? "bg-gradient-to-br from-teal-500 to-emerald-400"
+                                    : "bg-gradient-to-br from-teal-400 to-emerald-500"
+                                } flex items-center justify-center text-white font-semibold text-lg`}
+                              >
+                                {user.FirstName[0]}
+                                {user.LastName[0]}
+                              </div>
+                              <div className="flex-1">
+                                <h3
+                                  className={`text-lg font-semibold ${
+                                    isConnected ||
+                                    isInConnectionsList ||
+                                    isInFollowingList
+                                      ? "text-teal-700"
+                                      : "text-gray-800"
+                                  }`}
+                                >
+                                  {user.FirstName} {user.LastName}
+                                </h3>
+                                <p
+                                  className={`text-sm ${
+                                    isConnected ||
+                                    isInConnectionsList ||
+                                    isInFollowingList
+                                      ? "text-teal-600"
+                                      : "text-gray-500"
+                                  } hidden md:block`}
+                                >
+                                  {user.Email}
+                                </p>
+                              </div>
                             </div>
-                            <div className="flex-1">
-                              <h3 className={`text-lg font-semibold ${
-                                isConnected || isInConnectionsList || isInFollowingList
-                                  ? "text-teal-700"
-                                  : "text-gray-800"
-                              }`}>
-                                {user.FirstName} {user.LastName}
-                              </h3>
-                              <p className={`text-sm ${
-                                isConnected || isInConnectionsList || isInFollowingList
-                                  ? "text-teal-600"
-                                  : "text-gray-500"
-                              } hidden md:block`}>
-                                {user.Email}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="mt-4 flex gap-2">
-                            {isConnected || isInConnectionsList || isInFollowingList ? (
-                              <>
+                            <div className="mt-4 flex gap-2">
+                              {isConnected ||
+                              isInConnectionsList ||
+                              isInFollowingList ? (
+                                <>
+                                  <button
+                                    disabled
+                                    className="flex-1 px-4 py-2 text-sm font-medium text-teal-600 bg-teal-50 rounded-md cursor-not-allowed border border-teal-200"
+                                  >
+                                    <div className="flex items-center justify-center">
+                                      <UserCheck size={16} className="mr-2" />
+                                      Connected
+                                    </div>
+                                  </button>
+                                  {isInConnectionsList && (
+                                    <button
+                                      onClick={() =>
+                                        handleRemoveFollower(user._id)
+                                      }
+                                      className="px-3 py-2 text-sm font-medium text-red-600 border border-red-200 rounded-md hover:bg-red-50 transition-colors duration-300"
+                                    >
+                                      Remove
+                                    </button>
+                                  )}
+                                  {isInFollowingList && (
+                                    <button
+                                      onClick={() => handleUnfollow(user._id)}
+                                      className="px-3 py-2 text-sm font-medium text-red-600 border border-red-200 rounded-md hover:bg-red-50 transition-colors duration-300"
+                                    >
+                                      Unfollow
+                                    </button>
+                                  )}
+                                </>
+                              ) : isRequested ? (
                                 <button
                                   disabled
-                                  className="flex-1 px-4 py-2 text-sm font-medium text-teal-600 bg-teal-50 rounded-md cursor-not-allowed border border-teal-200"
+                                  className="w-full px-4 py-2 text-sm font-medium text-gray-500 bg-gray-100 rounded-md cursor-not-allowed"
                                 >
-                                  <div className="flex items-center justify-center">
-                                    <UserCheck size={16} className="mr-2" />
-                                    Connected
-                                  </div>
+                                  Request Sent
                                 </button>
-                                {isInConnectionsList && (
-                                  <button
-                                    onClick={() => handleRemoveFollower(user._id)}
-                                    className="px-3 py-2 text-sm font-medium text-red-600 border border-red-200 rounded-md hover:bg-red-50 transition-colors duration-300"
-                                  >
-                                    Remove
-                                  </button>
-                                )}
-                                {isInFollowingList && (
-                                  <button
-                                    onClick={() => handleUnfollow(user._id)}
-                                    className="px-3 py-2 text-sm font-medium text-red-600 border border-red-200 rounded-md hover:bg-red-50 transition-colors duration-300"
-                                  >
-                                    Unfollow
-                                  </button>
-                                )}
-                              </>
-                            ) : isRequested ? (
-                              <button
-                                disabled
-                                className="w-full px-4 py-2 text-sm font-medium text-gray-500 bg-gray-100 rounded-md cursor-not-allowed"
-                              >
-                                Request Sent
-                              </button>
-                            ) : (
-                              <button
-                                onClick={() => handleFollow(user._id)}
-                                className="w-full px-4 py-2 text-sm font-medium text-white bg-teal-500 hover:bg-teal-600 rounded-md transition-colors duration-300"
-                              >
-                                Connect
-                              </button>
-                            )}
+                              ) : (
+                                <button
+                                  onClick={() => handleFollow(user._id)}
+                                  className="w-full px-4 py-2 text-sm font-medium text-white bg-teal-500 hover:bg-teal-600 rounded-md transition-colors duration-300"
+                                >
+                                  Connect
+                                </button>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
                   </div>
                 </div>
               </div>
