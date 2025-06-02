@@ -6,92 +6,100 @@ const streamifier = require("streamifier");
 // Create a new post
 const createPost = async (req, res) => {
   try {
-    const {
-      postType = "regular",
-      content,
-      jobTitle,
-      companyName,
-      location,
-      jobType,
-      salary,
-      requirements,
-      deadline,
-      eventName,
-      eventDate,
-      summary,
-      donationTitle,
-      goal,
-      purpose,
-    } = req.body;
+    const { postType = "regular", content } = req.body;
     const userId = req.user.id;
 
-    const extraData = {};
+    // Parse job and event details from form data
+    const jobDetails = req.body.jobDetails ? JSON.parse(req.body.jobDetails) : null;
+    const eventDetails = req.body.eventDetails ? JSON.parse(req.body.eventDetails) : null;
+    const donationDetails = req.body.donationDetails ? JSON.parse(req.body.donationDetails) : null;
 
-    if (postType === "job") {
-      extraData.jobTitle = jobTitle;
-      extraData.companyName = companyName;
-      extraData.location = location;
-      extraData.jobType = jobType;
-      extraData.salary = salary;
-      extraData.requirements = requirements;
-      extraData.deadline = deadline;
-    } else if (postType === "event") {
-      extraData.eventName = eventName;
-      extraData.eventDate = eventDate;
-      extraData.location = location;
-      extraData.summary = summary;
-    } else if (postType === "donation") {
-      extraData.donationTitle = donationTitle;
-      extraData.goal = goal;
-      extraData.purpose = purpose;
+    let postData = {
+      userId,
+      postType,
+      content
+    };
+
+    // Add the details based on post type
+    if (postType === "job" && jobDetails) {
+      postData.jobDetails = {
+        jobTitle: jobDetails.jobTitle,
+        companyName: jobDetails.companyName,
+        location: jobDetails.location,
+        jobType: jobDetails.jobType,
+        salary: jobDetails.salary,
+        requirements: jobDetails.requirements,
+        deadline: jobDetails.deadline
+      };
     }
 
-    let mediaUrl = null;
+    if (postType === "event" && eventDetails) {
+      postData.eventDetails = {
+        eventName: eventDetails.eventName,
+        eventDate: eventDetails.eventDate,
+        location: eventDetails.location,
+        summary: eventDetails.summary
+      };
+    }
+
+    if (postType === "donation" && donationDetails) {
+      postData.donationDetails = {
+        donationTitle: donationDetails.donationTitle,
+        goal: donationDetails.goal,
+        purpose: donationDetails.purpose
+      };
+    }
 
     if (req.file) {
-      const resourceType = req.file.mimetype.startsWith("video/")
-        ? "video"
-        : "image";
-      mediaUrl = await new Promise((resolve, reject) => {
-        const uploadStream = cloudinary.uploader.upload_stream(
-          { resource_type: resourceType },
-          (error, result) => {
-            if (error) {
-              return reject(error);
+      try {
+        const resourceType = req.file.mimetype.startsWith("video/") ? "video" : "image";
+        const uploadResult = await new Promise((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            { 
+              resource_type: resourceType,
+              folder: "alumni_connect",
+              allowed_formats: resourceType === "video" ? 
+                ["mp4", "webm", "mov", "avi"] : 
+                ["jpg", "jpeg", "png", "gif", "webp"]
+            },
+            (error, result) => {
+              if (error) {
+                console.error("Cloudinary upload error:", error);
+                reject(error);
+              } else {
+                resolve(result);
+              }
             }
-            resolve(result.secure_url);
-          }
-        );
-        streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
-      });
+          );
+
+          streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+        });
+
+        postData.mediaUrl = uploadResult.secure_url;
+      } catch (uploadError) {
+        console.error("Media upload error:", uploadError);
+        return res.status(500).json({ 
+          message: "Failed to upload media", 
+          error: uploadError.message 
+        });
+      }
     }
 
-    if (!content && !mediaUrl) {
-      return res
-        .status(400)
-        .json({ message: "Post must contain at least text or media." });
-    }
-
-    let newPost = new UserPost({
-      userId,
-      postType: postType || "regular",
-      content,
-      mediaUrl,
-      extraData,
-    });
-
+    let newPost = new UserPost(postData);
     await newPost.save();
 
-    // Populate user info BEFORE emitting the socket event
+    // Populate user info before sending response
     newPost = await newPost.populate("userId", "FirstName LastName");
 
     req.app.get("io").emit("newPost", newPost);
 
-    res
-      .status(201)
-      .json({ message: "Post created successfully", post: newPost });
+    res.status(201).json({
+      message: "Post created successfully",
+      post: newPost
+    });
   } catch (err) {
-    res.status(500).json({ message: "Server error", err: err.message });
+    console.error("Create post error:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 };
 
@@ -127,32 +135,34 @@ const getAllPosts = async (req, res) => {
       .sort({ createdAt: -1 })
       .populate({
         path: "userId",
-        select: "FirstName LastName"
+        select: "FirstName LastName",
       })
       .populate({
         path: "likes",
-        select: "FirstName LastName Email"
+        select: "FirstName LastName Email",
       })
       .populate({
         path: "comments.userId",
-        select: "FirstName LastName _id"
+        select: "FirstName LastName _id",
       });
 
-    const postsWithDetails = posts.map(post => {
+    const postsWithDetails = posts.map((post) => {
       const postObj = post.toObject();
       return {
         ...postObj,
-        isLiked: post.likes.some(like => like._id.toString() === userId.toString()),
-        comments: post.comments.map(comment => ({
+        isLiked: post.likes.some(
+          (like) => like._id.toString() === userId.toString()
+        ),
+        comments: post.comments.map((comment) => ({
           _id: comment._id,
           text: comment.text,
           createdAt: comment.createdAt,
           userId: {
             _id: comment.userId._id,
             FirstName: comment.userId.FirstName,
-            LastName: comment.userId.LastName
-          }
-        }))
+            LastName: comment.userId.LastName,
+          },
+        })),
       };
     });
 
@@ -347,8 +357,8 @@ const commentOnPost = async (req, res) => {
       createdAt: new Date(),
       userDetails: {
         FirstName: req.user.FirstName,
-        LastName: req.user.LastName
-      }
+        LastName: req.user.LastName,
+      },
     };
 
     post.comments.push(newComment);
@@ -362,9 +372,9 @@ const commentOnPost = async (req, res) => {
         userId: {
           _id: req.user.id,
           FirstName: req.user.FirstName,
-          LastName: req.user.LastName
-        }
-      }
+          LastName: req.user.LastName,
+        },
+      },
     });
   } catch (err) {
     console.error("Comment error:", err);
@@ -407,15 +417,28 @@ const deleteComment = async (req, res) => {
 const savePost = async (req, res) => {
   try {
     const post = await UserPost.findById(req.params.id);
-    if (!post) return res.status(404).json({ message: "Post not found" });
-    const userId = req.user.id;
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    const userId = req.user.id; // Get userId from auth middleware
+
+    // Check if already saved
     if (post.savedBy.includes(userId)) {
       return res.status(400).json({ message: "Post already saved" });
     }
+
+    // Add to savedBy array
     post.savedBy.push(userId);
     await post.save();
-    res.status(200).json({ message: "Post saved successfully", post });
+
+    res.status(200).json({
+      message: "Post saved successfully",
+      post: post,
+      saved: true,
+    });
   } catch (err) {
+    console.error("Save error:", err);
     res.status(500).json({ message: "Failed to save post" });
   }
 };
@@ -442,19 +465,33 @@ const getSavedPosts = async (req, res) => {
   }
 };
 
-// unsave a post
+// unsave post
 const unsavePost = async (req, res) => {
   try {
     const post = await UserPost.findById(req.params.id);
-    if (!post) return res.status(404).json({ message: "Post not found" });
-    const userId = req.user._id;
-    if (!post.savedBy.includes(userId)) {
-      return res.status(400).json({ message: "Post not saved" });
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
     }
-    post.savedBy.pull(userId);
+
+    const userId = req.user.id;
+
+    // Check if post is saved
+    const savedIndex = post.savedBy.indexOf(userId);
+    if (savedIndex === -1) {
+      return res.status(400).json({ message: "Post is not saved" });
+    }
+
+    // Remove from savedBy array
+    post.savedBy.splice(savedIndex, 1);
     await post.save();
-    res.status(200).json({ message: "Post unsaved successfully", post });
+
+    res.status(200).json({
+      message: "Post unsaved successfully",
+      post: post,
+      saved: false,
+    });
   } catch (err) {
+    console.error("Unsave error:", err);
     res.status(500).json({ message: "Failed to unsave post" });
   }
 };

@@ -196,7 +196,6 @@ function MainLayout({ loading }) {
     });
 
     socket.on("newPost", (post) => {
-      console.log("Received newPost:", post);
       setPosts((prevPosts) => {
         // Check if the post already exists in the feed
         const exists = prevPosts.some((p) => p._id === post._id);

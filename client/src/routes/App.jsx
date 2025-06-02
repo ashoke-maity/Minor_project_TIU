@@ -22,6 +22,7 @@ import AdminNewJobs from '../pages/AdminNewJobs';
 import AdminNewStories from '../pages/AdminNewStories';
 import NotFound from '../pages/NotFound';
 import MyPosts from "../pages/MyPosts";
+import SavedPosts from '../components/Home/web/SavedPosts';
 
 const adminRoute = import.meta.env.VITE_ADMIN_ROUTE;
 
@@ -48,7 +49,7 @@ function App() {
         <Route path="/network" element={<Network />} />
         <Route path="settings" element={<UserSettings />} />
         <Route path="/privacypolicy" element={<UserPrivacyPolicy />} />
-        
+        <Route path="/saved-posts" element={<SavedPosts />} />
         {/* Admin Routes */}
         <Route path={`${adminRoute}/admin/login`} element={<AdminLogin />} />
         <Route path={`${adminRoute}/admin/forgotpass`} element={<AdminForgotPass />} />

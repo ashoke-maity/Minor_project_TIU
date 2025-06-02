@@ -21,11 +21,15 @@ const fileFilter = (req, file, cb) => {
   ) {
     cb(null, true);
   } else {
-     console.error("Blocked File Type:", ext);
+    console.error("Blocked File Type:", ext);
     cb(new Error("Only images and videos are allowed"), false);
   }
 };
 
-const upload = multer({ storage, fileFilter });
+const limits = {
+  fileSize: 10 * 1024 * 1024, // Limit file size to 10MB
+};
+
+const upload = multer({ storage, fileFilter, limits });
 
 module.exports = upload;
