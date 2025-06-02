@@ -1,5 +1,14 @@
 import React from "react";
-import { UserCheck, UserPlus, Bookmark, Calendar, Briefcase, IndianRupee, ChevronRight, Image } from "lucide-react";
+import {
+  UserCheck,
+  UserPlus,
+  Bookmark,
+  Calendar,
+  Briefcase,
+  IndianRupee,
+  ChevronRight,
+  Image,
+} from "lucide-react";
 
 function ProfileSidebar({
   initials,
@@ -28,7 +37,9 @@ function ProfileSidebar({
           <div className="grid grid-cols-2 gap-6 mt-4 w-full">
             <div
               className="text-center cursor-pointer hover:bg-teal-50 p-2 rounded-lg transition-colors duration-300"
-              onClick={() => setShowConnectionsPopup && setShowConnectionsPopup(true)}
+              onClick={() =>
+                setShowConnectionsPopup && setShowConnectionsPopup(true)
+              }
             >
               <div className="flex items-center justify-center space-x-2 text-teal-600 mb-1">
                 <UserCheck size={18} />
@@ -40,7 +51,9 @@ function ProfileSidebar({
             </div>
             <div
               className="text-center cursor-pointer hover:bg-teal-50 p-2 rounded-lg transition-colors duration-300"
-              onClick={() => setShowFollowingPopup && setShowFollowingPopup(true)}
+              onClick={() =>
+                setShowFollowingPopup && setShowFollowingPopup(true)
+              }
             >
               <div className="flex items-center justify-center space-x-2 text-teal-600 mb-1">
                 <UserPlus size={18} />
@@ -56,74 +69,48 @@ function ProfileSidebar({
 
       {/* Quick Links Card */}
       <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden p-5 hover:shadow-xl transition-shadow duration-300">
-        <h2 className="text-lg font-bold text-gray-800 mb-4">
-          Quick Links
-        </h2>
+        <h2 className="text-lg font-bold text-gray-800 mb-4">Quick Links</h2>
         <div className="space-y-3">
           <a
             href="#"
             className="flex items-center py-2 px-3 hover:bg-teal-50 rounded-lg transition-colors duration-300"
+            onClick={(e) => {
+              e.preventDefault();
+              navigate && navigate("/saved-posts"); // Update this path
+            }}
           >
             <Bookmark size={18} className="text-teal-500 mr-3" />
-            <span className="text-gray-700">Bookmarks</span>
+            <span className="text-gray-700">Saved Items</span>
             <ChevronRight size={16} className="ml-auto text-gray-400" />
           </a>
-          <div className="pl-8 space-y-1">
-            <a
-              href="#"
-              className="block text-sm text-teal-600 hover:underline py-1"
-              onClick={e => {
-                e.preventDefault();
-                navigate && navigate("/my-posts?view=bookmarks");
-              }}
-            >
-              Saved Items
-            </a>
-          </div>
           <a
             href="#"
             className="flex items-center py-2 px-3 hover:bg-teal-50 rounded-lg transition-colors duration-300"
+            onClick={(e) => {
+              e.preventDefault();
+              navigate && navigate("/my-posts?view=events");
+            }}
           >
             <Calendar size={18} className="text-teal-500 mr-3" />
-            <span className="text-gray-700">Events</span>
+            <span className="text-gray-700">All Events</span>
             <ChevronRight size={16} className="ml-auto text-gray-400" />
           </a>
-          <div className="pl-8 space-y-1">
-            <a
-              href="#"
-              className="block text-sm text-teal-600 hover:underline py-1"
-              onClick={e => {
-                e.preventDefault();
-                navigate && navigate("/my-posts?view=events");
-              }}
-            >
-              Upcoming Events
-            </a>
-          </div>
           <a
             href="#"
             className="flex items-center py-2 px-3 hover:bg-teal-50 rounded-lg transition-colors duration-300"
+            onClick={(e) => {
+              e.preventDefault();
+              navigate && navigate("/my-posts?view=jobs");
+            }}
           >
             <Briefcase size={18} className="text-teal-500 mr-3" />
-            <span className="text-gray-700">Jobs</span>
+            <span className="text-gray-700">Available Jobs</span>
             <ChevronRight size={16} className="ml-auto text-gray-400" />
           </a>
-          <div className="pl-8 space-y-1">
-            <a
-              href="#"
-              className="block text-sm text-teal-600 hover:underline py-1"
-              onClick={e => {
-                e.preventDefault();
-                navigate && navigate("/my-posts?view=jobs");
-              }}
-            >
-              Available Opportunities
-            </a>
-          </div>
           <a
             href="#"
             className="flex items-center py-2 px-3 hover:bg-teal-50 rounded-lg transition-colors duration-300"
-            onClick={e => {
+            onClick={(e) => {
               e.preventDefault();
               navigate && navigate("/my-posts?view=posts");
             }}

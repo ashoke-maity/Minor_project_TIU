@@ -13,6 +13,7 @@ import {
   FileText,
   X,
   Users,
+  IndianRupee,
 } from "lucide-react";
 
 function PostCard({ post, job, hideInteractions }) {
@@ -28,7 +29,9 @@ function PostCard({ post, job, hideInteractions }) {
 
   // Initialize all state variables
   const [liked, setLiked] = useState(post.isLiked || false);
-  const [saved, setSaved] = useState(data?.savedBy?.includes(userId));
+  const [saved, setSaved] = useState(() => {
+    return data?.savedBy?.some((id) => String(id) === String(userId)) || false;
+  });
   const [likeCount, setLikeCount] = useState(data?.likes?.length || 0);
   const [likedUsers, setLikedUsers] = useState(data?.likes || []);
   const [commentVisible, setCommentVisible] = useState(false);
@@ -44,8 +47,10 @@ function PostCard({ post, job, hideInteractions }) {
       createdAt: comment.createdAt,
       userId: {
         _id: comment.userId?._id || comment.userId,
-        FirstName: comment.userDetails?.FirstName || comment.userId?.FirstName || "",
-        LastName: comment.userDetails?.LastName || comment.userId?.LastName || "",
+        FirstName:
+          comment.userDetails?.FirstName || comment.userId?.FirstName || "",
+        LastName:
+          comment.userDetails?.LastName || comment.userId?.LastName || "",
       },
     }));
   });
@@ -55,11 +60,12 @@ function PostCard({ post, job, hideInteractions }) {
     if (!commentUserId || !userId) {
       return false;
     }
-    
+
     // Handle both string and object IDs
-    const commentId = typeof commentUserId === 'object' ? commentUserId._id : commentUserId;
+    const commentId =
+      typeof commentUserId === "object" ? commentUserId._id : commentUserId;
     const isMatch = String(commentId).trim() === String(userId).trim();
-    
+
     return isMatch;
   };
 
@@ -70,7 +76,6 @@ function PostCard({ post, job, hideInteractions }) {
       setUserId(tokenData.id);
     }
   }, []);
-
 
   // Format the date
   const getFormattedDate = (dateString) => {
@@ -187,14 +192,15 @@ function PostCard({ post, job, hideInteractions }) {
   };
 
   const handleSave = async () => {
-    const token = localStorage.getItem("authToken");
-    const url = saved
-      ? `${import.meta.env.VITE_USER_API_URL}/user/unsave/post/${data._id}`
-      : `${import.meta.env.VITE_USER_API_URL}/user/save/post/${data._id}`;
     try {
+      const token = localStorage.getItem("authToken");
+      const url = saved
+        ? `${import.meta.env.VITE_USER_API_URL}/user/unsave/post/${data._id}`
+        : `${import.meta.env.VITE_USER_API_URL}/user/save/post/${data._id}`;
+
       const response = await axios.post(
         url,
-        { userId }, // Changed from currentUserId
+        { userId }, // Add userId in request body
         {
           headers: {
             "Content-Type": "application/json",
@@ -202,9 +208,12 @@ function PostCard({ post, job, hideInteractions }) {
           },
         }
       );
-      setSaved(!saved);
+
+      if (response.data?.message) {
+        setSaved(!saved);
+      }
     } catch (err) {
-      console.error("Save toggle failed", err);
+      alert(err?.response?.data?.message || "Failed to save/unsave post");
     }
   };
 
@@ -212,103 +221,136 @@ function PostCard({ post, job, hideInteractions }) {
   const userInfo = data.User || data.userId || {};
   const firstName = userInfo.FirstName || "";
   const lastName = userInfo.LastName || "";
-  const initials =
-    `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase() || "U";
+  const initials = `${firstName?.[0] || ""}${
+    lastName?.[0] || ""
+  }`.toUpperCase();
   const fullName =
     firstName && lastName ? `${firstName} ${lastName}` : "Anonymous User";
-  const passoutYear = userInfo.PassoutYear;
 
   // Helper to render job details if it's a job post
   const renderJobDetails = () => {
-    if (postType !== "job") return null;
-
-    const jobData = data.extraData ? data.extraData : data;
-    const jobTitle = jobData.jobTitle || data.jobTitle || "";
-    const companyName = jobData.companyName || data.companyName || "";
-    const location = jobData.location || data.location || "";
-    const jobType = jobData.jobType || data.jobType || "";
-    const salary = jobData.salary || data.salary || "";
-    const deadline = jobData.deadline || data.deadline || null;
-    return (
-      <div className="mt-3 space-y-2 text-sm">
-        {jobTitle && companyName && (
-          <div className="font-medium">
-            {jobTitle} at {companyName}
+    if (post.postType === "job" && post.jobDetails) {
+      return (
+        <div className="mt-4 space-y-3 pt-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-800">
+              {post.jobDetails.jobTitle}
+            </h3>
+            <span className="px-3 py-1 text-sm font-medium text-teal-600 bg-teal-50 rounded-full">
+              {post.jobDetails.jobType}
+            </span>
           </div>
-        )}
 
-        <div className="flex flex-wrap gap-3">
-          {location && (
+          <div className="flex items-center text-gray-600">
+            <Briefcase size={16} className="mr-2" />
+            <span className="text-sm">{post.jobDetails.companyName}</span>
+          </div>
+
+          <div className="flex items-center text-gray-600">
+            <MapPin size={16} className="mr-2" />
+            <span className="text-sm">{post.jobDetails.location}</span>
+          </div>
+
+          {post.jobDetails.salary && (
             <div className="flex items-center text-gray-600">
-              <MapPin size={14} className="mr-1" /> {location}
+              <IndianRupee size={16} className="mr-2" />
+              <span className="text-sm">{post.jobDetails.salary}</span>
             </div>
           )}
-          {jobType && (
+
+          {post.jobDetails.deadline && (
             <div className="flex items-center text-gray-600">
-              <Briefcase size={14} className="mr-1" /> {jobType}
+              <Calendar size={16} className="mr-2" />
+              <span className="text-sm">
+                Deadline:{" "}
+                {new Date(post.jobDetails.deadline).toLocaleDateString()}
+              </span>
             </div>
           )}
-          {salary && (
-            <div className="bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full text-xs font-medium">
-              {salary}
+
+          {post.jobDetails.requirements && (
+            <div className="mt-3">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">
+                Requirements:
+              </h4>
+              <p className="text-sm text-gray-600 whitespace-pre-line">
+                {post.jobDetails.requirements}
+              </p>
+            </div>
+          )}
+          {data.content && (
+            <div className="mt-3">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">
+                Description:
+              </h4>
+              <p className="text-sm text-gray-600 whitespace-pre-line">
+                {data.content}
+              </p>
             </div>
           )}
         </div>
-
-        {deadline && (
-          <div className="flex items-center text-amber-600 text-xs">
-            <Clock size={14} className="mr-1" />
-            Application deadline:{" "}
-            {(() => {
-              try {
-                return new Date(deadline).toLocaleDateString();
-              } catch (e) {
-                return "Available";
-              }
-            })()}
-          </div>
-        )}
-      </div>
-    );
+      );
+    }
+    return null;
   };
 
   // Helper to render event details if it's an event post
   const renderEventDetails = () => {
     if (postType !== "event") return null;
 
-    const eventData = data.extraData || {};
-    const eventName = eventData.eventName || "";
-    const eventDate = eventData.eventDate || null;
-    const location = eventData.location || "";
-    const summary = eventData.summary || "";
+    // Get event details from either post.eventDetails or data.eventDetails
+    const eventDetails = post?.eventDetails || data?.eventDetails || {};
 
     return (
-      <div className="mt-3 space-y-2 text-sm">
-        {eventName && <div className="font-medium">{eventName}</div>}
-
-        <div className="flex flex-wrap gap-3">
-          {eventDate && (
-            <div className="flex items-center text-gray-600">
-              <Calendar size={14} className="mr-1" />
-              {(() => {
-                try {
-                  return new Date(eventDate).toLocaleDateString();
-                } catch (e) {
-                  return "Upcoming";
-                }
-              })()}
-            </div>
-          )}
-          {location && (
-            <div className="flex items-center text-gray-600">
-              <MapPin size={14} className="mr-1" /> {location}
-            </div>
-          )}
+      <div className="mt-4 space-y-3 pt-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-800">
+            {eventDetails.eventName}
+          </h3>
         </div>
 
-        {summary && (
-          <div className="text-gray-700 bg-gray-50 p-2 rounded-md text-xs">
-            {summary}
+        {eventDetails.eventDate && (
+          <div className="flex items-center text-gray-600">
+            <Calendar size={16} className="mr-2" />
+            <span className="text-sm">
+              {new Date(eventDetails.eventDate).toLocaleDateString()}
+            </span>
+          </div>
+        )}
+
+        {eventDetails.location && (
+          <div className="flex items-center text-gray-600">
+            <MapPin size={16} className="mr-2" />
+            <span className="text-sm">{eventDetails.location}</span>
+          </div>
+        )}
+
+        {eventDetails.time && (
+          <div className="flex items-center text-gray-600">
+            <Clock size={16} className="mr-2" />
+            <span className="text-sm">{eventDetails.time}</span>
+          </div>
+        )}
+
+        {data.content && (
+          <div className="mt-3">
+            <h4 className="text-sm font-medium text-gray-700 mb-2">
+              Event Description:
+            </h4>
+            <p className="text-sm text-gray-600 whitespace-pre-line">
+              {data.content}
+            </p>
+          </div>
+        )}
+
+        {eventDetails.summary && (
+          <div className="mt-3">
+            <h4 className="text-sm font-medium text-gray-700 mb-2">
+              Additional Information:
+            </h4>
+            <p className="text-sm text-gray-600 whitespace-pre-line">
+              {eventDetails.summary}
+            </p>
           </div>
         )}
       </div>
@@ -359,59 +401,64 @@ function PostCard({ post, job, hideInteractions }) {
               <h3 className="text-sm font-semibold text-gray-900">
                 {fullName}
               </h3>
-              <p className="text-xs text-gray-500">
-                {passoutYear ? `Class of ${passoutYear}` : ""} • {postDate}
-              </p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Media content - Show first */}
-      {data.media && data.media.length > 0 && (
-        <div className="mt-3">
-          {data.media.map((media, index) => (
-            <div key={index} className="relative">
-              {media.type.startsWith("image/") ? (
-                <img
-                  src={media.url}
-                  alt={`Post media ${index + 1}`}
-                  className="rounded-lg w-full object-cover cursor-pointer"
-                  onClick={() => setShowMediaModal(true)}
-                />
-              ) : media.type.startsWith("video/") ? (
-                <video src={media.url} controls className="rounded-lg w-full" />
-              ) : (
-                <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
-                  <FileText size={20} className="text-gray-500" />
-                  <span className="text-sm text-gray-700">
-                    {media.name || "Document"}
-                  </span>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-      {/* Add this block for single mediaUrl support */}
-      {data.mediaUrl && (
+      {post.mediaUrl ? (
         <div className="mt-3">
           <img
-            src={data.mediaUrl}
+            src={post.mediaUrl}
             alt="Post media"
-            className="rounded-lg max-h-72 w-full object-cover"
+            className="rounded-lg max-h-72 w-full object-cover cursor-pointer"
             onClick={() => setShowMediaModal(true)}
           />
         </div>
+      ) : (
+        data.media &&
+        data.media.length > 0 && (
+          <div className="mt-3">
+            {data.media.map((media, index) => (
+              <div key={index} className="relative">
+                {media.type?.startsWith("image/") ? (
+                  <img
+                    src={media.url}
+                    alt={`Post media ${index + 1}`}
+                    className="rounded-lg w-full object-cover cursor-pointer"
+                    onClick={() => setShowMediaModal(true)}
+                  />
+                ) : media.type?.startsWith("video/") ? (
+                  <video
+                    src={media.url}
+                    controls
+                    className="rounded-lg w-full"
+                  />
+                ) : (
+                  <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
+                    <FileText size={20} className="text-gray-500" />
+                    <span className="text-sm text-gray-700">
+                      {media.name || "Document"}
+                    </span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )
       )}
-
       {/* Post content - Show after media */}
       <div className="mt-3">
-        <p className="text-sm text-gray-800 whitespace-pre-wrap">
-          {data.content}
-        </p>
-        {renderJobDetails()}
-        {renderEventDetails()}
+        {post.postType === "job" ? (
+          renderJobDetails()
+        ) : post.postType === "event" ? (
+          renderEventDetails()
+        ) : (
+          <p className="text-sm text-gray-800 whitespace-pre-wrap">
+            {data.content}
+          </p>
+        )}
       </div>
 
       {/* Interaction buttons - only show if not in editing mode */}
@@ -507,7 +554,7 @@ function PostCard({ post, job, hideInteractions }) {
       )}
 
       {/* Media modal */}
-      {showMediaModal && data.media && data.media.length > 0 && (
+      {showMediaModal && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
           <div className="relative max-w-4xl w-full">
             <button
@@ -517,7 +564,7 @@ function PostCard({ post, job, hideInteractions }) {
               <X size={24} />
             </button>
             <img
-              src={data.media[0].url}
+              src={post.mediaUrl || (data.media && data.media[0]?.url)}
               alt="Post media"
               className="max-h-[80vh] w-full object-contain"
             />

@@ -14,16 +14,12 @@ const {
   unsavePost,
   editPost,
   getMyPosts,
+  getSavedPosts,
 } = require("../controllers/UserPostController");
 const upload = require("../middlewares/uploadMiddleware");
 
 // create post
-router.post(
-  "/create/post",
-  verifyUserToken,
-  upload.single("media"),
-  createPost
-);
+router.post("/create/post", verifyUserToken, upload.single("media"), createPost);
 
 // see the other users posts in the feed
 router.get("/view/others", verifyUserToken, getUserPosts);
@@ -70,5 +66,8 @@ router.post("/user/save/post/:id", verifyUserToken, savePost);
 
 // unsave a post
 router.post("/user/unsave/post/:id", verifyUserToken, unsavePost);
+
+// get saved posts
+router.get("/user/saved/posts", verifyUserToken, getSavedPosts);
 
 module.exports = router;

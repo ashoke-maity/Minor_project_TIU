@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import axios from "axios";
 import {
   Calendar,
@@ -19,6 +20,8 @@ function PostModal({
   onPostCreate,
   postType: initialPostType,
 }) {
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [content, setContent] = useState("");
   const [postType, setPostType] = useState("regular");
   const [loading, setLoading] = useState(false);
@@ -82,7 +85,10 @@ function PostModal({
 
   if (!isOpen) return null;
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
     // Validate based on post type
     if (postType === "regular" && !content.trim()) {
       setError("Please enter some content.");
@@ -133,8 +139,53 @@ function PostModal({
 
     try {
       const formData = new FormData();
-      formData.append("postType", postType);
       formData.append("content", content);
+      formData.append("postType", postType);
+      if (selectedFile) {
+        formData.append("media", selectedFile);
+      }
+      // Add job details
+      if (postType === "job") {
+        formData.append(
+          "jobDetails",
+          JSON.stringify({
+            jobTitle,
+            companyName,
+            location: jobLocation,
+            jobType,
+            salary,
+            requirements,
+            deadline,
+          })
+        );
+      }
+
+      // Add event details
+      if (postType === "event") {
+        formData.append(
+          "eventDetails",
+          JSON.stringify({
+            eventName,
+            eventDate,
+            location: eventLocation,
+            summary: eventSummary,
+          })
+        );
+      }
+
+      // Add donation details
+      if (postType === "donation") {
+        formData.append(
+          "donationDetails",
+          JSON.stringify({
+            donationTitle,
+            goal: donationGoal,
+            purpose: donationPurpose,
+          })
+        );
+      }
+
+      // Add media if present
       if (mediaFile) {
         formData.append("media", mediaFile);
       }
@@ -145,7 +196,6 @@ function PostModal({
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-            "Content-Type": "multipart/form-data",
           },
         }
       );
@@ -161,6 +211,38 @@ function PostModal({
       console.error("Failed to create post:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Add this function to handle file selection
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      const validTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+        "video/mp4",
+        "video/webm",
+        "video/quicktime",
+        "video/x-msvideo",
+      ];
+
+      if (!validTypes.includes(file.type)) {
+        toast.error("Invalid file type. Please select an image or video file.");
+        return;
+      }
+
+      // Validate file size (10MB)
+      const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+      if (file.size > maxSize) {
+        toast.error("File is too large. Maximum size is 10MB.");
+        return;
+      }
+
+      setSelectedFile(file);
     }
   };
 
@@ -460,21 +542,28 @@ function PostModal({
               </div>
             </div>
           )}
-
           {/* Media Upload Form */}
           {postType === "media" && (
             <div className="space-y-4">
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center relative">
                 {mediaPreview ? (
                   <div className="relative">
-                    <img
-                      src={mediaPreview}
-                      alt="Upload preview"
-                      className="max-h-48 mx-auto object-contain"
-                    />
+                    {selectedFile?.type.startsWith("video/") ? (
+                      <video
+                        src={mediaPreview}
+                        className="max-h-48 mx-auto"
+                        controls
+                      />
+                    ) : (
+                      <img
+                        src={mediaPreview}
+                        alt="Upload preview"
+                        className="max-h-48 mx-auto object-contain"
+                      />
+                    )}
                     <button
                       onClick={() => {
-                        setMediaFile(null);
+                        setSelectedFile(null);
                         setMediaPreview(null);
                       }}
                       className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
@@ -489,7 +578,7 @@ function PostModal({
                       Click to upload or drag and drop
                     </p>
                     <p className="text-xs text-gray-400">
-                      PNG, JPG, GIF up to 10MB
+                      Images (PNG, JPG, GIF) or Videos (MP4, WebM) up to 10MB
                     </p>
                   </div>
                 )}
@@ -500,8 +589,41 @@ function PostModal({
                       ? "hidden"
                       : "absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   }
-                  onChange={handleFileChange}
-                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      // Validate file type and size
+                      const validTypes = [
+                        "image/jpeg",
+                        "image/png",
+                        "image/gif",
+                        "image/webp",
+                        "video/mp4",
+                        "video/webm",
+                        "video/quicktime",
+                      ];
+
+                      if (!validTypes.includes(file.type)) {
+                        toast.error(
+                          "Please upload a valid image or video file"
+                        );
+                        return;
+                      }
+
+                      if (file.size > 10 * 1024 * 1024) {
+                        toast.error("File size must be less than 10MB");
+                        return;
+                      }
+
+                      setSelectedFile(file);
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        setMediaPreview(reader.result);
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                  accept="image/*, video/mp4, video/webm, video/quicktime"
                 />
               </div>
 
