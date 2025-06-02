@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "../components/layout/Header";
 import MainLayout from "../components/Home/web/MainLayout";
 import MobileMainLayout from "../components/mobile/MainLayout";
 import axios from "axios";
@@ -55,7 +54,6 @@ function Home() {
 
   return (
     <div>
-      {!isMobile && <Header />}
       {isMobile ? (
         <MobileMainLayout jobs={jobs} loading={loading} />
       ) : (
