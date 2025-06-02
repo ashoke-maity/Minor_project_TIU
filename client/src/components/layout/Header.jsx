@@ -15,7 +15,7 @@ import {
   Check,
 } from "lucide-react";
 
-function Header() {
+function Header({ onUserClick }) {
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
   const notificationRef = useRef(null);
@@ -26,6 +26,11 @@ function Header() {
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const searchDropdownRef = useRef(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState("");
 
   const initials = `${firstName?.[0] ?? ""}${
     lastName?.[0] ?? ""
@@ -79,10 +84,16 @@ function Header() {
       ) {
         setNotificationOpen(false);
       }
+      if (
+        searchDropdownRef.current &&
+        !searchDropdownRef.current.contains(event.target)
+      ) {
+        setSearchResults(null);
+      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+   return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleAccept = async (senderId) => {
@@ -164,6 +175,44 @@ function Header() {
     navigate("/settings");
   };
 
+  // Debounce search
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults(null);
+      setSearchError("");
+      return;
+    }
+    setSearchLoading(true);
+    setSearchError("");
+    const timeout = setTimeout(async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        const searchRes = await axios.get(
+          `${
+            import.meta.env.VITE_USER_API_URL
+          }/search/all?query=${searchQuery}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setSearchResults(searchRes.data);
+        if (
+          (!searchRes.data.users || searchRes.data.users.length === 0) &&
+          (!searchRes.data.posts || searchRes.data.posts.length === 0)
+        ) {
+          setSearchError("No results found.");
+        }
+      } catch (error) {
+        setSearchError("Search failed. Please try again.");
+        setSearchResults(null);
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 400); // 400ms debounce
+
+    return () => clearTimeout(timeout);
+  }, [searchQuery]);
+
   return (
     <header className="sticky top-0 z-50 w-full bg-white border-b shadow-sm">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -181,20 +230,30 @@ function Header() {
           {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
 
+        {/* Search Bar */}
         <div className="hidden md:flex flex-1 justify-center ml-8">
           <div className="relative w-full max-w-md">
             <input
               type="text"
               placeholder="Search"
               className="w-full pl-10 pr-4 py-2 rounded-md border border-gray-300 text-sm focus:outline-none focus:ring-1 focus:ring-teal-400 transition-all"
+              // onClick={handleSearch}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  // handleSearch();
+                }
+              }}
             />
             <Search
-              className="absolute left-3 top-2.5 text-gray-400"
+              className="absolute left-3 top-2.5 text-gray-400 pointer-events-none"
               size={16}
             />
           </div>
         </div>
 
+        {/* notification */}
         <div className="hidden md:flex items-center gap-6 text-gray-700 text-sm font-medium">
           <div className="relative" ref={notificationRef}>
             <button
@@ -282,6 +341,7 @@ function Header() {
             )}
           </div>
 
+          {/* my metworks */}
           <div className="w-px h-6 bg-gray-300"></div>
 
           <Link
@@ -292,6 +352,7 @@ function Header() {
             <span className="hidden lg:inline">My Network</span>
           </Link>
 
+          {/* my profile */}
           <div className="w-px h-6 bg-gray-300"></div>
 
           <div className="relative" ref={dropdownRef}>
@@ -334,6 +395,87 @@ function Header() {
           </div>
         </div>
 
+        {/* Display Search Results */}
+        {searchQuery.trim() && (
+          <div
+            ref={searchDropdownRef}
+            className="absolute left-[41.25rem] -translate-x-1/2 mt-1 w-110 max-h-60 bg-white border border-gray-200 rounded-b-xl shadow-lg z-50 overflow-y-auto transition-all"
+            style={{ top: "73%" }}
+          >
+            <ul className="divide-y divide-gray-100">
+              {searchLoading && (
+                <li className="px-3 py-2 text-sm text-gray-400">
+                  Searching...
+                </li>
+              )}
+              {searchError && !searchLoading && (
+                <li className="px-3 py-2 text-sm text-gray-400">
+                  {searchError}
+                </li>
+              )}
+              {!searchLoading &&
+                !searchError &&
+                searchResults?.users?.length > 0 && (
+                  <>
+                    {searchResults.users.map((user) => (
+                      <li
+                        key={user._id}
+                        className="px-3 py-2 text-sm hover:bg-teal-50 transition rounded flex items-center gap-2 cursor-pointer"
+                      >
+                        <Link
+                          to="#"
+                          className="flex items-center gap-2 w-full text-gray-700"
+                          onClick={() => {
+                            onUserClick && onUserClick(user._id);
+                            setSearchResults(null);
+                            setSearchQuery(""); // Optionally clear search
+                          }}
+                        >
+                          <span className="bg-teal-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+                            {user.FirstName?.[0]}
+                            {user.LastName?.[0]}
+                          </span>
+                          <span className="truncate">
+                            {user.FirstName} {user.LastName}
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                    {searchResults.posts?.length > 0 && (
+                      <li className="px-3 py-1 text-xs text-gray-400 font-semibold select-none">
+                        Posts
+                      </li>
+                    )}
+                  </>
+                )}
+              {!searchLoading &&
+                !searchError &&
+                searchResults?.posts?.map((post) => (
+                  <li
+                    key={post._id}
+                    className="px-3 py-2 text-sm hover:bg-teal-50 transition rounded flex items-center gap-2 cursor-pointer"
+                  >
+                    <Link
+                      to="#"
+                      className="flex items-center gap-2 w-full text-gray-700"
+                      onClick={() => {
+                        onPostClick && onPostClick(post._id); // Call the new handler
+                        setSearchResults(null);
+                        setSearchQuery("");
+                      }}
+                    >
+                      <span className="text-teal-500">📝</span>
+                      <span className="truncate">
+                        {post.title || post.caption || post.content}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Mobile view */}
         {mobileMenuOpen && (
           <nav className="md:hidden mt-2 bg-white border rounded-md shadow p-4 text-sm space-y-3">
             <Link

@@ -518,6 +518,48 @@ const getMyPosts = async (req, res) => {
   }
 };
 
+// // get event posts (all events created by users / admins)
+const getEventPosts = async (req, res) => {
+  try {
+    const posts = await UserPost.find({ postType: "event" })
+      .sort({ createdAt: -1 })
+      .populate("userId", "FirstName LastName")
+      .populate("likes", "FirstName LastName");
+
+    const postsWithLikeStatus = posts.map((post) => ({
+      ...post.toObject(),
+      isLiked: post.likes.some(
+        (like) => like._id.toString() === req.user.id.toString()
+      ),
+    }));
+
+    res.status(200).json(postsWithLikeStatus);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch event posts" });
+  }
+};
+
+// get job posts (all jobs created by users / admins)
+const getJobPosts = async (req, res) => {
+  try {
+    const posts = await UserPost.find({ postType: "job" })
+      .sort({ createdAt: -1 })
+      .populate("userId", "FirstName LastName")
+      .populate("likes", "FirstName LastName");
+
+    const postsWithLikeStatus = posts.map((post) => ({
+      ...post.toObject(),
+      isLiked: post.likes.some(
+        (like) => like._id.toString() === req.user.id.toString()
+      ),
+    }));
+
+    res.status(200).json(postsWithLikeStatus);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch job posts" });
+  }
+};
+
 module.exports = {
   createPost,
   getUserPosts,
@@ -532,4 +574,6 @@ module.exports = {
   editPost,
   getMyPosts,
   getSavedPosts,
+  getEventPosts,
+  getJobPosts,
 };

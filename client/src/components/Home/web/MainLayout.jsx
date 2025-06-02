@@ -3,6 +3,7 @@ import PostCard from "./PostCard";
 import PostModal from "./PostModal";
 import AdminAnnouncements from "./AdminAnnouncements";
 import ProfileSidebar from "../../layout/ProfileSidebar";
+import Header from "../../layout/Header";
 import {
   IndianRupee,
   Users,
@@ -50,6 +51,8 @@ function MainLayout({ loading }) {
 
   const [showConnectionsPopup, setShowConnectionsPopup] = useState(false);
   const [showFollowingPopup, setShowFollowingPopup] = useState(false);
+  const [filteredPosts, setFilteredPosts] = useState(null);
+  const [filteredPostId, setFilteredPostId] = useState(null);
 
   const navigate = useNavigate();
   useEffect(() => {
@@ -319,8 +322,25 @@ function MainLayout({ loading }) {
     }
   };
 
+  const handleShowUserPosts = (userId) => {
+    setFilteredPosts(posts.filter((post) => post.userId === userId));
+    setFilteredPostId(null); // Clear any post filter
+  };
+
+  const handleShowPost = (postId) => {
+    const selectedPost = posts.find((post) => post.id === postId);
+    setFilteredPosts(selectedPost ? [selectedPost] : []);
+    setFilteredPostId(postId);
+  };
+
+  const handleResetFeed = () => {
+    setFilteredPosts(null);
+    setFilteredPostId(null);
+  };
+
   return (
     <>
+      <Header onUserClick={handleShowUserPosts} onPostClick={handleShowPost} />
       <div className="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen font-sans">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex flex-col lg:flex-row py-6 gap-6">
@@ -334,6 +354,7 @@ function MainLayout({ loading }) {
               setShowFollowingPopup={setShowFollowingPopup}
               navigate={navigate}
             />
+
             {/* Main Feed */}
             <div className="w-full lg:w-2/4 space-y-5">
               {/* Admin Announcements */}
@@ -447,14 +468,27 @@ function MainLayout({ loading }) {
                   </div>
                 ) : (
                   <div className="space-y-5">
-                    {posts.map((post) => (
-                      <div
-                        key={post._id}
-                        className="bg-white rounded-xl shadow-lg border border-gray-100 p-4 hover:shadow-xl transition-shadow duration-300"
-                      >
-                        <PostCard post={post} />
+                    {filteredPosts !== null ? (
+                      filteredPosts.length > 0 ? (
+                        <div className="space-y-5">
+                          {filteredPosts.map((post) => (
+                            <PostCard key={post._id} post={post} />
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-8 text-center">
+                          <h3 className="text-lg font-semibold text-gray-800">
+                            No post found
+                          </h3>
+                        </div>
+                      )
+                    ) : (
+                      <div className="space-y-5">
+                        {posts.map((post) => (
+                          <PostCard key={post._id} post={post} />
+                        ))}
                       </div>
-                    ))}
+                    )}
                   </div>
                 )}
               </div>
@@ -513,7 +547,10 @@ function MainLayout({ loading }) {
                     );
 
                     return (
-                      <div key={user._id} className="p-4 flex items-center hover:bg-gray-50 transition-colors duration-300">
+                      <div
+                        key={user._id}
+                        className="p-4 flex items-center hover:bg-gray-50 transition-colors duration-300"
+                      >
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white font-semibold text-lg mr-3">
                           {user.FirstName[0]}
                           {user.LastName[0]}
@@ -522,10 +559,14 @@ function MainLayout({ loading }) {
                           <h4 className="font-medium text-gray-800 truncate">
                             {user.FirstName} {user.LastName}
                           </h4>
-                          <p className="text-sm text-gray-500 truncate">{user.Email}</p>
+                          <p className="text-sm text-gray-500 truncate">
+                            {user.Email}
+                          </p>
                         </div>
                         <div className="ml-4 flex-shrink-0">
-                          {isConnected || isInConnectionsList || isInFollowingList ? (
+                          {isConnected ||
+                          isInConnectionsList ||
+                          isInFollowingList ? (
                             <button
                               disabled
                               className="px-3 py-1.5 text-sm font-medium text-teal-600 bg-teal-50 rounded-md cursor-not-allowed border border-teal-200"
