@@ -409,12 +409,20 @@ function PostCard({ post, job, hideInteractions }) {
       {/* Media content - Show first */}
       {post.mediaUrl ? (
         <div className="mt-3">
-          <img
-            src={post.mediaUrl}
-            alt="Post media"
-            className="rounded-lg max-h-72 w-full object-cover cursor-pointer"
-            onClick={() => setShowMediaModal(true)}
-          />
+          {/\.mp4|\.webm|\.ogg|\.mov$/i.test(post.mediaUrl) ? (
+            <video
+              src={post.mediaUrl}
+              controls
+              className="rounded-lg max-h-72 w-full"
+            />
+          ) : (
+            <img
+              src={post.mediaUrl}
+              alt="Post media"
+              className="rounded-lg max-h-72 w-full object-cover cursor-pointer"
+              onClick={() => setShowMediaModal(true)}
+            />
+          )}
         </div>
       ) : (
         data.media &&
@@ -432,7 +440,7 @@ function PostCard({ post, job, hideInteractions }) {
                 ) : media.type?.startsWith("video/") ? (
                   <video
                     src={media.url}
-                    controls
+                    controlsD
                     className="rounded-lg w-full"
                   />
                 ) : (

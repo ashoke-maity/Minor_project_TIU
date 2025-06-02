@@ -15,6 +15,8 @@ const {
   editPost,
   getMyPosts,
   getSavedPosts,
+  getEventPosts,
+  getJobPosts
 } = require("../controllers/UserPostController");
 const upload = require("../middlewares/uploadMiddleware");
 
@@ -69,5 +71,11 @@ router.post("/user/unsave/post/:id", verifyUserToken, unsavePost);
 
 // get saved posts
 router.get("/user/saved/posts", verifyUserToken, getSavedPosts);
+
+// get posts related to events
+router.get("/user/event/posts", verifyUserToken, getEventPosts);
+
+// get posts related to jobs
+router.get("/user/job/posts", verifyUserToken, getJobPosts);
 
 module.exports = router;

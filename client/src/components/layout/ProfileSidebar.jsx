@@ -76,7 +76,7 @@ function ProfileSidebar({
             className="flex items-center py-2 px-3 hover:bg-teal-50 rounded-lg transition-colors duration-300"
             onClick={(e) => {
               e.preventDefault();
-              navigate && navigate("/saved-posts"); // Update this path
+              navigate && navigate("/saved-posts");
             }}
           >
             <Bookmark size={18} className="text-teal-500 mr-3" />
@@ -88,7 +88,7 @@ function ProfileSidebar({
             className="flex items-center py-2 px-3 hover:bg-teal-50 rounded-lg transition-colors duration-300"
             onClick={(e) => {
               e.preventDefault();
-              navigate && navigate("/my-posts?view=events");
+              navigate && navigate("/get-events");
             }}
           >
             <Calendar size={18} className="text-teal-500 mr-3" />
@@ -100,7 +100,7 @@ function ProfileSidebar({
             className="flex items-center py-2 px-3 hover:bg-teal-50 rounded-lg transition-colors duration-300"
             onClick={(e) => {
               e.preventDefault();
-              navigate && navigate("/my-posts?view=jobs");
+              navigate && navigate("/get-jobs");
             }}
           >
             <Briefcase size={18} className="text-teal-500 mr-3" />
@@ -112,7 +112,7 @@ function ProfileSidebar({
             className="flex items-center py-2 px-3 hover:bg-teal-50 rounded-lg transition-colors duration-300"
             onClick={(e) => {
               e.preventDefault();
-              navigate && navigate("/my-posts?view=posts");
+              navigate && navigate("/my-posts");
             }}
           >
             <Image size={18} className="text-teal-500 mr-3" />

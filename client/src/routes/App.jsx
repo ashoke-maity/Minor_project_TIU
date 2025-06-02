@@ -5,7 +5,6 @@ import Home from '../pages/Home';
 import Login from '../components/others/Login';
 import UserSettings from "../components/layout/UserSettings";
 import UserPrivacyPolicy from '../pages/UserPrivacyPolicy';
-import UserJobPortal from '../pages/UserJobPortal';
 import Network from '../pages/Network';
 import AdminDashboard from '../pages/AdminDashboard';
 import AdminSettings from '../components/admin/AdminSettings';
@@ -23,6 +22,8 @@ import AdminNewStories from '../pages/AdminNewStories';
 import NotFound from '../pages/NotFound';
 import MyPosts from "../pages/MyPosts";
 import SavedPosts from '../components/Home/web/SavedPosts';
+import GetEvents from '../components/Home/web/GetEvents';
+import GetJobs from '../components/Home/web/GetJobs';
 
 const adminRoute = import.meta.env.VITE_ADMIN_ROUTE;
 
@@ -50,6 +51,9 @@ function App() {
         <Route path="settings" element={<UserSettings />} />
         <Route path="/privacypolicy" element={<UserPrivacyPolicy />} />
         <Route path="/saved-posts" element={<SavedPosts />} />
+        <Route path="/get-events" element={<GetEvents />} />
+        <Route path="/get-jobs" element={<GetJobs />} />
+        <Route path="/my-posts" element={<MyPosts />} />
         {/* Admin Routes */}
         <Route path={`${adminRoute}/admin/login`} element={<AdminLogin />} />
         <Route path={`${adminRoute}/admin/forgotpass`} element={<AdminForgotPass />} />
