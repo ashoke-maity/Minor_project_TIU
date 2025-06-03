@@ -436,6 +436,7 @@ const savePost = async (req, res) => {
       message: "Post saved successfully",
       post: post,
       saved: true,
+      status: 1
     });
   } catch (err) {
     console.error("Save error:", err);
@@ -489,6 +490,7 @@ const unsavePost = async (req, res) => {
       message: "Post unsaved successfully",
       post: post,
       saved: false,
+      status: 1
     });
   } catch (err) {
     console.error("Unsave error:", err);
