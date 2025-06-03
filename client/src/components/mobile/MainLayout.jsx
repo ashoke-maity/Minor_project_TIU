@@ -185,7 +185,7 @@ function MobileMainLayout({ loading }) {
       setSavedItemsError("");
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_USER_API_URL}/saved-items`,
+          `${import.meta.env.VITE_USER_API_URL}/user/saved/posts`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("authToken")}`,
@@ -221,6 +221,26 @@ function MobileMainLayout({ loading }) {
       socket.off("newPost");
     };
   }, []);
+
+  // Add event listener for post save/unsave
+  useEffect(() => {
+    socket.on("postSaved", (postId) => {
+      if (activeTab === "bookmarks") {
+        fetchSavedItems();
+      }
+    });
+
+    socket.on("postUnsaved", (postId) => {
+      if (activeTab === "bookmarks") {
+        fetchSavedItems();
+      }
+    });
+
+    return () => {
+      socket.off("postSaved");
+      socket.off("postUnsaved");
+    };
+  }, [activeTab]);
 
   // Helper to add newly created post to feed immediately
   const handlePostCreate = (newPost) => {
@@ -365,48 +385,6 @@ function MobileMainLayout({ loading }) {
     <>
       <MobileHeader />
       <div className="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen font-sans pb-16 pt-0">
-        {/* Mobile Profile Banner */}
-        <div className="bg-white shadow-sm border-b">
-          <div className="relative">
-            <div className="bg-gradient-to-r from-teal-400 via-emerald-500 to-teal-600 h-24"></div>
-            <div className="absolute left-0 right-0 -bottom-12 flex justify-center">
-              <div className="w-24 h-24 rounded-full border-4 border-white bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-2xl font-bold shadow-xl">
-                {initials}
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-12 pb-4 px-4 text-center">
-            <h2 className="text-xl font-bold text-gray-800">
-              {firstName || ""} {lastName || ""}
-            </h2>
-            <p className="text-gray-500 text-sm">
-              Class of {PassoutYear || ""}
-            </p>
-
-            {/* Following and Followers Count */}
-            <div className="flex justify-center space-x-8 mt-4">
-              <button
-                onClick={() => setShowFollowingModal(true)}
-                className="flex flex-col items-center"
-              >
-                <span className="text-lg font-semibold text-gray-800">
-                  {following.length}
-                </span>
-                <span className="text-sm text-gray-500">Following</span>
-              </button>
-              <button
-                onClick={() => setShowFollowersModal(true)}
-                className="flex flex-col items-center"
-              >
-                <span className="text-lg font-semibold text-gray-800">
-                  {followers.length}
-                </span>
-                <span className="text-sm text-gray-500">Followers</span>
-              </button>
-            </div>
-          </div>
-        </div>
 
         {/* Following Modal */}
         {showFollowingModal && (
@@ -770,12 +748,12 @@ function MobileMainLayout({ loading }) {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {savedItems.map((item) => (
+                  {savedItems.map((savedPost) => (
                     <div
-                      key={item._id}
+                      key={savedPost._id}
                       className="bg-white rounded-xl shadow-sm border border-gray-100 p-4"
                     >
-                      <PostCard post={item} />
+                      <PostCard post={savedPost} />
                     </div>
                   ))}
                 </div>

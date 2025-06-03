@@ -24,7 +24,6 @@ function PostCard({ post, job }) {
 
   // Format the date for display
   const formatDate = (dateString) => {
-    if (!dateString) return "Recently";
     try {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) return "Recently";
@@ -68,7 +67,14 @@ function PostCard({ post, job }) {
   const [likedUsers, setLikedUsers] = useState(data?.likes || []);
   const [commentVisible, setCommentVisible] = useState(false);
   const [newComment, setNewComment] = useState("");
-  const [comments, setComments] = useState(data?.comments || []);
+  const [comments, setComments] = useState(data?.comments?.map(comment => ({
+    ...comment,
+    userId: {
+      _id: comment.userId._id,
+      FirstName: comment.userId.FirstName || comment.userDetails?.FirstName,
+      LastName: comment.userId.LastName || comment.userDetails?.LastName
+    }
+  })) || []);
   const [showMediaModal, setShowMediaModal] = useState(false);
   const [showLikesModal, setShowLikesModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -88,28 +94,41 @@ function PostCard({ post, job }) {
   useEffect(() => {
     const checkUserInteractions = async () => {
       try {
-        const response = await axios.get(
+        const token = localStorage.getItem("authToken");
+        if (!token) return;
+
+        // First get user info
+        const userResponse = await axios.get(
           `${import.meta.env.VITE_USER_API_URL}/user/dashboard`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+              Authorization: `Bearer ${token}`,
             },
           }
         );
-        const userId = response.data.user._id;
+        const userId = userResponse.data.user._id;
         setCurrentUserId(userId);
-        setSaved(
-          data.savedBy
-            ?.map((id) => String(id))
-            .includes(String(userId)) || false
+
+        // Get saved posts to check if this post is saved
+        const savedPostsResponse = await axios.get(
+          `${import.meta.env.VITE_USER_API_URL}/user/saved/posts`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
+
+        // Check if current post is in saved posts
+        const isSaved = savedPostsResponse.data.some(savedPost => savedPost._id === data._id);
+        setSaved(isSaved);
         setLiked(data?.isLiked || false);
       } catch (err) {
         console.error("Error checking user interactions:", err);
       }
     };
     checkUserInteractions();
-  }, [data.savedBy, data.isLiked]);
+  }, [data._id, data.isLiked]);
 
   // Interaction handlers
   const handleLike = async () => {
@@ -143,21 +162,47 @@ function PostCard({ post, job }) {
   const handleSave = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.post(
-        `${import.meta.env.VITE_USER_API_URL}/user/save/post/${data._id}`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-          },
-        }
-      );
+      const token = localStorage.getItem("authToken");
+      
+      if (!saved) {
+        // Save the post
+        const response = await axios.post(
+          `${import.meta.env.VITE_USER_API_URL}/user/save/post/${data._id}`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
-      if (response.data.status === 1) {
-        setSaved(!saved);
+        if (response.data.saved) {
+          setSaved(true);
+          console.log('Post saved successfully:', response.data.message);
+        }
+      } else {
+        // Unsave the post
+        const response = await axios.post(
+          `${import.meta.env.VITE_USER_API_URL}/user/unsave/post/${data._id}`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!response.data.saved) {
+          setSaved(false);
+          console.log('Post unsaved successfully:', response.data.message);
+        }
       }
     } catch (error) {
-      console.error("Error saving post:", error);
+      console.error("Error saving/unsaving post:", error);
+      // Show error to user if needed
+      if (error.response?.data?.message) {
+        console.error("Server error:", error.response.data.message);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -168,52 +213,78 @@ function PostCard({ post, job }) {
 
     try {
       setIsLoading(true);
+      const token = localStorage.getItem("authToken");
+      
       const response = await axios.post(
         `${import.meta.env.VITE_USER_API_URL}/user/comment/post/${data._id}`,
-        { text: newComment },
+        { commentText: newComment.trim() },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
         }
       );
 
-      if (response.data.status === 1) {
-        const newCommentObj = {
-          user: fullName,
-          text: newComment,
-          timestamp: new Date(),
+      if (response.data?.comment) {
+        const newCommentData = {
           _id: response.data.comment._id,
+          text: response.data.comment.text,
+          createdAt: response.data.comment.createdAt || new Date().toISOString(),
+          userId: {
+            _id: currentUserId,
+            FirstName: response.data.comment.userDetails?.FirstName || firstName,
+            LastName: response.data.comment.userDetails?.LastName || lastName
+          }
         };
-        setComments([...comments, newCommentObj]);
+        setComments(prevComments => [...prevComments, newCommentData]);
         setNewComment("");
+      } else {
+        console.error('Invalid comment response:', response.data);
       }
     } catch (error) {
       console.error("Error adding comment:", error);
+      alert(error.response?.data?.message || "Failed to add comment. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDeleteComment = async (commentId) => {
+    // First find the comment to be deleted for optimistic update
+    const commentToDelete = comments.find(comment => comment._id === commentId);
+    if (!commentToDelete) return;
+    
+    if (!window.confirm("Are you sure you want to delete this comment?")) return;
+    
     try {
       setIsLoading(true);
+      const token = localStorage.getItem("authToken");
+      
+      // Optimistically update UI
+      setComments(prevComments => prevComments.filter(comment => comment._id !== commentId));
+      
       const response = await axios.delete(
-        `${import.meta.env.VITE_USER_API_URL}/user/delete/comment/${
-          data._id
-        }/${commentId}`,
+        `${import.meta.env.VITE_USER_API_URL}/user/delete/comment/${data._id}/${commentId}`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
 
-      if (response.data.status === 1) {
-        setComments(comments.filter((comment) => comment._id !== commentId));
+      if (response.status !== 200) {
+        // If deletion failed, revert the optimistic update
+        setComments(prevComments => [...prevComments, commentToDelete]);
+        throw new Error(response.data?.message || "Failed to delete comment");
       }
     } catch (error) {
       console.error("Error deleting comment:", error);
+      // Show error in a less intrusive way
+      const errorMessage = error.response?.data?.message || "Failed to delete comment. Please try again.";
+      // Restore the comment in case of error
+      setComments(prevComments => [...prevComments, commentToDelete]);
+      alert(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -326,7 +397,7 @@ function PostCard({ post, job }) {
 
   return (
     <div className="bg-white rounded-xl shadow-sm p-4 mb-4">
-      {/* Post header with user info and date */}
+      {/* Post header with user info */}
       <div className="flex items-start space-x-2 mb-2">
         <div className="w-9 h-9 rounded-full bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-sm">
           {initials}
@@ -370,17 +441,37 @@ function PostCard({ post, job }) {
       {/* Media content - Show first for media posts */}
       {data.mediaUrl && (
         <div className="mt-3 rounded-lg overflow-hidden bg-gray-100 relative">
-          <img
-            src={data.mediaUrl}
-            alt="Post media"
-            className="w-full h-auto object-cover"
-          />
-          <button
-            onClick={() => setShowMediaModal(true)}
-            className="absolute bottom-3 right-3 bg-black bg-opacity-50 hover:bg-opacity-75 text-white rounded-full p-2 transition-all duration-300"
-          >
-            <Maximize2 size={18} />
-          </button>
+          {data.mediaUrl.match(/\.(mp4|webm|ogg|mov)$/i) ? (
+            <div className="relative">
+              <video
+                src={data.mediaUrl}
+                controls
+                playsInline
+                preload="metadata"
+                className="w-full h-auto max-h-[70vh] object-contain bg-black"
+              />
+              <button
+                onClick={() => setShowMediaModal(true)}
+                className="absolute bottom-3 right-3 bg-black bg-opacity-50 hover:bg-opacity-75 text-white rounded-full p-2 transition-all duration-300 z-10"
+              >
+                <Maximize2 size={18} />
+              </button>
+            </div>
+          ) : (
+            <>
+              <img
+                src={data.mediaUrl}
+                alt="Post media"
+                className="w-full h-auto object-cover"
+              />
+              <button
+                onClick={() => setShowMediaModal(true)}
+                className="absolute bottom-3 right-3 bg-black bg-opacity-50 hover:bg-opacity-75 text-white rounded-full p-2 transition-all duration-300"
+              >
+                <Maximize2 size={18} />
+              </button>
+            </>
+          )}
         </div>
       )}
 
@@ -433,38 +524,42 @@ function PostCard({ post, job }) {
           <div className="space-y-3">
             {/* Existing Comments */}
             {comments.length > 0 ? (
-              comments.map((comment) => (
-                <div
-                  key={comment._id}
-                  className="flex items-start space-x-2 bg-gray-50 p-3 rounded-lg"
-                >
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
-                    {comment.user?.[0] || "U"}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-xs text-gray-800">
-                        {comment.user || "User"}
-                      </span>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-xs text-gray-500">
-                          {new Date(comment.timestamp).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
-                        <button
-                          onClick={() => handleDeleteComment(comment._id)}
-                          className="text-gray-400 hover:text-red-500"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
+              comments.map((comment) => {
+                const isCommentOwner = comment.userId?._id === currentUserId || comment.userDetails?._id === currentUserId;
+                const firstName = comment.userId?.FirstName || comment.userDetails?.FirstName || "";
+                const lastName = comment.userId?.LastName || comment.userDetails?.LastName || "";
+                const initials = `${firstName[0] || ""}${lastName[0] || ""}`.toUpperCase();
+                
+                return (
+                  <div key={comment._id} className="flex items-start space-x-2 bg-gray-50 p-3 rounded-lg">
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
+                      {initials}
                     </div>
-                    <p className="text-xs text-gray-700 mt-1">{comment.text}</p>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-xs text-gray-800">
+                          {`${firstName} ${lastName}`}
+                        </span>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-xs text-gray-500">
+                            {formatDate(comment.createdAt)}
+                          </span>
+                          {isCommentOwner && (
+                            <button
+                              onClick={() => handleDeleteComment(comment._id)}
+                              disabled={isLoading}
+                              className="text-gray-400 hover:text-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-700 mt-1">{comment.text}</p>
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div className="text-center py-3 text-gray-500 text-xs">
                 No comments yet. Be the first to comment!

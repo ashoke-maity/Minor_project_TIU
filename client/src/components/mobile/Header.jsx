@@ -10,12 +10,13 @@ import {
   Settings,
   Menu,
   Check,
-  Trash2
+  Trash2,
+  Edit2
 } from "lucide-react";
 import { io } from "socket.io-client";
 import { toast } from "react-toastify";
 
-function MobileHeader() {
+function MobileHeader({ following, followers }) {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -24,6 +25,8 @@ function MobileHeader() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [showFollowingModal, setShowFollowingModal] = useState(false);
+  const [showFollowersModal, setShowFollowersModal] = useState(false);
   const socket = io(import.meta.env.VITE_SERVER_ROUTE);
 
   useEffect(() => {
@@ -198,7 +201,6 @@ function MobileHeader() {
     <>
       <header className="sticky top-0 z-50 w-full bg-white border-b shadow-sm">
         <div className="px-4 py-2 flex items-center justify-between">
-          {/* Logo */}
           <Link
             to="/home"
             className="text-xl font-bold flex items-center gap-1 text-gray-800"
@@ -206,7 +208,6 @@ function MobileHeader() {
             Alumni<span className="text-teal-500">Connect</span>
           </Link>
 
-          {/* Right Actions */}
           <div className="flex items-center gap-3">
             <button 
               className="text-gray-600 relative"
@@ -214,7 +215,7 @@ function MobileHeader() {
             >
               <Bell size={22} />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center shadow-sm">
                   {unreadCount}
                 </span>
               )}
@@ -222,9 +223,10 @@ function MobileHeader() {
             
             <button
               onClick={toggleMenu}
-              className="text-gray-600"
+              className="text-gray-600 hover:text-gray-800 transition-colors"
+              aria-label="Menu"
             >
-              {showMenu ? <X size={24} /> : <Menu size={24} />}
+              <Menu size={24} />
             </button>
           </div>
         </div>
@@ -234,15 +236,124 @@ function MobileHeader() {
           <div className="relative w-full">
             <input
               type="text"
-              placeholder="Search"
-              className="w-full pl-9 pr-4 py-2 rounded-full border border-gray-300 text-sm focus:outline-none focus:ring-1 focus:ring-teal-400"
+              placeholder="Search posts, people, and jobs..."
+              className="w-full pl-9 pr-4 py-2.5 rounded-full border border-gray-200 text-sm bg-gray-50/80 focus:outline-none focus:ring-2 focus:ring-teal-400/20 focus:border-teal-400 transition-all"
             />
             <Search
-              className="absolute left-3 top-2.5 text-gray-400"
+              className="absolute left-3 top-3 text-gray-400"
               size={16}
             />
           </div>
         </div>
+
+        {/* Drawer Menu */}
+        {showMenu && (
+          <>
+            <div 
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-all duration-300 ease-in-out"
+              onClick={() => setShowMenu(false)}
+            />
+            <div 
+              className="fixed left-0 top-0 h-full w-[85%] max-w-md bg-white shadow-xl z-50 transform transition-transform duration-300 ease-out rounded-r-[1rem] overflow-hidden"
+              style={{ transform: showMenu ? 'translateX(0)' : 'translateX(-100%)' }}
+            >
+              {/* Menu Header */}
+              <div className="bg-gradient-to-r from-teal-400 via-emerald-500 to-teal-600 h-40">
+                <div className="h-full px-6 py-4 flex flex-col justify-between">
+                  <div className="flex justify-between items-center">
+                    <Link 
+                      to="/profile"
+                      onClick={() => setShowMenu(false)}
+                      className="text-white/90 hover:text-white flex items-center"
+                    >
+                      <Edit2 size={18} className="mr-2" />
+                      <span className="text-sm">Edit Profile</span>
+                    </Link>
+                    <button 
+                      onClick={() => setShowMenu(false)}
+                      className="text-white/80 hover:text-white p-1"
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-4 pb-4">
+                    <div className="w-16 h-16 rounded-full border-2 border-white/20 bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-xl font-bold shadow-lg">
+                      {initials}
+                    </div>
+                    <div className="text-left">
+                      <h2 className="text-white font-semibold">
+                        {firstName} {lastName}
+                      </h2>
+                      <p className="text-white/80 text-sm">
+                        {email}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Menu Content */}
+              <div className="p-6">
+                {/* Stats */}
+                <div className="grid grid-cols-2 gap-4 mb-8">
+                  <button
+                    onClick={() => {
+                      setShowMenu(false);
+                      setShowFollowingModal(true);
+                    }}
+                    className="p-4 bg-gradient-to-br from-teal-50 to-emerald-50 rounded-xl hover:shadow-md transition-shadow duration-300"
+                  >
+                    <span className="block text-2xl font-bold text-gray-800">
+                      {following?.length || 0}
+                    </span>
+                    <span className="text-sm text-gray-600">Following</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowMenu(false);
+                      setShowFollowersModal(true);
+                    }}
+                    className="p-4 bg-gradient-to-br from-teal-50 to-emerald-50 rounded-xl hover:shadow-md transition-shadow duration-300"
+                  >
+                    <span className="block text-2xl font-bold text-gray-800">
+                      {followers?.length || 0}
+                    </span>
+                    <span className="text-sm text-gray-600">Followers</span>
+                  </button>
+                </div>
+
+                {/* Menu Links */}
+                <nav className="space-y-1">
+                  <Link 
+                    to="/my-posts"
+                    onClick={() => setShowMenu(false)}
+                    className="flex items-center w-full py-3 px-4 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <User size={20} className="text-gray-600 mr-3" />
+                    <span className="text-gray-800">My Posts</span>
+                  </Link>
+                  <button 
+                    onClick={openSettings}
+                    className="flex items-center w-full py-3 px-4 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <Settings size={20} className="text-gray-600 mr-3" />
+                    <span className="text-gray-800">Settings</span>
+                  </button>
+                  
+                  <div className="h-px bg-gray-200 my-4"></div>
+                  
+                  <button 
+                    onClick={handleLogout}
+                    className="flex items-center w-full py-3 px-4 rounded-lg hover:bg-red-50 transition-colors text-red-600"
+                  >
+                    <LogOut size={20} className="mr-3" />
+                    <span>Logout</span>
+                  </button>
+                </nav>
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Notifications Panel */}
         {showNotifications && (
@@ -326,55 +437,220 @@ function MobileHeader() {
           </div>
         )}
 
-        {/* Menu Panel */}
-        {showMenu && (
+        {/* Following Modal */}
+        {showFollowingModal && (
           <div className="fixed inset-0 z-50 pt-16 bg-black bg-opacity-50">
             <div className="h-full bg-white rounded-t-xl overflow-hidden">
-              <div className="px-4 py-3 flex justify-between items-center border-b">
-                <div className="flex items-center">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-teal-400 to-teal-500 text-white flex items-center justify-center mr-3 text-sm font-bold shadow-sm">
-                    {initials || <User size={20} />}
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-800">
-                      {firstName} {lastName}
-                    </h3>
-                    <p className="text-xs text-gray-500">{email}</p>
-                  </div>
-                </div>
+              <div className="px-4 py-3 flex justify-between items-center border-b sticky top-0 bg-white">
+                <h2 className="font-semibold text-lg">Following</h2>
                 <button 
-                  onClick={() => setShowMenu(false)}
+                  onClick={() => setShowFollowingModal(false)}
                   className="text-gray-500"
                 >
                   <X size={20} />
                 </button>
               </div>
               
-              <div className="px-4 py-4 space-y-1">
+              <div className="overflow-auto h-[calc(100%-60px)]">
+                {following?.length === 0 ? (
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                      <User size={24} className="text-gray-400" />
+                    </div>
+                    <h3 className="text-gray-600 font-medium mb-1">
+                      Not following anyone yet
+                    </h3>
+                    <p className="text-gray-500 text-sm">
+                      When you follow someone, you'll see them here
+                    </p>
+                  </div>
+                ) : (
+                  <div className="divide-y">
+                    {following?.map((user) => (
+                      <div key={user._id} className="p-4 hover:bg-gray-50">
+                        <div className="flex items-center">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white font-bold text-lg mr-3">
+                            {user.FirstName?.[0]}{user.LastName?.[0]}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-gray-800">
+                              {user.FirstName} {user.LastName}
+                            </h4>
+                            <p className="text-sm text-gray-500 truncate">
+                              {user.Email}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Followers Modal */}
+        {showFollowersModal && (
+          <div className="fixed inset-0 z-50 pt-16 bg-black bg-opacity-50">
+            <div className="h-full bg-white rounded-t-xl overflow-hidden">
+              <div className="px-4 py-3 flex justify-between items-center border-b sticky top-0 bg-white">
+                <h2 className="font-semibold text-lg">Followers</h2>
                 <button 
-                  onClick={openSettings}
-                  className="flex items-center w-full py-3 px-2 rounded-lg hover:bg-gray-100"
+                  onClick={() => setShowFollowersModal(false)}
+                  className="text-gray-500"
                 >
-                  <Settings size={20} className="text-gray-600 mr-3" />
-                  <span className="text-gray-800">Settings</span>
+                  <X size={20} />
                 </button>
-                
-                <div className="h-px bg-gray-200 my-2"></div>
-                
-                <button 
-                  onClick={handleLogout}
-                  className="flex items-center w-full py-3 px-2 rounded-lg hover:bg-gray-100 text-red-600"
-                >
-                  <LogOut size={20} className="mr-3" />
-                  <span>Logout</span>
-                </button>
+              </div>
+              
+              <div className="overflow-auto h-[calc(100%-60px)]">
+                {followers?.length === 0 ? (
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                      <User size={24} className="text-gray-400" />
+                    </div>
+                    <h3 className="text-gray-600 font-medium mb-1">
+                      No followers yet
+                    </h3>
+                    <p className="text-gray-500 text-sm">
+                      When people follow you, you'll see them here
+                    </p>
+                  </div>
+                ) : (
+                  <div className="divide-y">
+                    {followers?.map((user) => (
+                      <div key={user._id} className="p-4 hover:bg-gray-50">
+                        <div className="flex items-center">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white font-bold text-lg mr-3">
+                            {user.FirstName?.[0]}{user.LastName?.[0]}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-gray-800">
+                              {user.FirstName} {user.LastName}
+                            </h4>
+                            <p className="text-sm text-gray-500 truncate">
+                              {user.Email}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
         )}
       </header>
+
+      {/* Following Modal */}
+      {showFollowingModal && (
+        <div className="fixed inset-0 z-50 pt-16 bg-black bg-opacity-50">
+          <div className="h-full bg-white rounded-t-xl overflow-hidden">
+            <div className="px-4 py-3 flex justify-between items-center border-b sticky top-0 bg-white">
+              <h2 className="font-semibold text-lg">Following</h2>
+              <button 
+                onClick={() => setShowFollowingModal(false)}
+                className="text-gray-500"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="overflow-auto h-[calc(100%-60px)]">
+              {following?.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                    <User size={24} className="text-gray-400" />
+                  </div>
+                  <h3 className="text-gray-600 font-medium mb-1">
+                    Not following anyone yet
+                  </h3>
+                  <p className="text-gray-500 text-sm">
+                    When you follow someone, you'll see them here
+                  </p>
+                </div>
+              ) : (
+                <div className="divide-y">
+                  {following?.map((user) => (
+                    <div key={user._id} className="p-4 hover:bg-gray-50">
+                      <div className="flex items-center">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white font-bold text-lg mr-3">
+                          {user.FirstName?.[0]}{user.LastName?.[0]}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-gray-800">
+                            {user.FirstName} {user.LastName}
+                          </h4>
+                          <p className="text-sm text-gray-500 truncate">
+                            {user.Email}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Followers Modal */}
+      {showFollowersModal && (
+        <div className="fixed inset-0 z-50 pt-16 bg-black bg-opacity-50">
+          <div className="h-full bg-white rounded-t-xl overflow-hidden">
+            <div className="px-4 py-3 flex justify-between items-center border-b sticky top-0 bg-white">
+              <h2 className="font-semibold text-lg">Followers</h2>
+              <button 
+                onClick={() => setShowFollowersModal(false)}
+                className="text-gray-500"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="overflow-auto h-[calc(100%-60px)]">
+              {followers?.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                    <User size={24} className="text-gray-400" />
+                  </div>
+                  <h3 className="text-gray-600 font-medium mb-1">
+                    No followers yet
+                  </h3>
+                  <p className="text-gray-500 text-sm">
+                    When people follow you, you'll see them here
+                  </p>
+                </div>
+              ) : (
+                <div className="divide-y">
+                  {followers?.map((user) => (
+                    <div key={user._id} className="p-4 hover:bg-gray-50">
+                      <div className="flex items-center">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white font-bold text-lg mr-3">
+                          {user.FirstName?.[0]}{user.LastName?.[0]}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-gray-800">
+                            {user.FirstName} {user.LastName}
+                          </h4>
+                          <p className="text-sm text-gray-500 truncate">
+                            {user.Email}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
 
-export default MobileHeader; 
+export default MobileHeader;
