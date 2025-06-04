@@ -130,7 +130,7 @@ function ProfileSidebar({
         </div>
         {/* Footer for credits */}
         <div className="mt-6 pt-4 border-t border-gray-100 text-xs text-gray-400">
-          <p className="mb-1">© 2024 AlumniConnect</p>
+          <p className="mb-1 text-teal-500">© 2025 AlumniConnect</p>
           <div className="flex space-x-2">
             <a href="#" className="hover:text-teal-500 transition-colors">
               About
