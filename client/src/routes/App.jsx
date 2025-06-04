@@ -4,7 +4,6 @@ import 'react-toastify/dist/ReactToastify.css';
 import Home from '../pages/Home';
 import Login from '../components/others/Login';
 import UserSettings from "../components/layout/UserSettings";
-import UserPrivacyPolicy from '../pages/UserPrivacyPolicy';
 import Network from '../pages/Network';
 import AdminDashboard from '../pages/AdminDashboard';
 import AdminSettings from '../components/admin/AdminSettings';
@@ -48,8 +47,7 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/home" element={<Home />} />
         <Route path="/network" element={<Network />} />
-        <Route path="settings" element={<UserSettings />} />
-        <Route path="/privacypolicy" element={<UserPrivacyPolicy />} />
+        <Route path="/settings" element={<UserSettings />} />
         <Route path="/saved-posts" element={<SavedPosts />} />
         <Route path="/get-events" element={<GetEvents />} />
         <Route path="/get-jobs" element={<GetJobs />} />

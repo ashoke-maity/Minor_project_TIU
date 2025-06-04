@@ -31,14 +31,15 @@ function getEvents() {
   useEffect(() => {
     const loadAllData = async () => {
       try {
-        const [profileRes, eventPostsRes, followersRes, followingRes] = await Promise.all([
-          fetchData("/user/dashboard"),
-          fetchData("/user/event/posts"), // Changed endpoint to fetch event posts
-          fetchData("/followers"),
-          fetchData("/following"),
-        ]);
+        const [profileRes, eventPostsRes, followersRes, followingRes] =
+          await Promise.all([
+            fetchData("/user/dashboard"),
+            fetchData("/user/event/posts"), // Changed endpoint to fetch event posts
+            fetchData("/followers"),
+            fetchData("/following"),
+          ]);
 
-        setState(prev => ({
+        setState((prev) => ({
           ...prev,
           firstName: profileRes.data.user.FirstName,
           lastName: profileRes.data.user.LastName,
@@ -52,66 +53,91 @@ function getEvents() {
           loading: false,
         }));
       } catch (error) {
-        setState(prev => ({ ...prev, error: "Failed to load data", loading: false }));
+        setState((prev) => ({
+          ...prev,
+          error: "Failed to load data",
+          loading: false,
+        }));
       }
     };
 
     loadAllData();
   }, []);
 
-
   const handleUserAction = async (actionType, userId) => {
     try {
       const token = localStorage.getItem("authToken");
-      const endpoint = actionType === 'unfollow' ? '/unfollow' : '/remove-follower';
-      
+      const endpoint =
+        actionType === "unfollow" ? "/unfollow" : "/remove-follower";
+
       await axios.post(
         `${import.meta.env.VITE_USER_API_URL}${endpoint}`,
-        { [actionType === 'unfollow' ? 'followingId' : 'followerId']: userId },
+        { [actionType === "unfollow" ? "followingId" : "followerId"]: userId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
-        [actionType === 'unfollow' ? 'followingList' : 'connectionsList']: 
-          prev[actionType === 'unfollow' ? 'followingList' : 'connectionsList']
-            .filter(u => u._id !== userId),
+        [actionType === "unfollow" ? "followingList" : "connectionsList"]: prev[
+          actionType === "unfollow" ? "followingList" : "connectionsList"
+        ].filter((u) => u._id !== userId),
         connectionStats: {
           ...prev.connectionStats,
-          [actionType === 'unfollow' ? 'following' : 'connections']: 
-            prev.connectionStats[actionType === 'unfollow' ? 'following' : 'connections'] - 1
-        }
+          [actionType === "unfollow" ? "following" : "connections"]:
+            prev.connectionStats[
+              actionType === "unfollow" ? "following" : "connections"
+            ] - 1,
+        },
       }));
     } catch (err) {
       console.error(`Failed to ${actionType}:`, err);
     }
   };
 
-  const UserPopup = ({ type, show, onClose, users, onAction }) => (
+  const UserPopup = ({ type, show, onClose, users, onAction }) =>
     show && (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden">
           <div className="p-4 border-b border-gray-200 flex justify-between items-center">
             <h3 className="text-lg font-semibold text-gray-800 flex items-center">
-              {type === 'connections' ? 
-                <UserCheck size={20} className="text-teal-500 mr-2" /> : 
-                <UserPlus size={20} className="text-teal-500 mr-2" />}
-              {type === 'connections' ? 'My Connections' : 'Following'}
+              {type === "connections" ? (
+                <UserCheck size={20} className="text-teal-500 mr-2" />
+              ) : (
+                <UserPlus size={20} className="text-teal-500 mr-2" />
+              )}
+              {type === "connections" ? "My Connections" : "Following"}
             </h3>
-            <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700"
+            >
               <X size={20} />
             </button>
           </div>
           <div className="p-4 overflow-y-auto max-h-[calc(80vh-4rem)]">
             {users.length === 0 ? (
               <p className="text-gray-500 text-center py-4">
-                {type === 'connections' ? 'No connections yet.' : 'Not following anyone yet.'}
+                {type === "connections"
+                  ? "No connections yet."
+                  : "Not following anyone yet."}
               </p>
             ) : (
-              users.map(user => (
+              users.map((user) => (
                 <div key={user._id} className="flex items-center mb-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-base font-semibold mr-3">
-                    {user.FirstName?.[0]}{user.LastName?.[0]}
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-base font-semibold mr-3 overflow-hidden">
+                    {user.profileImage ? (
+                      <img
+                        src={user.profileImage}
+                        alt="Profile"
+                        className="w-10 h-10 object-cover rounded-full"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <>
+                        {user.FirstName?.[0]}
+                        {user.LastName?.[0]}
+                      </>
+                    )}
                   </div>
                   <span className="text-gray-800 font-medium">
                     {user.FirstName} {user.LastName}
@@ -120,7 +146,7 @@ function getEvents() {
                     onClick={() => onAction(user._id)}
                     className="ml-auto px-3 py-1 text-red-600 text-xs font-medium border border-red-200 rounded-md hover:bg-red-50"
                   >
-                    {type === 'connections' ? 'Remove' : 'Unfollow'}
+                    {type === "connections" ? "Remove" : "Unfollow"}
                   </button>
                 </div>
               ))
@@ -128,12 +154,23 @@ function getEvents() {
           </div>
         </div>
       </div>
-    )
-  );
+    );
 
-  const { eventPosts, loading, error, firstName, lastName, connectionStats, 
-          connectionsList, followingList, showConnectionsPopup, showFollowingPopup } = state;
-  const initials = `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase();
+  const {
+    eventPosts,
+    loading,
+    error,
+    firstName,
+    lastName,
+    connectionStats,
+    connectionsList,
+    followingList,
+    showConnectionsPopup,
+    showFollowingPopup,
+  } = state;
+  const initials = `${firstName?.[0] || ""}${
+    lastName?.[0] || ""
+  }`.toUpperCase();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -143,8 +180,12 @@ function getEvents() {
           <div className="w-80 flex-shrink-0">
             <ProfileSidebar
               {...{ initials, firstName, lastName, connectionStats }}
-              setShowConnectionsPopup={(show) => setState(prev => ({ ...prev, showConnectionsPopup: show }))}
-              setShowFollowingPopup={(show) => setState(prev => ({ ...prev, showFollowingPopup: show }))}
+              setShowConnectionsPopup={(show) =>
+                setState((prev) => ({ ...prev, showConnectionsPopup: show }))
+              }
+              setShowFollowingPopup={(show) =>
+                setState((prev) => ({ ...prev, showFollowingPopup: show }))
+              }
               navigate={navigate}
             />
           </div>
@@ -160,27 +201,33 @@ function getEvents() {
               </div>
             ) : (
               <div className="space-y-4">
-                {eventPosts.map(post => <PostCard key={post._id} post={post} />)}
+                {eventPosts.map((post) => (
+                  <PostCard key={post._id} post={post} />
+                ))}
               </div>
             )}
           </div>
         </div>
       </div>
 
-      <UserPopup 
+      <UserPopup
         type="connections"
         show={showConnectionsPopup}
-        onClose={() => setState(prev => ({ ...prev, showConnectionsPopup: false }))}
+        onClose={() =>
+          setState((prev) => ({ ...prev, showConnectionsPopup: false }))
+        }
         users={connectionsList}
-        onAction={(id) => handleUserAction('remove', id)}
+        onAction={(id) => handleUserAction("remove", id)}
       />
 
-      <UserPopup 
+      <UserPopup
         type="following"
         show={showFollowingPopup}
-        onClose={() => setState(prev => ({ ...prev, showFollowingPopup: false }))}
+        onClose={() =>
+          setState((prev) => ({ ...prev, showFollowingPopup: false }))
+        }
         users={followingList}
-        onAction={(id) => handleUserAction('unfollow', id)}
+        onAction={(id) => handleUserAction("unfollow", id)}
       />
     </div>
   );
