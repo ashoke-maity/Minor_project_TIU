@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Trash2, Shield, User, Bell, ChevronLeft } from "lucide-react";
+import { User, Bell, ChevronLeft } from "lucide-react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import LoadingScreen from "../common/LoadingScreen";
@@ -74,50 +74,6 @@ function UserSettings() {
     }
   };
 
-  const handleProfileUpdate = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    setSuccess("");
-
-    if (!firstName || !lastName) {
-      setError("First and Last name cannot be empty");
-      toast.error("First and Last name cannot be empty");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const formData = new FormData();
-      formData.append("firstName", firstName);
-      formData.append("lastName", lastName);
-      if (profileImage) {
-        formData.append("profileImage", profileImage);
-      }
-
-      await axios.put(
-        `${import.meta.env.VITE_USER_API_URL}/user/dashboard`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      setSuccess("Profile updated successfully");
-      toast.success("Profile updated successfully");
-      setInitialData({ firstName, lastName });
-    } catch (err) {
-      setError("Failed to update profile");
-      toast.error("Failed to update profile");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleAccountDelete = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -131,14 +87,17 @@ function UserSettings() {
     }
 
     try {
-      await axios.delete(`${import.meta.env.VITE_USER_API_URL}/user/delete`, {
+      const token = localStorage.getItem("authToken");
+      const response = await axios.delete(`${import.meta.env.VITE_USER_API_URL}/user/delete`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          Authorization: `Bearer ${token}`,
         },
       });
       localStorage.clear();
-      toast.success("Account deleted successfully");
-      window.location.href = "/";
+      if (response.data.success) {
+        toast.success("Account deleted successfully");
+        location.href = "/";
+      }
     } catch (err) {
       setError("Failed to delete account");
       toast.error("Failed to delete account");
@@ -162,45 +121,21 @@ function UserSettings() {
             {/* Header */}
             <div className="border-b border-green-100/50 px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-500">
               <div className="flex items-center">
-                <button 
-                  onClick={() => navigate(-1)} 
+                <button
+                  onClick={() => navigate(-1)}
                   className="mr-4 text-white hover:text-green-100 transition-colors"
                 >
                   <ChevronLeft size={24} />
                 </button>
                 <div>
-                  <h1 className="text-2xl font-bold text-white">Account Settings</h1>
-                  <p className="text-green-100 mt-1">Manage your profile and preferences</p>
+                  <h1 className="text-2xl font-bold text-white">
+                    Account Centre
+                  </h1>
+                  <p className="text-green-100 mt-1">
+                    Manage your profile
+                  </p>
                 </div>
               </div>
-            </div>
-
-            {/* Tabs */}
-            <div className="border-b border-green-100/50 bg-white/50">
-              <nav className="flex -mb-px">
-                <button
-                  onClick={() => setActiveTab("profile")}
-                  className={`px-6 py-3 text-sm font-medium ${
-                    activeTab === "profile"
-                      ? "border-b-2 border-green-500 text-green-600"
-                      : "text-gray-500 hover:text-green-600"
-                  }`}
-                >
-                  <User size={16} className="inline-block mr-2" />
-                  Profile
-                </button>
-                <button
-                  onClick={() => setActiveTab("notifications")}
-                  className={`px-6 py-3 text-sm font-medium ${
-                    activeTab === "notifications"
-                      ? "border-b-2 border-green-500 text-green-600"
-                      : "text-gray-500 hover:text-green-600"
-                  }`}
-                >
-                  <Bell size={16} className="inline-block mr-2" />
-                  Notifications
-                </button>
-              </nav>
             </div>
 
             {/* Content */}
@@ -218,12 +153,15 @@ function UserSettings() {
 
               {/* Profile Tab */}
               {activeTab === "profile" && (
-                <form onSubmit={handleProfileUpdate} className="space-y-6">
+                <form className="space-y-6">
                   <div className="flex items-center space-x-6">
                     <div className="relative">
                       <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-br from-green-100 to-emerald-100 ring-4 ring-white shadow-lg">
                         <img
-                          src={imagePreview || "https://www.gravatar.com/avatar/?d=mp&f=y"}
+                          src={
+                            imagePreview ||
+                            "https://www.gravatar.com/avatar/?d=mp&f=y"
+                          }
                           alt="Profile"
                           className="w-full h-full object-cover"
                         />
@@ -237,15 +175,15 @@ function UserSettings() {
                           type="file"
                           id="profile-image"
                           className="hidden"
-                          accept="image/*"
-                          onChange={handleImageUpload}
                         />
                       </label>
                     </div>
                     <div>
-                      <h3 className="text-lg font-medium text-gray-900">Profile Photo</h3>
+                      <h3 className="text-lg font-medium text-gray-900">
+                        Profile Photo
+                      </h3>
                       <p className="text-sm text-gray-500">
-                        Upload a new profile photo
+                        profile photo will be same as <br / > in your google account
                       </p>
                     </div>
                   </div>
@@ -258,10 +196,14 @@ function UserSettings() {
                       <input
                         type="text"
                         value={firstName}
+                        disabled
                         onChange={(e) => setFirstName(e.target.value)}
-                        className="w-full px-4 py-2 border border-green-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white/50 backdrop-blur-sm"
+                        className="w-full px-4 py-2 border border-green-100 rounded-lg bg-green-50/50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent backdrop-blur-sm text-gray-500"
                         placeholder="Enter your first name"
                       />
+                      <p className="mt-1 text-sm text-gray-500">
+                        You cannot change your first name
+                      </p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -270,10 +212,14 @@ function UserSettings() {
                       <input
                         type="text"
                         value={lastName}
+                        disabled
                         onChange={(e) => setLastName(e.target.value)}
-                        className="w-full px-4 py-2 border border-green-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white/50 backdrop-blur-sm"
+                        className="w-full px-4 py-2 border border-green-100 rounded-lg bg-green-50/50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent backdrop-blur-sm text-gray-500"
                         placeholder="Enter your last name"
                       />
+                      <p className="mt-1 text-sm text-gray-500">
+                        You cannot change your last name
+                      </p>
                     </div>
                   </div>
 
@@ -304,12 +250,16 @@ function UserSettings() {
                     </div>
                   )}
 
-                  <div className="border-t border-green-100/50 pt-6">
-                    <h3 className="text-lg font-medium text-red-600 mb-4">Delete Account</h3>
+                  {/* account deletion */}
+                  <form onSubmit={handleAccountDelete} className="border-t border-green-100/50 pt-6">
+                    <h3 className="text-lg font-medium text-red-600 mb-4">
+                      Delete Account
+                    </h3>
                     <p className="text-sm text-gray-600 mb-4">
-                      Once you delete your account, there is no going back. Please be certain.
+                      Once you delete your account, there is no going back.
+                      Please be certain.
                     </p>
-                    <form onSubmit={handleAccountDelete} className="space-y-4">
+                    <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Confirm by typing your email
@@ -331,21 +281,9 @@ function UserSettings() {
                           {loading ? "Deleting..." : "Delete Account"}
                         </button>
                       </div>
-                    </form>
-                  </div>
+                    </div>
+                  </form>
                 </form>
-              )}
-
-              {/* Notifications Tab */}
-              {activeTab === "notifications" && (
-                <div className="space-y-6">
-                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-6 border border-green-100/50">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Notification Preferences</h3>
-                    <p className="text-sm text-gray-600">
-                      Notification settings are coming soon. Stay tuned for updates!
-                    </p>
-                  </div>
-                </div>
               )}
             </div>
           </div>
