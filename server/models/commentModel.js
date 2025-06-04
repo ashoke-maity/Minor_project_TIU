@@ -14,7 +14,8 @@ const commentSchema = new mongoose.Schema(
     },
     userDetails: {
       FirstName: String,
-      LastName: String
+      LastName: String,
+      profileImage: String,
     }
   },
   { 

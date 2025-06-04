@@ -5,8 +5,8 @@ import AdminAnnouncements from "./AdminAnnouncements";
 import ProfileSidebar from "../../layout/ProfileSidebar";
 import Header from "../../layout/Header";
 import {
-  IndianRupee,
   Users,
+  IndianRupee,
   Bookmark,
   Calendar,
   MailPlus,
@@ -20,10 +20,12 @@ import {
   UserPlus,
   UserCheck,
   X,
+  User,
 } from "lucide-react";
 import axios from "axios";
 import { io } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
+import { set } from "date-fns";
 
 function MainLayout({ loading }) {
   const [firstName, setFirstName] = useState("");
@@ -53,6 +55,7 @@ function MainLayout({ loading }) {
   const [showFollowingPopup, setShowFollowingPopup] = useState(false);
   const [filteredPosts, setFilteredPosts] = useState(null);
   const [filteredPostId, setFilteredPostId] = useState(null);
+  const [profileImage, setProfileImage] = useState("");
 
   const navigate = useNavigate();
   useEffect(() => {
@@ -105,18 +108,20 @@ function MainLayout({ loading }) {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
+        const token = localStorage.getItem("authToken");
         const response = await axios.get(
           `${import.meta.env.VITE_USER_API_URL}/user/dashboard`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+              Authorization: `Bearer ${token}`,
             },
           }
         );
 
-        const { FirstName, LastName } = response.data.user;
+        const { FirstName, LastName, profileImage } = response.data.user;
         setFirstName(FirstName);
         setLastName(LastName);
+        setProfileImage(profileImage);
       } catch (err) {
         console.error("Failed to fetch profile info:", err);
       }
@@ -349,6 +354,7 @@ function MainLayout({ loading }) {
               initials={initials}
               firstName={firstName}
               lastName={lastName}
+              profileImage={profileImage} // <-- pass this!
               connectionStats={connectionStats}
               setShowConnectionsPopup={setShowConnectionsPopup}
               setShowFollowingPopup={setShowFollowingPopup}
@@ -363,8 +369,17 @@ function MainLayout({ loading }) {
               {/* Create Post Card */}
               <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-4 hover:shadow-xl transition-shadow duration-300">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-base font-semibold flex-shrink-0 shadow-md">
-                    {initials}
+                  <div className="bg-teal-500 rounded-full w-8 h-8 flex items-center justify-center text-white font-semibold uppercase overflow-hidden">
+                    {profileImage ? (
+                      <img
+                        src={profileImage}
+                        alt="Profile"
+                        className="w-8 h-8 object-cover rounded-full"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      initials || <User size={20} />
+                    )}
                   </div>
                   <button
                     onClick={() => openPostModal("regular")}
@@ -551,9 +566,20 @@ function MainLayout({ loading }) {
                         key={user._id}
                         className="p-4 flex items-center hover:bg-gray-50 transition-colors duration-300"
                       >
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white font-semibold text-lg mr-3">
-                          {user.FirstName[0]}
-                          {user.LastName[0]}
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white font-semibold text-lg mr-3 overflow-hidden">
+                          {user.profileImage ? (
+                            <img
+                              src={user.profileImage}
+                              alt="Profile"
+                              className="w-10 h-10 object-cover rounded-full"
+                              referrerPolicy="no-referrer"
+                            />
+                          ) : (
+                            <>
+                              {user.FirstName?.[0]}
+                              {user.LastName?.[0]}
+                            </>
+                          )}
                         </div>
                         <div className="flex-1 min-w-0">
                           <h4 className="font-medium text-gray-800 truncate">

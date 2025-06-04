@@ -47,10 +47,9 @@ function PostCard({ post, job, hideInteractions }) {
       createdAt: comment.createdAt,
       userId: {
         _id: comment.userId?._id || comment.userId,
-        FirstName:
-          comment.userDetails?.FirstName || comment.userId?.FirstName || "",
-        LastName:
-          comment.userDetails?.LastName || comment.userId?.LastName || "",
+        FirstName: comment.userId?.FirstName || "",
+        LastName: comment.userId?.LastName || "",
+        profileImage: comment.userId?.profileImage || "",
       },
     }));
   });
@@ -158,9 +157,13 @@ function PostCard({ post, job, hideInteractions }) {
             LastName:
               response.data.comment.userDetails?.LastName ||
               response.data.comment.userId.LastName,
+            profileImage:
+              response.data.comment.userDetails?.profileImage ||
+              response.data.comment.userId.profileImage ||
+              "",
           },
         };
-
+        console.log("google image from API", profileImage);
         setComments((prevComments) => [...prevComments, newCommentData]);
         setNewComment("");
       }
@@ -221,12 +224,14 @@ function PostCard({ post, job, hideInteractions }) {
   const userInfo = data.User || data.userId || {};
   const firstName = userInfo.FirstName || "";
   const lastName = userInfo.LastName || "";
+  const profileImage = userInfo.profileImage || ""; // <-- Add this line
   const initials = `${firstName?.[0] || ""}${
     lastName?.[0] || ""
   }`.toUpperCase();
   const fullName =
     firstName && lastName ? `${firstName} ${lastName}` : "Anonymous User";
 
+  const [imgError, setImgError] = useState(false);
   // Helper to render job details if it's a job post
   const renderJobDetails = () => {
     if (post.postType === "job" && post.jobDetails) {
@@ -392,8 +397,18 @@ function PostCard({ post, job, hideInteractions }) {
     <div className="bg-white rounded-lg p-4">
       {/* Post header */}
       <div className="flex items-start space-x-3">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-base font-semibold">
-          {initials}
+        <div className="bg-teal-500 rounded-full w-10 h-10 flex items-center justify-center text-white font-semibold uppercase overflow-hidden">
+          {profileImage && !imgError ? (
+            <img
+              src={profileImage}
+              alt="Profile"
+              className="w-10 h-10 object-cover rounded-full"
+              referrerPolicy="no-referrer"
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            initials || <User size={20} />
+          )}
         </div>
         <div className="flex-1">
           <div className="flex items-center justify-between">
@@ -526,9 +541,20 @@ function PostCard({ post, job, hideInteractions }) {
           <div className="space-y-3">
             {comments.map((comment) => (
               <div key={comment._id} className="flex items-start space-x-2">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-xs font-semibold">
-                  {(comment.userId?.FirstName?.[0] || "").toUpperCase()}
-                  {(comment.userId?.LastName?.[0] || "").toUpperCase()}
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-xs font-semibold overflow-hidden">
+                  {comment.userId?.profileImage ? (
+                    <img
+                      src={comment.userId.profileImage}
+                      alt="Profile"
+                      className="w-8 h-8 object-cover rounded-full"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <>
+                      {(comment.userId?.FirstName?.[0] || "").toUpperCase()}
+                      {(comment.userId?.LastName?.[0] || "").toUpperCase()}
+                    </>
+                  )}
                 </div>
                 <div className="flex-1">
                   <div className="bg-gray-50 rounded-lg px-3 py-2">
@@ -600,9 +626,20 @@ function PostCard({ post, job, hideInteractions }) {
               <div className="divide-y">
                 {likedUsers.map((user) => (
                   <div key={user._id} className="p-4 flex items-center">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white font-semibold text-lg mr-3">
-                      {user.FirstName[0]}
-                      {user.LastName[0]}
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white font-semibold text-lg mr-3 overflow-hidden">
+                      {user.profileImage ? (
+                        <img
+                          src={user.profileImage}
+                          alt="Profile"
+                          className="w-10 h-10 object-cover rounded-full"
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        <>
+                          {user.FirstName[0]}
+                          {user.LastName[0]}
+                        </>
+                      )}
                     </div>
                     <div>
                       <h4 className="font-medium text-gray-800">

@@ -62,18 +62,6 @@ function UserSettings() {
     }
   };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setProfileImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const handleAccountDelete = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -94,9 +82,9 @@ function UserSettings() {
         },
       });
       localStorage.clear();
-      if (response.data.success) {
+      if (response.data.status === 1) {
         toast.success("Account deleted successfully");
-        location.href = "/";
+        navigate("/");
       }
     } catch (err) {
       setError("Failed to delete account");
@@ -122,7 +110,13 @@ function UserSettings() {
             <div className="border-b border-green-100/50 px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-500">
               <div className="flex items-center">
                 <button
-                  onClick={() => navigate(-1)}
+                  onClick={() => {
+                    if (window.history.length > 2) {
+                      navigate(-1);
+                    } else {
+                      navigate("/dashboard"); // or your preferred default page
+                    }
+                  }}
                   className="mr-4 text-white hover:text-green-100 transition-colors"
                 >
                   <ChevronLeft size={24} />
@@ -153,7 +147,21 @@ function UserSettings() {
 
               {/* Profile Tab */}
               {activeTab === "profile" && (
-                <form className="space-y-6">
+                <form
+                  className="space-y-6"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    // Check which button was clicked
+                    if (
+                      e.nativeEvent.submitter &&
+                      e.nativeEvent.submitter.name === "delete"
+                    ) {
+                      handleAccountDelete(e);
+                    } else {
+                      // handle save changes if needed
+                    }
+                  }}
+                >
                   <div className="flex items-center space-x-6">
                     <div className="relative">
                       <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-br from-green-100 to-emerald-100 ring-4 ring-white shadow-lg">
@@ -183,7 +191,7 @@ function UserSettings() {
                         Profile Photo
                       </h3>
                       <p className="text-sm text-gray-500">
-                        profile photo will be same as <br / > in your google account
+                        profile photo will be same as <br /> in your google account
                       </p>
                     </div>
                   </div>
@@ -242,6 +250,7 @@ function UserSettings() {
                     <div className="flex justify-end">
                       <button
                         type="submit"
+                        name="save"
                         className="px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-300 shadow-md hover:shadow-lg"
                         disabled={loading}
                       >
@@ -251,7 +260,7 @@ function UserSettings() {
                   )}
 
                   {/* account deletion */}
-                  <form onSubmit={handleAccountDelete} className="border-t border-green-100/50 pt-6">
+                  <div className="border-t border-green-100/50 pt-6">
                     <h3 className="text-lg font-medium text-red-600 mb-4">
                       Delete Account
                     </h3>
@@ -275,6 +284,7 @@ function UserSettings() {
                       <div className="flex justify-end">
                         <button
                           type="submit"
+                          name="delete"
                           className="px-6 py-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg hover:from-red-600 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-300 shadow-md hover:shadow-lg"
                           disabled={loading}
                         >
@@ -282,7 +292,7 @@ function UserSettings() {
                         </button>
                       </div>
                     </div>
-                  </form>
+                  </div>
                 </form>
               )}
             </div>

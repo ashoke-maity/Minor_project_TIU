@@ -15,7 +15,7 @@ import {
   Check,
 } from "lucide-react";
 
-function Header({ onUserClick }) {
+function Header({ onUserClick, onPostClick }) {
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
   const notificationRef = useRef(null);
@@ -31,6 +31,7 @@ function Header({ onUserClick }) {
   const searchDropdownRef = useRef(null);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState("");
+  const [profileImage, setProfileImage] = useState(""); // Add this state
 
   const initials = `${firstName?.[0] ?? ""}${
     lastName?.[0] ?? ""
@@ -53,18 +54,20 @@ function Header({ onUserClick }) {
 
   const fetchProfile = async () => {
     try {
+      const token = localStorage.getItem("authToken");
       const response = await axios.get(
         `${import.meta.env.VITE_USER_API_URL}/user/dashboard`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
-      const { Email, FirstName, LastName } = response.data.user;
+      const { Email, FirstName, LastName, profileImage } = response.data.user;
       setEmail(Email);
       setFirstName(FirstName);
       setLastName(LastName);
+      setProfileImage(profileImage);
     } catch (err) {
       console.log("Failed to fetch user info", err);
     }
@@ -93,7 +96,7 @@ function Header({ onUserClick }) {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-   return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleAccept = async (senderId) => {
@@ -360,22 +363,23 @@ function Header({ onUserClick }) {
               onClick={() => setDropdownOpen(!dropdownOpen)}
               className="flex items-center gap-2 text-gray-700 rounded-full border border-gray-300 hover:border-teal-500 transition-colors px-2 py-1 text-sm cursor-pointer"
             >
-              <div className="bg-teal-500 rounded-full w-8 h-8 flex items-center justify-center text-white font-semibold uppercase">
-                {initials || <User size={20} />}
+              <div className="bg-teal-500 rounded-full w-8 h-8 flex items-center justify-center text-white font-semibold uppercase overflow-hidden">
+                {profileImage ? (
+                  <img
+                    src={profileImage}
+                    alt="Profile"
+                    className="w-8 h-8 object-cover rounded-full"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  initials || <User size={20} />
+                )}
               </div>
               <span className="hidden lg:inline">{firstName}</span>
             </button>
 
             {dropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border text-sm z-50">
-                <Link
-                  to="/profile"
-                  className="block px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => setDropdownOpen(false)}
-                >
-                  <User size={16} className="inline mr-2" />
-                  Profile
-                </Link>
+              <div className="absolute left-0 mt-2 w-30 bg-white rounded-md shadow-lg border text-sm z-50">
                 <button
                   onClick={openSettings}
                   className="w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"

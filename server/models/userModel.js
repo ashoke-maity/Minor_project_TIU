@@ -23,7 +23,10 @@ const User = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-
+    profileImage: {
+      type: String,
+      default: "",
+    },
     Followers: [
       {
         type: mongoose.Schema.Types.ObjectId,

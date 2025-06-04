@@ -10,14 +10,20 @@ const createPost = async (req, res) => {
     const userId = req.user.id;
 
     // Parse job and event details from form data
-    const jobDetails = req.body.jobDetails ? JSON.parse(req.body.jobDetails) : null;
-    const eventDetails = req.body.eventDetails ? JSON.parse(req.body.eventDetails) : null;
-    const donationDetails = req.body.donationDetails ? JSON.parse(req.body.donationDetails) : null;
+    const jobDetails = req.body.jobDetails
+      ? JSON.parse(req.body.jobDetails)
+      : null;
+    const eventDetails = req.body.eventDetails
+      ? JSON.parse(req.body.eventDetails)
+      : null;
+    const donationDetails = req.body.donationDetails
+      ? JSON.parse(req.body.donationDetails)
+      : null;
 
     let postData = {
       userId,
       postType,
-      content
+      content,
     };
 
     // Add the details based on post type
@@ -29,7 +35,7 @@ const createPost = async (req, res) => {
         jobType: jobDetails.jobType,
         salary: jobDetails.salary,
         requirements: jobDetails.requirements,
-        deadline: jobDetails.deadline
+        deadline: jobDetails.deadline,
       };
     }
 
@@ -38,7 +44,7 @@ const createPost = async (req, res) => {
         eventName: eventDetails.eventName,
         eventDate: eventDetails.eventDate,
         location: eventDetails.location,
-        summary: eventDetails.summary
+        summary: eventDetails.summary,
       };
     }
 
@@ -46,21 +52,24 @@ const createPost = async (req, res) => {
       postData.donationDetails = {
         donationTitle: donationDetails.donationTitle,
         goal: donationDetails.goal,
-        purpose: donationDetails.purpose
+        purpose: donationDetails.purpose,
       };
     }
 
     if (req.file) {
       try {
-        const resourceType = req.file.mimetype.startsWith("video/") ? "video" : "image";
+        const resourceType = req.file.mimetype.startsWith("video/")
+          ? "video"
+          : "image";
         const uploadResult = await new Promise((resolve, reject) => {
           const uploadStream = cloudinary.uploader.upload_stream(
-            { 
+            {
               resource_type: resourceType,
               folder: "alumni_connect",
-              allowed_formats: resourceType === "video" ? 
-                ["mp4", "webm", "mov", "avi"] : 
-                ["jpg", "jpeg", "png", "gif", "webp"]
+              allowed_formats:
+                resourceType === "video"
+                  ? ["mp4", "webm", "mov", "avi"]
+                  : ["jpg", "jpeg", "png", "gif", "webp"],
             },
             (error, result) => {
               if (error) {
@@ -78,9 +87,9 @@ const createPost = async (req, res) => {
         postData.mediaUrl = uploadResult.secure_url;
       } catch (uploadError) {
         console.error("Media upload error:", uploadError);
-        return res.status(500).json({ 
-          message: "Failed to upload media", 
-          error: uploadError.message 
+        return res.status(500).json({
+          message: "Failed to upload media",
+          error: uploadError.message,
         });
       }
     }
@@ -89,13 +98,16 @@ const createPost = async (req, res) => {
     await newPost.save();
 
     // Populate user info before sending response
-    newPost = await newPost.populate("userId", "FirstName LastName");
+    newPost = await newPost.populate(
+      "userId",
+      "FirstName LastName profileImage"
+    );
 
     req.app.get("io").emit("newPost", newPost);
 
     res.status(201).json({
       message: "Post created successfully",
-      post: newPost
+      post: newPost,
     });
   } catch (err) {
     console.error("Create post error:", err);
@@ -111,8 +123,8 @@ const getUserPosts = async (req, res) => {
     // Find posts where userId is NOT current user, and populate user details
     const posts = await UserPost.find()
       .sort({ createdAt: -1 })
-      .populate("userId", "FirstName LastName") // <-- populate userId with these fields only
-      .populate("likes", "FirstName LastName");
+      .populate("userId", "FirstName LastName profileImage") // <-- populate userId with these fields only
+      .populate("likes", "FirstName LastName profileImage");
 
     const postsWithLikeStatus = posts.map((post) => ({
       ...post.toObject(),
@@ -135,16 +147,19 @@ const getAllPosts = async (req, res) => {
       .sort({ createdAt: -1 })
       .populate({
         path: "userId",
-        select: "FirstName LastName",
+        select: "FirstName LastName profileImage",
       })
       .populate({
         path: "likes",
-        select: "FirstName LastName Email",
+        select: "FirstName LastName Email profileImage",
       })
       .populate({
         path: "comments.userId",
-        select: "FirstName LastName _id",
-      });
+        model: "User",
+        select: "FirstName LastName profileImage",
+      })
+      .lean();
+      
 
     const postsWithDetails = posts.map((post) => {
       const postObj = post.toObject();
@@ -161,6 +176,7 @@ const getAllPosts = async (req, res) => {
             _id: comment.userId._id,
             FirstName: comment.userId.FirstName,
             LastName: comment.userId.LastName,
+            profileImage: comment.userId?.profileImage || "",
           },
         })),
       };
@@ -275,7 +291,7 @@ const likePost = async (req, res) => {
 
       const populatedPost = await UserPost.findById(post._id).populate(
         "likes",
-        "FirstName LastName"
+        "FirstName LastName profileImage"
       );
 
       return res.status(200).json({
@@ -293,7 +309,7 @@ const likePost = async (req, res) => {
     // Populate the likes array with user information
     const populatedPost = await UserPost.findById(post._id).populate(
       "likes",
-      "FirstName LastName"
+      "FirstName LastName profileImage"
     );
 
     res.status(200).json({
@@ -325,7 +341,7 @@ const unlikePost = async (req, res) => {
     // Populate the likes array with user information
     const populatedPost = await UserPost.findById(post._id).populate(
       "likes",
-      "FirstName LastName"
+      "FirstName LastName profileImage"
     );
 
     res.status(200).json({
@@ -355,24 +371,35 @@ const commentOnPost = async (req, res) => {
       userId: req.user.id,
       text: commentText,
       createdAt: new Date(),
-      userDetails: {
-        FirstName: req.user.FirstName,
-        LastName: req.user.LastName,
-      },
+      // userDetails: {
+      //   FirstName: req.user.FirstName,
+      //   LastName: req.user.LastName,
+      //   profileImage: req.user.profileImage || "",
+      // },
     };
 
     post.comments.push(newComment);
     await post.save();
 
+    const populatedPost = await UserPost.findById(post._id).populate({
+      path: "comments.userId",
+      select: "FirstName LastName _id profileImage",
+    });
+
+    const savedComment = populatedPost.comments.id(newComment._id);
+
     // Send response with complete user information
     res.status(201).json({
       message: "Comment added successfully",
       comment: {
-        ...newComment,
+        _id: savedComment._id,
+        text: savedComment.text,
+        createdAt: savedComment.createdAt,
         userId: {
-          _id: req.user.id,
-          FirstName: req.user.FirstName,
-          LastName: req.user.LastName,
+          _id: savedComment.userId._id,
+          FirstName: savedComment.userId.FirstName,
+          LastName: savedComment.userId.LastName,
+          profileImage: savedComment.userId.profileImage || "",
         },
       },
     });
@@ -436,7 +463,7 @@ const savePost = async (req, res) => {
       message: "Post saved successfully",
       post: post,
       saved: true,
-      status: 1
+      status: 1,
     });
   } catch (err) {
     console.error("Save error:", err);
@@ -450,8 +477,8 @@ const getSavedPosts = async (req, res) => {
     const userId = req.user.id;
     const posts = await UserPost.find({ savedBy: userId })
       .sort({ createdAt: -1 })
-      .populate("userId", "FirstName LastName")
-      .populate("likes", "FirstName LastName");
+      .populate("userId", "FirstName LastName profileImage")
+      .populate("likes", "FirstName LastName profileImage");
 
     const postsWithLikeStatus = posts.map((post) => ({
       ...post.toObject(),
@@ -490,7 +517,7 @@ const unsavePost = async (req, res) => {
       message: "Post unsaved successfully",
       post: post,
       saved: false,
-      status: 1
+      status: 1,
     });
   } catch (err) {
     console.error("Unsave error:", err);
@@ -504,8 +531,8 @@ const getMyPosts = async (req, res) => {
     const userId = req.user.id;
     const posts = await UserPost.find({ userId })
       .sort({ createdAt: -1 })
-      .populate("userId", "FirstName LastName")
-      .populate("likes", "FirstName LastName");
+      .populate("userId", "FirstName LastName profileImage")
+      .populate("likes", "FirstName LastName profileImage");
 
     const postsWithLikeStatus = posts.map((post) => ({
       ...post.toObject(),
@@ -525,8 +552,8 @@ const getEventPosts = async (req, res) => {
   try {
     const posts = await UserPost.find({ postType: "event" })
       .sort({ createdAt: -1 })
-      .populate("userId", "FirstName LastName")
-      .populate("likes", "FirstName LastName");
+      .populate("userId", "FirstName LastName profileImage")
+      .populate("likes", "FirstName LastName profileImage");
 
     const postsWithLikeStatus = posts.map((post) => ({
       ...post.toObject(),
@@ -546,8 +573,8 @@ const getJobPosts = async (req, res) => {
   try {
     const posts = await UserPost.find({ postType: "job" })
       .sort({ createdAt: -1 })
-      .populate("userId", "FirstName LastName")
-      .populate("likes", "FirstName LastName");
+      .populate("userId", "FirstName LastName profileImage")
+      .populate("likes", "FirstName LastName profileImage");
 
     const postsWithLikeStatus = posts.map((post) => ({
       ...post.toObject(),
