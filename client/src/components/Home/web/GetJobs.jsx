@@ -14,6 +14,7 @@ function getEvents() {
     error: null,
     firstName: "",
     lastName: "",
+    profileImage: "",
     connectionStats: { connections: 0, following: 0 },
     connectionsList: [],
     followingList: [],
@@ -42,6 +43,7 @@ function getEvents() {
           ...prev,
           firstName: profileRes.data.user.FirstName,
           lastName: profileRes.data.user.LastName,
+          profileImage: profileRes.data.user.profileImage,
           jobPosts: jobPostsRes.data,
           connectionsList: followersRes.data.followers || [],
           followingList: followingRes.data.following || [],
@@ -131,7 +133,7 @@ function getEvents() {
     )
   );
 
-  const { jobPosts, loading, error, firstName, lastName, connectionStats, 
+  const { jobPosts, loading, error, firstName, lastName, profileImage, connectionStats, 
           connectionsList, followingList, showConnectionsPopup, showFollowingPopup } = state;
   const initials = `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase();
 
@@ -142,7 +144,7 @@ function getEvents() {
         <div className="flex gap-8">
           <div className="w-80 flex-shrink-0">
             <ProfileSidebar
-              {...{ initials, firstName, lastName, connectionStats }}
+              {...{ initials, firstName, lastName, profileImage: state.profileImage, connectionStats }}
               setShowConnectionsPopup={(show) => setState(prev => ({ ...prev, showConnectionsPopup: show }))}
               setShowFollowingPopup={(show) => setState(prev => ({ ...prev, showFollowingPopup: show }))}
               navigate={navigate}

@@ -14,6 +14,7 @@ function getEvents() {
     error: null,
     firstName: "",
     lastName: "",
+    profileImage: "",
     connectionStats: { connections: 0, following: 0 },
     connectionsList: [],
     followingList: [],
@@ -43,6 +44,7 @@ function getEvents() {
           ...prev,
           firstName: profileRes.data.user.FirstName,
           lastName: profileRes.data.user.LastName,
+          profileImage: profileRes.data.user.profileImage,
           eventPosts: eventPostsRes.data, // Changed to eventPosts
           connectionsList: followersRes.data.followers || [],
           followingList: followingRes.data.following || [],
@@ -180,6 +182,7 @@ function getEvents() {
           <div className="w-80 flex-shrink-0">
             <ProfileSidebar
               {...{ initials, firstName, lastName, connectionStats }}
+              profileImage={state.profileImage}
               setShowConnectionsPopup={(show) =>
                 setState((prev) => ({ ...prev, showConnectionsPopup: show }))
               }

@@ -259,7 +259,7 @@ function PostModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex justify-center items-center p-4 overflow-y-auto backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 bg-gray-900/50 backdrop-blur-sm flex justify-center items-center p-4 overflow-y-auto">
       <div className="bg-white rounded-lg shadow-lg w-full max-w-xl p-5 relative">
         {/* Close Button */}
         <button
