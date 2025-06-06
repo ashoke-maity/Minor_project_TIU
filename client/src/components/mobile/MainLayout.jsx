@@ -14,8 +14,6 @@ import {
   Briefcase,
   ChevronRight,
   Home as HomeIcon,
-  Settings,
-  Image,
   X,
   UserCheck,
 } from "lucide-react";
@@ -861,10 +859,10 @@ function MobileMainLayout({ loading }) {
         </div>
 
         {/* Mobile Navigation */}
-        <div className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t flex justify-around items-center z-20">
+        <div className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t flex justify-between items-center px-6 z-20">
           <button
             onClick={() => setActiveTab("feed")}
-            className={`flex flex-col items-center justify-center w-1/4 h-full ${
+            className={`flex flex-col items-center justify-center w-1/3 h-full ${
               activeTab === "feed" ? "text-teal-500" : "text-gray-500"
             }`}
           >
@@ -873,7 +871,7 @@ function MobileMainLayout({ loading }) {
           </button>
           <button
             onClick={() => setActiveTab("network")}
-            className={`flex flex-col items-center justify-center w-1/4 h-full ${
+            className={`flex flex-col items-center justify-center w-1/3 h-full ${
               activeTab === "network" ? "text-teal-500" : "text-gray-500"
             }`}
           >
@@ -882,21 +880,12 @@ function MobileMainLayout({ loading }) {
           </button>
           <button
             onClick={() => setActiveTab("bookmarks")}
-            className={`flex flex-col items-center justify-center w-1/4 h-full ${
+            className={`flex flex-col items-center justify-center w-1/3 h-full ${
               activeTab === "bookmarks" ? "text-teal-500" : "text-gray-500"
             }`}
           >
             <Bookmark size={20} />
             <span className="text-xs mt-1">Saved</span>
-          </button>
-          <button
-            onClick={() => setActiveTab("jobs")}
-            className={`flex flex-col items-center justify-center w-1/4 h-full ${
-              activeTab === "jobs" ? "text-teal-500" : "text-gray-500"
-            }`}
-          >
-            <Image size={20} />
-            <span className="text-xs mt-1">My Posts</span>
           </button>
         </div>
       </div>

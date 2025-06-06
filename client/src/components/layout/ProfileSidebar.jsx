@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import {
   UserCheck,
   UserPlus,
@@ -8,17 +9,23 @@ import {
   IndianRupee,
   ChevronRight,
   Image,
+  User,
 } from "lucide-react";
 
 function ProfileSidebar({
-  initials,
-  firstName,
-  lastName,
   connectionStats,
   setShowConnectionsPopup,
   setShowFollowingPopup,
   navigate,
+  firstName = "",
+  lastName = "",
+  profileImage = "",
 }) {
+  const [imgError, setImgError] = useState(false);
+  const initials = `${firstName?.[0] ?? ""}${
+    lastName?.[0] ?? ""
+  }`.toUpperCase();
+
   return (
     <div className="space-y-5">
       {/* Profile Card */}
@@ -27,8 +34,18 @@ function ProfileSidebar({
           <div className="absolute inset-0 bg-black opacity-10"></div>
         </div>
         <div className="px-6 pb-6 pt-0 -mt-12 relative z-10">
-          <div className="w-24 h-24 rounded-full border-4 border-white bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-2xl font-bold shadow-xl mx-auto">
-            {initials}
+          <div className="bg-teal-500 rounded-full w-24 h-24 flex items-center justify-center text-white font-semibold uppercase overflow-hidden mx-auto">
+            {profileImage && !imgError ? (
+              <img
+                src={profileImage}
+                alt="Profile"
+                className="w-24 h-24 object-cover rounded-full"
+                referrerPolicy="no-referrer"
+                onError={() => setImgError(true)}
+              />
+            ) : (
+              <span className="text-6xl">{initials || <User size={80} />}</span>
+            )}
           </div>
           <h2 className="text-xl font-bold text-gray-800 mt-4 text-center">
             {firstName || ""} {lastName || ""}

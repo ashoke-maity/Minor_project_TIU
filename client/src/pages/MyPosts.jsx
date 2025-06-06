@@ -563,19 +563,11 @@ function MyPosts() {
               initials={initials}
               firstName={userProfile?.FirstName}
               lastName={userProfile?.LastName}
+              profileImage={userProfile?.profileImage}
               connectionStats={connectionStats}
               setShowConnectionsPopup={setShowConnectionsPopup}
               setShowFollowingPopup={setShowFollowingPopup}
-              navigate={(path) => {
-                if (path === "/my-posts?view=bookmarks")
-                  setActiveView("bookmarks");
-                else if (path === "/my-posts?view=events")
-                  setActiveView("events");
-                else if (path === "/my-posts?view=jobs") setActiveView("jobs");
-                else if (path === "/my-posts?view=posts")
-                  setActiveView("posts");
-                else navigate(path);
-              }}
+              navigate={navigate}
             />
           </div>
           {/* Main Content */}

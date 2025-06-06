@@ -11,12 +11,12 @@ import {
   Menu,
   Check,
   Trash2,
-  Edit2
+  Edit2,
 } from "lucide-react";
 import { io } from "socket.io-client";
 import { toast } from "react-toastify";
 
-function MobileHeader({ following, followers }) {
+function MobileHeader({ following, followers, onUserClick, onPostClick }) {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -27,6 +27,12 @@ function MobileHeader({ following, followers }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [showFollowingModal, setShowFollowingModal] = useState(false);
   const [showFollowersModal, setShowFollowersModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const searchDropdownRef = useRef(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState("");
+  const [profileImage, setProfileImage] = useState("");
   const socket = io(import.meta.env.VITE_SERVER_ROUTE);
 
   useEffect(() => {
@@ -40,10 +46,11 @@ function MobileHeader({ following, followers }) {
             },
           }
         );
-        const { Email, FirstName, LastName } = response.data.user;
+        const { Email, FirstName, LastName, profileImage} = response.data.user;
         setEmail(Email);
         setFirstName(FirstName);
         setLastName(LastName);
+        setProfileImage(profileImage);
       } catch (err) {
         console.log("Failed to fetch user info", err);
       }
@@ -58,8 +65,8 @@ function MobileHeader({ following, followers }) {
     });
 
     socket.on("newNotification", (notification) => {
-      setNotifications(prev => [notification, ...prev]);
-      setUnreadCount(prev => prev + 1);
+      setNotifications((prev) => [notification, ...prev]);
+      setUnreadCount((prev) => prev + 1);
       toast.info(notification.message);
     });
 
@@ -67,6 +74,44 @@ function MobileHeader({ following, followers }) {
       socket.off("newNotification");
     };
   }, []);
+
+  // Debounce search
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults(null);
+      setSearchError("");
+      return;
+    }
+    setSearchLoading(true);
+    setSearchError("");
+    const timeout = setTimeout(async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        const searchRes = await axios.get(
+          `${
+            import.meta.env.VITE_USER_API_URL
+          }/search/all?query=${searchQuery}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setSearchResults(searchRes.data);
+        if (
+          (!searchRes.data.users || searchRes.data.users.length === 0) &&
+          (!searchRes.data.posts || searchRes.data.posts.length === 0)
+        ) {
+          setSearchError("No results found.");
+        }
+      } catch (error) {
+        setSearchError("Search failed. Please try again.");
+        setSearchResults(null);
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 400); // 400ms debounce
+
+    return () => clearTimeout(timeout);
+  }, [searchQuery]);
 
   const fetchNotifications = async () => {
     try {
@@ -79,7 +124,9 @@ function MobileHeader({ following, followers }) {
         }
       );
       setNotifications(response.data.notifications);
-      setUnreadCount(response.data.notifications.filter(n => !n.isRead).length);
+      setUnreadCount(
+        response.data.notifications.filter((n) => !n.isRead).length
+      );
     } catch (err) {
       console.error("Failed to fetch notifications:", err);
     }
@@ -116,7 +163,9 @@ function MobileHeader({ following, followers }) {
           },
         }
       );
-      setNotifications(prev => prev.filter(n => n.sender?._id !== senderId));
+      setNotifications((prev) =>
+        prev.filter((n) => n.sender?._id !== senderId)
+      );
       toast.success("Connection request accepted!");
     } catch (err) {
       console.error("Failed to accept request:", err);
@@ -135,7 +184,9 @@ function MobileHeader({ following, followers }) {
           },
         }
       );
-      setNotifications(prev => prev.filter(n => n.sender?._id !== senderId));
+      setNotifications((prev) =>
+        prev.filter((n) => n.sender?._id !== senderId)
+      );
       toast.info("Connection request declined.");
     } catch (err) {
       console.error("Failed to decline request:", err);
@@ -154,12 +205,10 @@ function MobileHeader({ following, followers }) {
           },
         }
       );
-      setNotifications(prev =>
-        prev.map(n =>
-          n._id === notificationId ? { ...n, isRead: true } : n
-        )
+      setNotifications((prev) =>
+        prev.map((n) => (n._id === notificationId ? { ...n, isRead: true } : n))
       );
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (err) {
       console.error("Failed to mark notification as read:", err);
     }
@@ -175,8 +224,8 @@ function MobileHeader({ following, followers }) {
           },
         }
       );
-      setNotifications(prev => prev.filter(n => n._id !== notificationId));
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      setNotifications((prev) => prev.filter((n) => n._id !== notificationId));
+      setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (err) {
       console.error("Failed to delete notification:", err);
     }
@@ -195,7 +244,9 @@ function MobileHeader({ following, followers }) {
     return "Just now";
   };
 
-  const initials = `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase();
+  const initials = `${firstName?.[0] ?? ""}${
+    lastName?.[0] ?? ""
+  }`.toUpperCase();
 
   return (
     <>
@@ -209,7 +260,7 @@ function MobileHeader({ following, followers }) {
           </Link>
 
           <div className="flex items-center gap-3">
-            <button 
+            <button
               className="text-gray-600 relative"
               onClick={toggleNotifications}
             >
@@ -220,7 +271,7 @@ function MobileHeader({ following, followers }) {
                 </span>
               )}
             </button>
-            
+
             <button
               onClick={toggleMenu}
               className="text-gray-600 hover:text-gray-800 transition-colors"
@@ -238,30 +289,109 @@ function MobileHeader({ following, followers }) {
               type="text"
               placeholder="Search posts, people, and jobs..."
               className="w-full pl-9 pr-4 py-2.5 rounded-full border border-gray-200 text-sm bg-gray-50/80 focus:outline-none focus:ring-2 focus:ring-teal-400/20 focus:border-teal-400 transition-all"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <Search
-              className="absolute left-3 top-3 text-gray-400"
-              size={16}
-            />
+            <Search className="absolute left-3 top-3 text-gray-400" size={16} />
           </div>
         </div>
+        {/* Search Dropdown */}
+        {searchQuery.trim() && (
+          <div
+            ref={searchDropdownRef}
+            className="absolute top-full left-0 mt-1 w-full max-h-60 bg-white border border-gray-200 rounded-b-xl shadow-lg z-50 overflow-y-auto transition-all"
+          >
+            <ul className="divide-y divide-gray-100">
+              {searchLoading && (
+                <li className="px-3 py-2 text-sm text-gray-400">
+                  Searching...
+                </li>
+              )}
+              {searchError && !searchLoading && (
+                <li className="px-3 py-2 text-sm text-gray-400">
+                  {searchError}
+                </li>
+              )}
+              {!searchLoading &&
+                !searchError &&
+                searchResults?.users?.length > 0 && (
+                  <>
+                    {searchResults.users.map((user) => (
+                      <li
+                        key={user._id}
+                        className="px-3 py-2 text-sm hover:bg-teal-50 transition rounded flex items-center gap-2 cursor-pointer"
+                      >
+                        <Link
+                          to="#"
+                          className="flex items-center gap-2 w-full text-gray-700"
+                          onClick={() => {
+                            onUserClick && onUserClick(user._id);
+                            setSearchResults(null);
+                            setSearchQuery(""); // Optionally clear search
+                          }}
+                        >
+                          <span className="bg-teal-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+                            {user.FirstName?.[0]}
+                            {user.LastName?.[0]}
+                          </span>
+                          <span className="truncate">
+                            {user.FirstName} {user.LastName}
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                    {searchResults.posts?.length > 0 && (
+                      <li className="px-3 py-1 text-xs text-gray-400 font-semibold select-none">
+                        Posts
+                      </li>
+                    )}
+                  </>
+                )}
+              {!searchLoading &&
+                !searchError &&
+                searchResults?.posts?.map((post) => (
+                  <li
+                    key={post._id}
+                    className="px-3 py-2 text-sm hover:bg-teal-50 transition rounded flex items-center gap-2 cursor-pointer"
+                  >
+                    <Link
+                      to="#"
+                      className="flex items-center gap-2 w-full text-gray-700"
+                      onClick={() => {
+                        onPostClick && onPostClick(post._id); // Call the new handler
+                        setSearchResults(null);
+                        setSearchQuery("");
+                      }}
+                    >
+                      <span className="text-teal-500">📝</span>
+                      <span className="truncate">
+                        {post.title || post.caption || post.content}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+            </ul>
+          </div>
+        )}
 
         {/* Drawer Menu */}
         {showMenu && (
           <>
-            <div 
+            <div
               className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-all duration-300 ease-in-out"
               onClick={() => setShowMenu(false)}
             />
-            <div 
+            <div
               className="fixed left-0 top-0 h-full w-[85%] max-w-md bg-white shadow-xl z-50 transform transition-transform duration-300 ease-out rounded-r-[1rem] overflow-hidden"
-              style={{ transform: showMenu ? 'translateX(0)' : 'translateX(-100%)' }}
+              style={{
+                transform: showMenu ? "translateX(0)" : "translateX(-100%)",
+              }}
             >
               {/* Menu Header */}
               <div className="bg-gradient-to-r from-teal-400 via-emerald-500 to-teal-600 h-40">
                 <div className="h-full px-6 py-4 flex flex-col justify-between">
                   <div className="flex justify-between items-center">
-                    <Link 
+                    <Link
                       to="/profile"
                       onClick={() => setShowMenu(false)}
                       className="text-white/90 hover:text-white flex items-center"
@@ -269,7 +399,7 @@ function MobileHeader({ following, followers }) {
                       <Edit2 size={18} className="mr-2" />
                       <span className="text-sm">Edit Profile</span>
                     </Link>
-                    <button 
+                    <button
                       onClick={() => setShowMenu(false)}
                       className="text-white/80 hover:text-white p-1"
                     >
@@ -277,16 +407,23 @@ function MobileHeader({ following, followers }) {
                     </button>
                   </div>
                   <div className="flex items-center gap-4 pb-4">
-                    <div className="w-16 h-16 rounded-full border-2 border-white/20 bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-xl font-bold shadow-lg">
-                      {initials}
+                    <div className="bg-teal-500 rounded-full w-8 h-8 flex items-center justify-center text-white font-semibold uppercase overflow-hidden">
+                      {profileImage ? (
+                        <img
+                          src={profileImage}
+                          alt="Profile"
+                          className="w-8 h-8 object-cover rounded-full"
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        initials || <User size={20} />
+                      )}
                     </div>
                     <div className="text-left">
                       <h2 className="text-white font-semibold">
                         {firstName} {lastName}
                       </h2>
-                      <p className="text-white/80 text-sm">
-                        {email}
-                      </p>
+                      <p className="text-white/80 text-sm">{email}</p>
                     </div>
                   </div>
                 </div>
@@ -324,7 +461,7 @@ function MobileHeader({ following, followers }) {
 
                 {/* Menu Links */}
                 <nav className="space-y-1">
-                  <Link 
+                  <Link
                     to="/my-posts"
                     onClick={() => setShowMenu(false)}
                     className="flex items-center w-full py-3 px-4 rounded-lg hover:bg-gray-100 transition-colors"
@@ -332,17 +469,17 @@ function MobileHeader({ following, followers }) {
                     <User size={20} className="text-gray-600 mr-3" />
                     <span className="text-gray-800">My Posts</span>
                   </Link>
-                  <button 
+                  <button
                     onClick={openSettings}
                     className="flex items-center w-full py-3 px-4 rounded-lg hover:bg-gray-100 transition-colors"
                   >
                     <Settings size={20} className="text-gray-600 mr-3" />
                     <span className="text-gray-800">Settings</span>
                   </button>
-                  
+
                   <div className="h-px bg-gray-200 my-4"></div>
-                  
-                  <button 
+
+                  <button
                     onClick={handleLogout}
                     className="flex items-center w-full py-3 px-4 rounded-lg hover:bg-red-50 transition-colors text-red-600"
                   >
@@ -361,14 +498,14 @@ function MobileHeader({ following, followers }) {
             <div className="h-full bg-white rounded-t-xl overflow-hidden">
               <div className="px-4 py-3 flex justify-between items-center border-b">
                 <h2 className="font-semibold text-lg">Notifications</h2>
-                <button 
+                <button
                   onClick={() => setShowNotifications(false)}
                   className="text-gray-500"
                 >
                   <X size={20} />
                 </button>
               </div>
-              
+
               <div className="overflow-auto h-[calc(100%-60px)]">
                 {notifications.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
@@ -377,10 +514,15 @@ function MobileHeader({ following, followers }) {
                 ) : (
                   <div className="divide-y">
                     {notifications.map((notification) => (
-                      <div 
+                      <div
                         key={notification._id}
-                        className={`px-4 py-3 hover:bg-gray-50 ${!notification.isRead ? 'bg-teal-50' : ''}`}
-                        onClick={() => !notification.isRead && handleMarkAsRead(notification._id)}
+                        className={`px-4 py-3 hover:bg-gray-50 ${
+                          !notification.isRead ? "bg-teal-50" : ""
+                        }`}
+                        onClick={() =>
+                          !notification.isRead &&
+                          handleMarkAsRead(notification._id)
+                        }
                       >
                         <div className="flex items-start">
                           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-emerald-400 flex items-center justify-center text-white mr-3 flex-shrink-0">
@@ -443,14 +585,14 @@ function MobileHeader({ following, followers }) {
             <div className="h-full bg-white rounded-t-xl overflow-hidden">
               <div className="px-4 py-3 flex justify-between items-center border-b sticky top-0 bg-white">
                 <h2 className="font-semibold text-lg">Following</h2>
-                <button 
+                <button
                   onClick={() => setShowFollowingModal(false)}
                   className="text-gray-500"
                 >
                   <X size={20} />
                 </button>
               </div>
-              
+
               <div className="overflow-auto h-[calc(100%-60px)]">
                 {following?.length === 0 ? (
                   <div className="text-center py-8">
@@ -470,7 +612,8 @@ function MobileHeader({ following, followers }) {
                       <div key={user._id} className="p-4 hover:bg-gray-50">
                         <div className="flex items-center">
                           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white font-bold text-lg mr-3">
-                            {user.FirstName?.[0]}{user.LastName?.[0]}
+                            {user.FirstName?.[0]}
+                            {user.LastName?.[0]}
                           </div>
                           <div className="flex-1 min-w-0">
                             <h4 className="font-medium text-gray-800">
@@ -496,14 +639,14 @@ function MobileHeader({ following, followers }) {
             <div className="h-full bg-white rounded-t-xl overflow-hidden">
               <div className="px-4 py-3 flex justify-between items-center border-b sticky top-0 bg-white">
                 <h2 className="font-semibold text-lg">Followers</h2>
-                <button 
+                <button
                   onClick={() => setShowFollowersModal(false)}
                   className="text-gray-500"
                 >
                   <X size={20} />
                 </button>
               </div>
-              
+
               <div className="overflow-auto h-[calc(100%-60px)]">
                 {followers?.length === 0 ? (
                   <div className="text-center py-8">
@@ -523,7 +666,8 @@ function MobileHeader({ following, followers }) {
                       <div key={user._id} className="p-4 hover:bg-gray-50">
                         <div className="flex items-center">
                           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white font-bold text-lg mr-3">
-                            {user.FirstName?.[0]}{user.LastName?.[0]}
+                            {user.FirstName?.[0]}
+                            {user.LastName?.[0]}
                           </div>
                           <div className="flex-1 min-w-0">
                             <h4 className="font-medium text-gray-800">
@@ -550,14 +694,14 @@ function MobileHeader({ following, followers }) {
           <div className="h-full bg-white rounded-t-xl overflow-hidden">
             <div className="px-4 py-3 flex justify-between items-center border-b sticky top-0 bg-white">
               <h2 className="font-semibold text-lg">Following</h2>
-              <button 
+              <button
                 onClick={() => setShowFollowingModal(false)}
                 className="text-gray-500"
               >
                 <X size={20} />
               </button>
             </div>
-            
+
             <div className="overflow-auto h-[calc(100%-60px)]">
               {following?.length === 0 ? (
                 <div className="text-center py-8">
@@ -577,7 +721,8 @@ function MobileHeader({ following, followers }) {
                     <div key={user._id} className="p-4 hover:bg-gray-50">
                       <div className="flex items-center">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white font-bold text-lg mr-3">
-                          {user.FirstName?.[0]}{user.LastName?.[0]}
+                          {user.FirstName?.[0]}
+                          {user.LastName?.[0]}
                         </div>
                         <div className="flex-1 min-w-0">
                           <h4 className="font-medium text-gray-800">
@@ -603,14 +748,14 @@ function MobileHeader({ following, followers }) {
           <div className="h-full bg-white rounded-t-xl overflow-hidden">
             <div className="px-4 py-3 flex justify-between items-center border-b sticky top-0 bg-white">
               <h2 className="font-semibold text-lg">Followers</h2>
-              <button 
+              <button
                 onClick={() => setShowFollowersModal(false)}
                 className="text-gray-500"
               >
                 <X size={20} />
               </button>
             </div>
-            
+
             <div className="overflow-auto h-[calc(100%-60px)]">
               {followers?.length === 0 ? (
                 <div className="text-center py-8">
@@ -630,7 +775,8 @@ function MobileHeader({ following, followers }) {
                     <div key={user._id} className="p-4 hover:bg-gray-50">
                       <div className="flex items-center">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white font-bold text-lg mr-3">
-                          {user.FirstName?.[0]}{user.LastName?.[0]}
+                          {user.FirstName?.[0]}
+                          {user.LastName?.[0]}
                         </div>
                         <div className="flex-1 min-w-0">
                           <h4 className="font-medium text-gray-800">

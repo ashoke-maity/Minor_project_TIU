@@ -45,11 +45,15 @@ const userDashboard = async (req, res) => {
     if (!req.user) {
       return res.status(401).json({ status: 0, msg: "Unauthorized access" });
     }
-
+    const user = await userDatabase.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ status: 0, msg: "User not found" });
+    }
     res.status(200).json({
       status: 1,
       msg: "Welcome to the user dashboard",
-      user: req.user, // The user object will now contain all the user details
+      // user: req.user,
+      user,
     });
   } catch (err) {
     console.error(err);
@@ -94,7 +98,7 @@ const userGoogleSignIn = async (req, res) => {
     });
 
     const payload = ticket.getPayload();
-    const { email, given_name, family_name } = payload;
+    const { email, given_name, family_name, picture } = payload;
 
     // Check if user exists
     let user = await userDatabase.findOne({ Email: email });
@@ -106,9 +110,16 @@ const userGoogleSignIn = async (req, res) => {
         LastName: family_name,
         Email: email,
         isGoogleUser: true, // ✅ Add this flag
+        profileImage: picture,
         Role: "user",
       });
 
+      await user.save();
+    } else {
+      user.FirstName = given_name;
+      user.LastName = family_name;
+      user.isGoogleUser = true;
+      user.profileImage = picture; // <-- Always update to latest Google image
       await user.save();
     }
 
@@ -140,7 +151,7 @@ const getAllUsersExceptCurrent = async (req, res) => {
 
     const users = await userDatabase.find(
       { _id: { $ne: currentUserId } }, // exclude current user
-      "FirstName LastName Email _id" // return only selected fields
+      "FirstName LastName Email _id profileImage" // return only selected fields
     );
 
     res.status(200).json({ status: 1, users });
@@ -315,7 +326,7 @@ const getPendingFollowRequests = async (req, res) => {
   try {
     const user = await userDatabase
       .findById(req.user?.id)
-      .populate("FollowRequests", "FirstName LastName Email");
+      .populate("FollowRequests", "FirstName LastName Email profileImage");
 
     if (!user) {
       return res.status(404).json({ status: 0, msg: "User not found" });
@@ -333,7 +344,7 @@ const getFollowers = async (req, res) => {
   try {
     const user = await userDatabase
       .findById(req.user?.id)
-      .populate("Followers", "FirstName LastName Email");
+      .populate("Followers", "FirstName LastName Email profileImage");
 
     if (!user) {
       return res.status(404).json({ status: 0, msg: "User not found" });
@@ -351,7 +362,7 @@ const getFollowing = async (req, res) => {
   try {
     const user = await userDatabase
       .findById(req.user?.id)
-      .populate("Following", "FirstName LastName Email");
+      .populate("Following", "FirstName LastName Email profileImage");
 
     if (!user) {
       return res.status(404).json({ status: 0, msg: "User not found" });
@@ -371,7 +382,9 @@ const removeFollower = async (req, res) => {
     const { followerId } = req.body; // The follower to remove
 
     if (!followerId) {
-      return res.status(400).json({ status: 0, msg: "Follower ID is required" });
+      return res
+        .status(400)
+        .json({ status: 0, msg: "Follower ID is required" });
     }
 
     // Remove followerId from user's Followers array
@@ -382,10 +395,9 @@ const removeFollower = async (req, res) => {
     );
 
     // Remove userId from follower's Following array
-    await userDatabase.findByIdAndUpdate(
-      followerId,
-      { $pull: { Following: userId } }
-    );
+    await userDatabase.findByIdAndUpdate(followerId, {
+      $pull: { Following: userId },
+    });
 
     res.status(200).json({ status: 1, msg: "Follower removed successfully" });
   } catch (err) {
@@ -400,7 +412,9 @@ const unfollowUser = async (req, res) => {
     const { followingId } = req.body; // The user to unfollow
 
     if (!followingId) {
-      return res.status(400).json({ status: 0, msg: "Following ID is required" });
+      return res
+        .status(400)
+        .json({ status: 0, msg: "Following ID is required" });
     }
 
     // Remove followingId from user's Following array
@@ -411,10 +425,9 @@ const unfollowUser = async (req, res) => {
     );
 
     // Remove userId from following user's Followers array
-    await userDatabase.findByIdAndUpdate(
-      followingId,
-      { $pull: { Followers: userId } }
-    );
+    await userDatabase.findByIdAndUpdate(followingId, {
+      $pull: { Followers: userId },
+    });
 
     res.status(200).json({ status: 1, msg: "Unfollowed user successfully" });
   } catch (err) {
