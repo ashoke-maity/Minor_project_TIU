@@ -399,8 +399,21 @@ function PostCard({ post, job }) {
     <div className="bg-white rounded-xl shadow-sm p-4 mb-4">
       {/* Post header with user info */}
       <div className="flex items-start space-x-2 mb-2">
-        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-sm">
-          {initials}
+        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-sm overflow-hidden">
+          {userInfo.profileImage ? (
+            <img
+              src={userInfo.profileImage}
+              alt="Profile"
+              className="w-full h-full object-cover"
+              referrerPolicy="no-referrer"
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.parentNode.innerHTML = initials;
+              }}
+            />
+          ) : (
+            initials
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
@@ -568,8 +581,21 @@ function PostCard({ post, job }) {
 
             {/* New Comment Input */}
             <div className="flex items-center space-x-2 mt-3">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
-                {initials}
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-xs font-bold flex-shrink-0 overflow-hidden">
+                {userInfo.profileImage ? (
+                  <img
+                    src={userInfo.profileImage}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.parentNode.innerHTML = initials;
+                    }}
+                  />
+                ) : (
+                  initials
+                )}
               </div>
               <div className="flex-1 flex items-center space-x-2">
                 <input
@@ -613,9 +639,24 @@ function PostCard({ post, job }) {
               <div className="divide-y">
                 {likedUsers.map((user) => (
                   <div key={user._id} className="p-4 flex items-center">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white font-semibold text-lg mr-3">
-                      {user.FirstName[0]}
-                      {user.LastName[0]}
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white font-semibold text-lg mr-3 overflow-hidden">
+                      {user.profileImage ? (
+                        <img
+                          src={user.profileImage}
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                          referrerPolicy="no-referrer"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.parentNode.innerHTML = `${user.FirstName[0]}${user.LastName[0]}`;
+                          }}
+                        />
+                      ) : (
+                        <>
+                          {user.FirstName[0]}
+                          {user.LastName[0]}
+                        </>
+                      )}
                     </div>
                     <div>
                       <h4 className="font-medium text-gray-800">
