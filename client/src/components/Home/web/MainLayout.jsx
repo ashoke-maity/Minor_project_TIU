@@ -4,6 +4,7 @@ import PostModal from "./PostModal";
 import AdminAnnouncements from "./AdminAnnouncements";
 import ProfileSidebar from "../../layout/ProfileSidebar";
 import Header from "../../layout/Header";
+import ChatBot from "../../chatbot/ChatBot";
 import {
   Users,
   IndianRupee,

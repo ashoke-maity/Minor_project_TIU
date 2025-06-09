@@ -406,7 +406,9 @@ function PostCard({ post, job }) {
               alt="Profile"
               className="w-full h-full object-cover"
               referrerPolicy="no-referrer"
+              crossOrigin="anonymous"
               onError={(e) => {
+                console.error("Post image failed to load:", userInfo.profileImage);
                 e.target.style.display = 'none';
                 e.target.parentNode.innerHTML = initials;
               }}

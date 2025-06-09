@@ -95,6 +95,66 @@ function UserSettings() {
     }
   };
 
+  const handleUpdateProfile = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      
+      // First, upload the image if there is one
+      let profileImageUrl = null;
+      
+      if (profileImage) {
+        const formData = new FormData();
+        formData.append("image", profileImage);
+        
+        const imageResponse = await axios.post(
+          `${import.meta.env.VITE_SERVER_ROUTE}/api/cloudinary/user/upload`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+        
+        if (imageResponse.data && imageResponse.data.data) {
+          profileImageUrl = imageResponse.data.data.secureUrl;
+        }
+      }
+      
+      // Now update the profile
+      const response = await axios.post(
+        `${import.meta.env.VITE_SERVER_ROUTE}/api/user/update-profile`,
+        {
+          firstName,
+          lastName,
+          ...(profileImageUrl && { profileImageUrl }),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+      if (response.data.status === 1) {
+        toast.success("Profile updated successfully");
+        setInitialData({ firstName, lastName });
+        if (profileImageUrl) {
+          setImagePreview(profileImageUrl);
+        }
+        setProfileImage(null); // Reset after successful upload
+      }
+    } catch (err) {
+      console.error("Failed to update profile:", err);
+      setError("Failed to update profile");
+      toast.error("Failed to update profile");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const isProfileChanged =
     firstName !== initialData.firstName ||
     lastName !== initialData.lastName ||
@@ -158,7 +218,7 @@ function UserSettings() {
                     ) {
                       handleAccountDelete(e);
                     } else {
-                      // handle save changes if needed
+                      handleUpdateProfile();
                     }
                   }}
                 >
