@@ -4,6 +4,7 @@ import PostCard from "./PostCard";
 import PostModal from "../Home/web/PostModal";
 import MobileHeader from "./Header";
 import MobileAdminAnnouncements from "./AdminAnnouncements";
+import ChatBot from "../chatbot/ChatBot";
 
 import {
   IndianRupee,
@@ -381,100 +382,13 @@ function MobileMainLayout({ loading }) {
 
   return (
     <>
-      <MobileHeader />
+      <MobileHeader 
+        following={following} 
+        followers={followers} 
+        followingLoading={followingLoading}
+        followersLoading={followersLoading}
+      />
       <div className="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen font-sans pb-16 pt-0">
-
-        {/* Following Modal */}
-        {showFollowingModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-            <div className="bg-white rounded-xl w-full max-w-md mx-4 max-h-[80vh] overflow-hidden">
-              <div className="p-4 border-b flex justify-between items-center">
-                <h3 className="text-lg font-semibold">Following</h3>
-                <button
-                  onClick={() => setShowFollowingModal(false)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <X size={24} />
-                </button>
-              </div>
-              <div className="overflow-y-auto max-h-[calc(80vh-4rem)]">
-                {followingLoading ? (
-                  <div className="p-4 text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500 mx-auto"></div>
-                    <p className="text-gray-500 mt-2">Loading...</p>
-                  </div>
-                ) : following.length === 0 ? (
-                  <div className="p-4 text-center text-gray-500">
-                    Not following anyone yet
-                  </div>
-                ) : (
-                  <div className="divide-y">
-                    {following.map((user) => (
-                      <div key={user._id} className="p-4 flex items-center">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white font-semibold text-lg mr-3">
-                          {user.FirstName[0]}
-                          {user.LastName[0]}
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-gray-800">
-                            {user.FirstName} {user.LastName}
-                          </h4>
-                          <p className="text-sm text-gray-500">{user.Email}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Followers Modal */}
-        {showFollowersModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-            <div className="bg-white rounded-xl w-full max-w-md mx-4 max-h-[80vh] overflow-hidden">
-              <div className="p-4 border-b flex justify-between items-center">
-                <h3 className="text-lg font-semibold">Followers</h3>
-                <button
-                  onClick={() => setShowFollowersModal(false)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <X size={24} />
-                </button>
-              </div>
-              <div className="overflow-y-auto max-h-[calc(80vh-4rem)]">
-                {followersLoading ? (
-                  <div className="p-4 text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500 mx-auto"></div>
-                    <p className="text-gray-500 mt-2">Loading...</p>
-                  </div>
-                ) : followers.length === 0 ? (
-                  <div className="p-4 text-center text-gray-500">
-                    No followers yet
-                  </div>
-                ) : (
-                  <div className="divide-y">
-                    {followers.map((user) => (
-                      <div key={user._id} className="p-4 flex items-center">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white font-semibold text-lg mr-3">
-                          {user.FirstName[0]}
-                          {user.LastName[0]}
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-gray-800">
-                            {user.FirstName} {user.LastName}
-                          </h4>
-                          <p className="text-sm text-gray-500">{user.Email}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Create Post Button - Fixed */}
         <div className="fixed bottom-20 right-4 z-10">
@@ -655,10 +569,28 @@ function MobileMainLayout({ loading }) {
                           isInFollowingList
                             ? "bg-gradient-to-br from-teal-500 to-emerald-400"
                             : "bg-gradient-to-br from-teal-400 to-emerald-500"
-                        } flex items-center justify-center text-white font-semibold text-lg mr-3`}
+                        } flex items-center justify-center text-white font-semibold text-lg mr-3 overflow-hidden`}
                       >
-                        {user.FirstName[0]}
-                        {user.LastName[0]}
+                        {user.profileImage ? (
+                          <img
+                            src={user.profileImage}
+                            alt={`${user.FirstName} ${user.LastName}`}
+                            className="w-full h-full object-cover"
+                            referrerPolicy="no-referrer"
+                            crossOrigin="anonymous"
+                            onError={(e) => {
+                              console.error("Mobile network user image failed to load:", user.profileImage);
+                              e.target.style.display = 'none';
+                              e.target.parentNode.innerHTML = `${user.FirstName?.[0] || ''}${user.LastName?.[0] || ''}`;
+                            }}
+                            onLoad={() => console.log("Mobile network user image loaded successfully:", user._id)}
+                          />
+                        ) : (
+                          <>
+                            {user.FirstName?.[0] || ''}
+                            {user.LastName?.[0] || ''}
+                          </>
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="text-base font-semibold text-gray-800 truncate">

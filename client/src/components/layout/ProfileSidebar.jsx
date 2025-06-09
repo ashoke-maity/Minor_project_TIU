@@ -25,6 +25,11 @@ function ProfileSidebar({
   const initials = `${firstName?.[0] ?? ""}${
     lastName?.[0] ?? ""
   }`.toUpperCase();
+  
+  // Add console log to debug profile image
+  useEffect(() => {
+    console.log("Profile Image URL:", profileImage);
+  }, [profileImage]);
 
   return (
     <div className="space-y-5">
@@ -41,7 +46,13 @@ function ProfileSidebar({
                 alt="Profile"
                 className="w-24 h-24 object-cover rounded-full"
                 referrerPolicy="no-referrer"
-                onError={() => setImgError(true)}
+                crossOrigin="anonymous"
+                onError={(e) => {
+                  console.error("Image failed to load:", e);
+                  console.error("Image src:", profileImage);
+                  setImgError(true);
+                }}
+                onLoad={() => console.log("Image loaded successfully")}
               />
             ) : (
               <span className="text-6xl">{initials || <User size={80} />}</span>

@@ -436,6 +436,143 @@ const unfollowUser = async (req, res) => {
   }
 };
 
+// Get user profile by ID
+const getUserProfile = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    if (!userId) {
+      return res.status(400).json({ status: 0, msg: "User ID is required" });
+    }
+    
+    const user = await userDatabase.findById(userId).select('-Password -__v');
+    
+    if (!user) {
+      return res.status(404).json({ status: 0, msg: "User not found" });
+    }
+    
+    res.status(200).json({ status: 1, user });
+  } catch (err) {
+    console.error("Get User Profile Error:", err);
+    res.status(500).json({ status: 0, msg: "Server error" });
+  }
+};
+
+// Get connection status between current user and another user
+const getConnectionStatus = async (req, res) => {
+  try {
+    const currentUserId = req.user?.id;
+    const { userId } = req.params;
+    
+    if (!userId) {
+      return res.status(400).json({ status: 0, msg: "User ID is required" });
+    }
+    
+    const currentUser = await userDatabase.findById(currentUserId);
+    const targetUser = await userDatabase.findById(userId);
+    
+    if (!currentUser || !targetUser) {
+      return res.status(404).json({ status: 0, msg: "User not found" });
+    }
+    
+    // Check if current user is following target user
+    const isFollowing = currentUser.Following.includes(userId);
+    
+    // Check if target user is following current user (mutual connection)
+    const isFollower = targetUser.Following.includes(currentUserId);
+    
+    // They are connected if they follow each other
+    const isConnected = isFollowing && isFollower;
+    
+    res.status(200).json({
+      status: 1,
+      isFollowing,
+      isFollower,
+      isConnected
+    });
+  } catch (err) {
+    console.error("Get Connection Status Error:", err);
+    res.status(500).json({ status: 0, msg: "Server error" });
+  }
+};
+
+// Update user profile
+const updateUserProfile = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    
+    if (!userId) {
+      return res.status(401).json({ status: 0, msg: "Unauthorized" });
+    }
+    
+    // Check if we have form data or JSON data
+    let updateData = {};
+    
+    if (req.file) {
+      // If there's a file upload, it's multipart form data
+      updateData.profileImage = req.file.path; // Save the file path
+      
+      // Parse the JSON string from the form data
+      if (req.body.profileData) {
+        const profileData = JSON.parse(req.body.profileData);
+        
+        // Map all the profile fields
+        if (profileData.FirstName) updateData.FirstName = profileData.FirstName;
+        if (profileData.LastName) updateData.LastName = profileData.LastName;
+        if (profileData.Email) updateData.Email = profileData.Email;
+        if (profileData.Phone) updateData.Phone = profileData.Phone;
+        if (profileData.Location) updateData.Location = profileData.Location;
+        if (profileData.Title) updateData.Title = profileData.Title;
+        if (profileData.Bio) updateData.Bio = profileData.Bio;
+        if (profileData.PassoutYear) updateData.PassoutYear = profileData.PassoutYear;
+        if (profileData.Skills) updateData.Skills = profileData.Skills;
+        if (profileData.Experience) updateData.Experience = profileData.Experience;
+        if (profileData.Education) updateData.Education = profileData.Education;
+        if (profileData.SocialLinks) updateData.SocialLinks = profileData.SocialLinks;
+      }
+    } else {
+      // If it's a regular JSON request
+      const { 
+        FirstName, LastName, Email, Phone, Location, Title, Bio, 
+        PassoutYear, profileImage, Skills, Experience, Education, SocialLinks 
+      } = req.body;
+      
+      if (FirstName) updateData.FirstName = FirstName;
+      if (LastName) updateData.LastName = LastName;
+      if (Email) updateData.Email = Email;
+      if (Phone) updateData.Phone = Phone;
+      if (Location) updateData.Location = Location;
+      if (Title) updateData.Title = Title;
+      if (Bio) updateData.Bio = Bio;
+      if (PassoutYear) updateData.PassoutYear = PassoutYear;
+      if (profileImage) updateData.profileImage = profileImage;
+      if (Skills) updateData.Skills = Skills;
+      if (Experience) updateData.Experience = Experience;
+      if (Education) updateData.Education = Education;
+      if (SocialLinks) updateData.SocialLinks = SocialLinks;
+    }
+
+    const updatedUser = await userDatabase.findByIdAndUpdate(
+      userId,
+      updateData,
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ status: 0, msg: "User not found" });
+    }
+
+    res.status(200).json({ 
+      success: true, 
+      message: "Profile updated successfully",
+      user: updatedUser
+    });
+  } catch (err) {
+    console.error("Update Profile Error:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
 module.exports = {
   userLogin,
   userDashboard,
@@ -450,4 +587,7 @@ module.exports = {
   getPendingFollowRequests,
   removeFollower,
   unfollowUser,
+  getUserProfile,
+  getConnectionStatus,
+  updateUserProfile,
 };

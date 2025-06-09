@@ -16,7 +16,7 @@ import {
 import { io } from "socket.io-client";
 import { toast } from "react-toastify";
 
-function MobileHeader({ following, followers, onUserClick, onPostClick }) {
+function MobileHeader({ following, followers, onUserClick, onPostClick, followingLoading = false, followersLoading = false }) {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -414,6 +414,7 @@ function MobileHeader({ following, followers, onUserClick, onPostClick }) {
                           alt="Profile"
                           className="w-8 h-8 object-cover rounded-full"
                           referrerPolicy="no-referrer"
+                          crossOrigin="anonymous"
                         />
                       ) : (
                         initials || <User size={20} />
@@ -436,7 +437,8 @@ function MobileHeader({ following, followers, onUserClick, onPostClick }) {
                   <button
                     onClick={() => {
                       setShowMenu(false);
-                      setShowFollowingModal(true);
+                      if (onFollowingModalOpen) onFollowingModalOpen();
+                      else setShowFollowingModal(true); // Fallback to internal state
                     }}
                     className="p-4 bg-gradient-to-br from-teal-50 to-emerald-50 rounded-xl hover:shadow-md transition-shadow duration-300"
                   >
@@ -448,7 +450,8 @@ function MobileHeader({ following, followers, onUserClick, onPostClick }) {
                   <button
                     onClick={() => {
                       setShowMenu(false);
-                      setShowFollowersModal(true);
+                      if (onFollowersModalOpen) onFollowersModalOpen();
+                      else setShowFollowersModal(true); // Fallback to internal state
                     }}
                     className="p-4 bg-gradient-to-br from-teal-50 to-emerald-50 rounded-xl hover:shadow-md transition-shadow duration-300"
                   >
@@ -594,7 +597,12 @@ function MobileHeader({ following, followers, onUserClick, onPostClick }) {
               </div>
 
               <div className="overflow-auto h-[calc(100%-60px)]">
-                {following?.length === 0 ? (
+                {followingLoading ? (
+                  <div className="p-4 text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500 mx-auto"></div>
+                    <p className="text-gray-500 mt-2">Loading...</p>
+                  </div>
+                ) : following?.length === 0 ? (
                   <div className="text-center py-8">
                     <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
                       <User size={24} className="text-gray-400" />
