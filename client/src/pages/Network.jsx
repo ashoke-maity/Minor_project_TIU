@@ -37,6 +37,14 @@ function Network() {
     fetchUserProfile();
     fetchConnectionStats();
   }, []);
+  
+  // Debug user profile data
+  useEffect(() => {
+    if (userProfile) {
+      console.log("User Profile Data:", userProfile);
+      console.log("Profile Image URL:", userProfile.profileImage);
+    }
+  }, [userProfile]);
 
   const fetchConnectionStats = async () => {
     try {
@@ -229,6 +237,7 @@ function Network() {
                 setShowConnectionsPopup={setShowConnectionsPopup}
                 setShowFollowingPopup={setShowFollowingPopup}
                 navigate={navigate}
+                profileImage={userProfile?.profileImage}
               />
             </div>
 
@@ -257,12 +266,36 @@ function Network() {
                           className="bg-white rounded-lg border border-yellow-200 bg-yellow-50 p-4 hover:shadow-md transition-shadow duration-300"
                         >
                           <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center text-white font-semibold text-lg">
-                              {user.FirstName[0]}
-                              {user.LastName[0]}
+                            <div 
+                              onClick={() => navigate(`/profile/${user._id}`)}
+                              className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center text-white font-semibold text-lg cursor-pointer hover:shadow-md overflow-hidden"
+                            >
+                              {user.profileImage ? (
+                                <img
+                                  src={user.profileImage}
+                                  alt={`${user.FirstName} ${user.LastName}`}
+                                  className="w-full h-full object-cover"
+                                  referrerPolicy="no-referrer"
+                                  crossOrigin="anonymous"
+                                  onError={(e) => {
+                                    console.error("Follow back user image failed to load:", user.profileImage);
+                                    e.target.style.display = 'none';
+                                    e.target.parentNode.innerHTML = `${user.FirstName?.[0] || ''}${user.LastName?.[0] || ''}`;
+                                  }}
+                                  onLoad={() => console.log("Follow back user image loaded successfully:", user._id)}
+                                />
+                              ) : (
+                                <>
+                                  {user.FirstName?.[0] || ''}
+                                  {user.LastName?.[0] || ''}
+                                </>
+                              )}
                             </div>
-                            <div className="flex-1">
-                              <h3 className="text-lg font-semibold text-yellow-700">
+                            <div 
+                              className="flex-1 cursor-pointer"
+                              onClick={() => navigate(`/profile/${user._id}`)}
+                            >
+                              <h3 className="text-lg font-semibold text-yellow-700 hover:text-yellow-600">
                                 {user.FirstName} {user.LastName}
                               </h3>
                               <p className="text-sm text-yellow-600 hidden md:block">
@@ -292,6 +325,41 @@ function Network() {
                     })}
                 </div>
                 
+                {/* Mobile Profile Info - Visible only on mobile */}
+                <div className="lg:hidden border-b border-gray-200 p-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-500 to-emerald-400 flex items-center justify-center text-white font-semibold text-lg overflow-hidden">
+                      {userProfile?.profileImage ? (
+                        <img
+                          src={userProfile.profileImage}
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                          referrerPolicy="no-referrer"
+                          crossOrigin="anonymous"
+                          onError={(e) => {
+                            console.error("Mobile profile image failed to load:", userProfile.profileImage);
+                            e.target.style.display = 'none';
+                            e.target.parentNode.innerHTML = initials;
+                          }}
+                          onLoad={() => console.log("Mobile profile image loaded successfully")}
+                        />
+                      ) : (
+                        <span>{initials}</span>
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-800">
+                        {userProfile?.FirstName} {userProfile?.LastName}
+                      </h3>
+                      <div className="flex space-x-3 text-xs text-gray-600 mt-1">
+                        <span>{connectionStats.connections} Connections</span>
+                        <span>•</span>
+                        <span>{connectionStats.following} Following</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Mobile Tabs - Visible only on mobile */}
                 <div className="lg:hidden border-b border-gray-200">
                   <div className="flex space-x-4 px-4 py-2">
@@ -378,18 +446,40 @@ function Network() {
                           >
                             <div className="flex items-center space-x-4">
                               <div
+                                onClick={() => navigate(`/profile/${user._id}`)}
                                 className={`w-12 h-12 rounded-full ${
                                   isConnected ||
                                   isInConnectionsList ||
                                   isInFollowingList
                                     ? "bg-gradient-to-br from-teal-500 to-emerald-400"
                                     : "bg-gradient-to-br from-teal-400 to-emerald-500"
-                                } flex items-center justify-center text-white font-semibold text-lg`}
+                                } flex items-center justify-center text-white font-semibold text-lg cursor-pointer hover:shadow-md overflow-hidden`}
                               >
-                                {user.FirstName[0]}
-                                {user.LastName[0]}
+                                {user.profileImage ? (
+                                  <img
+                                    src={user.profileImage}
+                                    alt={`${user.FirstName} ${user.LastName}`}
+                                    className="w-full h-full object-cover"
+                                    referrerPolicy="no-referrer"
+                                    crossOrigin="anonymous"
+                                    onError={(e) => {
+                                      console.error("Profile image failed to load:", user.profileImage);
+                                      e.target.style.display = 'none';
+                                      e.target.parentNode.innerHTML = `${user.FirstName?.[0] || ''}${user.LastName?.[0] || ''}`;
+                                    }}
+                                    onLoad={() => console.log("User image loaded successfully:", user._id)}
+                                  />
+                                ) : (
+                                  <>
+                                    {user.FirstName?.[0] || ''}
+                                    {user.LastName?.[0] || ''}
+                                  </>
+                                )}
                               </div>
-                              <div className="flex-1">
+                              <div 
+                                className="flex-1 cursor-pointer" 
+                                onClick={() => navigate(`/profile/${user._id}`)}
+                              >
                                 <h3
                                   className={`text-lg font-semibold ${
                                     isConnected ||
@@ -397,7 +487,7 @@ function Network() {
                                     isInFollowingList
                                       ? "text-teal-700"
                                       : "text-gray-800"
-                                  }`}
+                                  } hover:text-teal-600`}
                                 >
                                   {user.FirstName} {user.LastName}
                                 </h3>
@@ -497,11 +587,35 @@ function Network() {
                 ) : (
                   connectionsList.map((user) => (
                     <div key={user._id} className="flex items-center mb-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-base font-semibold mr-3">
-                        {user.FirstName?.[0]}
-                        {user.LastName?.[0]}
+                      <div 
+                        onClick={() => navigate(`/profile/${user._id}`)}
+                        className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-base font-semibold mr-3 overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+                      >
+                        {user.profileImage ? (
+                          <img
+                            src={user.profileImage}
+                            alt={`${user.FirstName} ${user.LastName}`}
+                            className="w-full h-full object-cover"
+                            referrerPolicy="no-referrer"
+                            crossOrigin="anonymous"
+                            onError={(e) => {
+                              console.error("Connection popup image failed to load:", user.profileImage);
+                              e.target.style.display = 'none';
+                              e.target.parentNode.innerHTML = `${user.FirstName?.[0] || ''}${user.LastName?.[0] || ''}`;
+                            }}
+                            onLoad={() => console.log("Connection popup image loaded successfully:", user._id)}
+                          />
+                        ) : (
+                          <>
+                            {user.FirstName?.[0] || ''}
+                            {user.LastName?.[0] || ''}
+                          </>
+                        )}
                       </div>
-                      <span className="text-gray-800 font-medium">
+                      <span 
+                        onClick={() => navigate(`/profile/${user._id}`)}
+                        className="text-gray-800 font-medium cursor-pointer hover:text-teal-600 transition-colors"
+                      >
                         {user.FirstName} {user.LastName}
                       </span>
                       <button
@@ -542,11 +656,35 @@ function Network() {
                 ) : (
                   followingList.map((user) => (
                     <div key={user._id} className="flex items-center mb-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-base font-semibold mr-3">
-                        {user.FirstName?.[0]}
-                        {user.LastName?.[0]}
+                      <div 
+                        onClick={() => navigate(`/profile/${user._id}`)}
+                        className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-emerald-400 text-white flex items-center justify-center text-base font-semibold mr-3 overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+                      >
+                        {user.profileImage ? (
+                          <img
+                            src={user.profileImage}
+                            alt={`${user.FirstName} ${user.LastName}`}
+                            className="w-full h-full object-cover"
+                            referrerPolicy="no-referrer"
+                            crossOrigin="anonymous"
+                            onError={(e) => {
+                              console.error("Following popup image failed to load:", user.profileImage);
+                              e.target.style.display = 'none';
+                              e.target.parentNode.innerHTML = `${user.FirstName?.[0] || ''}${user.LastName?.[0] || ''}`;
+                            }}
+                            onLoad={() => console.log("Following popup image loaded successfully:", user._id)}
+                          />
+                        ) : (
+                          <>
+                            {user.FirstName?.[0] || ''}
+                            {user.LastName?.[0] || ''}
+                          </>
+                        )}
                       </div>
-                      <span className="text-gray-800 font-medium">
+                      <span 
+                        onClick={() => navigate(`/profile/${user._id}`)}
+                        className="text-gray-800 font-medium cursor-pointer hover:text-teal-600 transition-colors"
+                      >
                         {user.FirstName} {user.LastName}
                       </span>
                       <button

@@ -5,6 +5,8 @@ import Home from '../pages/Home';
 import Login from '../components/others/Login';
 import UserSettings from "../components/layout/UserSettings";
 import Network from '../pages/Network';
+import UserProfile from '../pages/UserProfile';
+import EditProfile from '../pages/EditProfile';
 import AdminDashboard from '../pages/AdminDashboard';
 import AdminSettings from '../components/admin/AdminSettings';
 import AdminLogin from '../pages/AdminLogin';
@@ -23,6 +25,7 @@ import MyPosts from "../pages/MyPosts";
 import SavedPosts from '../components/Home/web/SavedPosts';
 import GetEvents from '../components/Home/web/GetEvents';
 import GetJobs from '../components/Home/web/GetJobs';
+import ChatBot from '../components/chatbot/ChatBot';
 
 const adminRoute = import.meta.env.VITE_ADMIN_ROUTE;
 
@@ -30,6 +33,24 @@ const adminRoute = import.meta.env.VITE_ADMIN_ROUTE;
 function App() {
   return (
     <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
+  );
+}
+
+// Separate component to use router hooks
+function AppContent() {
+  // Using the current location from React Router
+  const location = window.location;
+  
+  // Determine if the current route is an admin route
+  const isAdminRoute = location.pathname.includes('/admin');
+  
+  // Hide chatbot on login page as well
+  const isLoginPage = location.pathname === '/';
+
+  return (
+    <>
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -42,11 +63,17 @@ function App() {
         pauseOnHover
         theme="light"
       />
+      
+      {/* Only show the chatbot on user routes (not admin routes or login page) */}
+      {!isAdminRoute && !isLoginPage && <ChatBot />}
+      
       <Routes>
         {/* User Routes */}
         <Route path="/" element={<Login />} />
         <Route path="/home" element={<Home />} />
         <Route path="/network" element={<Network />} />
+        <Route path="/profile/:userId" element={<UserProfile />} />
+        <Route path="/profile" element={<EditProfile />} />
         <Route path="/settings" element={<UserSettings />} />
         <Route path="/saved-posts" element={<SavedPosts />} />
         <Route path="/get-events" element={<GetEvents />} />
@@ -73,7 +100,7 @@ function App() {
         {/* not found */}
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </BrowserRouter>
+    </>
   );
 }
 
