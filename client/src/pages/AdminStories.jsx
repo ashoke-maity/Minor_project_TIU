@@ -4,6 +4,7 @@ import axios from 'axios'
 import Sidebar from '../components/admin/Sidebar'
 import MobileSidebar from '../components/admin/MobileSidebar'
 import Header from '../components/admin/Header'
+import StoryForm from './StoryForm'
 
 const adminRoute = import.meta.env.VITE_ADMIN_ROUTE
 const apiBaseUrl = import.meta.env.VITE_ADMIN_API_URL
@@ -23,6 +24,8 @@ const AdminStories = () => {
   const [stories, setStories] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [editStoryId, setEditStoryId] = useState(null)
+  const [editStory, setEditStory] = useState(null)
 
   // Listen for newly created stories from localStorage
   useEffect(() => {
@@ -35,7 +38,6 @@ const AdminStories = () => {
           if (Array.isArray(parsedStories) && parsedStories.length > 0) {
             // Only update if we have stories and they're different from current state
             if (stories.length === 0 || JSON.stringify(stories) !== JSON.stringify(parsedStories)) {
-              console.log("Detected new stories in localStorage:", parsedStories);
               setStories(parsedStories);
             }
           }
@@ -78,6 +80,7 @@ const AdminStories = () => {
       
       // Possible API endpoints to try
       const endpoints = [
+        ensureValidUrl(apiBaseUrl, 'admin/view/stories'),
         ensureValidUrl(apiBaseUrl, 'admin/stories'),
         ensureValidUrl(apiBaseUrl, 'admin/write/stories'),
         ensureValidUrl(apiBaseUrl, 'stories'),
@@ -150,7 +153,7 @@ const AdminStories = () => {
       // Try to delete from API
       try {
         await axios.delete(
-          `${apiBaseUrl}/admin/write/stories/${storyId}`,
+          `${apiBaseUrl}/admin/delete/story/${storyId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`
@@ -180,8 +183,20 @@ const AdminStories = () => {
     }
   }
 
-  const handleEditStory = (storyId) => {
-    navigate(`${adminRoute}/admin/dashboard/editStory/${storyId}`)
+  const handleEditStory = (story) => {
+    setEditStoryId(story._id || story.id);
+    setEditStory(story);
+  }
+
+  const handleCancelEdit = () => {
+    setEditStoryId(null);
+    setEditStory(null);
+  }
+
+  const handleEditStorySuccess = (updatedStory) => {
+    setStories((prevStories) => prevStories.map((s) => (s._id === updatedStory._id ? updatedStory : s)));
+    setEditStoryId(null);
+    setEditStory(null);
   }
 
   return (
@@ -230,65 +245,76 @@ const AdminStories = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {stories.map(story => (
                 <div key={story._id || story.id} className="bg-white rounded-xl shadow-md overflow-hidden">
-                  {(story.mediaUrl || story.media) && (
-                    <div className="w-full h-48 overflow-hidden">
-                      {(story.media?.type?.startsWith('video') || 
-                        (story.media && typeof story.media === 'string' && story.media.includes('.mp4'))) ? (
-                        <video 
-                          src={story.mediaUrl || story.media}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <img 
-                          src={story.mediaUrl || story.media} 
-                          alt={story.title} 
-                          className="w-full h-full object-cover"
-                        />
+                  {(editStoryId === (story._id || story.id)) ? (
+                    <StoryForm
+                      story={editStory}
+                      editMode
+                      onSubmitSuccess={handleEditStorySuccess}
+                      onCancel={handleCancelEdit}
+                    />
+                  ) : (
+                    <>
+                      {(story.mediaUrl || story.media) && (
+                        <div className="w-full h-48 overflow-hidden">
+                          {(story.mediaUrl && story.mediaUrl.match(/\/video\/|\.(mp4|webm|ogg)$/i)) ? (
+                            <video 
+                              src={story.mediaUrl || story.media}
+                              className="w-full h-full object-cover"
+                              controls
+                            />
+                          ) : (
+                            <img 
+                              src={story.mediaUrl || story.media} 
+                              alt={story.title} 
+                              className="w-full h-full object-cover"
+                            />
+                          )}
+                        </div>
                       )}
-                    </div>
-                  )}
-                  <div className="p-5">
-                    <h3 className="text-lg font-bold text-gray-800">{story.title}</h3>
-                    <p className="text-gray-600 italic">By {story.author}</p>
-                    
-                    {story.tags && story.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        {story.tags.map((tag, index) => (
-                          <span 
-                            key={index} 
-                            className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs"
+                      <div className="p-5">
+                        <h3 className="text-lg font-bold text-gray-800">{story.title}</h3>
+                        <p className="text-gray-600 italic">By {story.author}</p>
+                        
+                        {story.tags && story.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-3">
+                            {story.tags.map((tag, index) => (
+                              <span 
+                                key={index} 
+                                className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        
+                        <div className="mt-3">
+                          <p className="text-gray-600 text-sm line-clamp-3">{story.storyBody}</p>
+                        </div>
+                        
+                        {story.createdAt && (
+                          <div className="mt-2 text-xs text-gray-500">
+                            Posted on {new Date(story.createdAt).toLocaleDateString()}
+                          </div>
+                        )}
+                        
+                        <div className="mt-4 pt-3 border-t border-gray-100 flex justify-end gap-2">
+                          <button 
+                            onClick={() => handleEditStory(story)}
+                            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                           >
-                            {tag}
-                          </span>
-                        ))}
+                            Edit
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteStory(story._id || story.id)}
+                            className="text-red-600 hover:text-red-800 text-sm font-medium"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </div>
-                    )}
-                    
-                    <div className="mt-3">
-                      <p className="text-gray-600 text-sm line-clamp-3">{story.storyBody}</p>
-                    </div>
-                    
-                    {story.createdAt && (
-                      <div className="mt-2 text-xs text-gray-500">
-                        Posted on {new Date(story.createdAt).toLocaleDateString()}
-                      </div>
-                    )}
-                    
-                    <div className="mt-4 pt-3 border-t border-gray-100 flex justify-end gap-2">
-                      <button 
-                        onClick={() => handleEditStory(story._id || story.id)}
-                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                      >
-                        Edit
-                      </button>
-                      <button 
-                        onClick={() => handleDeleteStory(story._id || story.id)}
-                        className="text-red-600 hover:text-red-800 text-sm font-medium"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
+                    </>
+                  )}
                 </div>
               ))}
             </div>

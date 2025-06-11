@@ -80,7 +80,8 @@ const AdminNewStories = () => {
               <div className="flex flex-col md:flex-row gap-4">
                 {newStory.mediaUrl && (
                   <div className="w-full md:w-1/3 lg:w-1/4">
-                    {newStory.media?.type?.startsWith('video') ? (
+                    {/* Use a more robust check for video URLs (Cloudinary may not always use .mp4 extension) */}
+                    {newStory.mediaUrl.match(/\/video\/|\.(mp4|webm|ogg)$/i) ? (
                       <video 
                         src={newStory.mediaUrl}
                         controls

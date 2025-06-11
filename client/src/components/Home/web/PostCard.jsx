@@ -17,42 +17,57 @@ import {
 } from "lucide-react";
 
 function PostCard({ post, job, hideInteractions }) {
-  // Initialize userId first with better token handling
+  // Move all hooks to the top, before any return or conditional
   const [userId, setUserId] = useState(() => {
     const tokenData = getTokenData();
     return tokenData?.id || null;
   });
-
-  // Get post data
-  const data = job || post;
-  if (!data) return null;
-
-  // Initialize all state variables
-  const [liked, setLiked] = useState(post.isLiked || false);
-  const [saved, setSaved] = useState(() => {
-    return data?.savedBy?.some((id) => String(id) === String(userId)) || false;
-  });
-  const [likeCount, setLikeCount] = useState(data?.likes?.length || 0);
-  const [likedUsers, setLikedUsers] = useState(data?.likes || []);
+  const [liked, setLiked] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [likedUsers, setLikedUsers] = useState([]);
   const [commentVisible, setCommentVisible] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [showMediaModal, setShowMediaModal] = useState(false);
   const [showLikesModal, setShowLikesModal] = useState(false);
+  const [comments, setComments] = useState([]);
+  const [imgError, setImgError] = useState(false);
 
-  // Initialize comments state with proper user data
-  const [comments, setComments] = useState(() => {
-    return (data?.comments || []).map((comment) => ({
-      _id: comment._id,
-      text: comment.text,
-      createdAt: comment.createdAt,
-      userId: {
-        _id: comment.userId?._id || comment.userId,
-        FirstName: comment.userId?.FirstName || "",
-        LastName: comment.userId?.LastName || "",
-        profileImage: comment.userId?.profileImage || "",
-      },
-    }));
-  });
+  // Always define data after hooks
+  const data = job || post;
+
+  // Sync state with data after mount
+  useEffect(() => {
+    if (!data || typeof data !== "object") return;
+    setLiked(post?.isLiked || false);
+    setSaved(data?.savedBy?.some((id) => String(id) === String(userId)) || false);
+    setLikeCount(data?.likes?.length || 0);
+    setLikedUsers(data?.likes || []);
+    setComments(
+      (data?.comments || []).map((comment) => ({
+        _id: comment._id,
+        text: comment.text,
+        createdAt: comment.createdAt,
+        userId: {
+          _id: comment.userId?._id || comment.userId,
+          FirstName: comment.userId?.FirstName || "",
+          LastName: comment.userId?.LastName || "",
+          profileImage: comment.userId?.profileImage || "",
+        },
+      }))
+    );
+  }, [data, post, userId]);
+
+  // Effects
+  useEffect(() => {
+    const tokenData = getTokenData();
+    if (tokenData?.id) {
+      setUserId(tokenData.id);
+    }
+  }, []);
+
+  // At the top of render, handle invalid data:
+  if (!data || typeof data !== "object") return null;
 
   // Helper function for user comparison with improved type handling
   const isSameUser = (commentUserId) => {
@@ -68,14 +83,6 @@ function PostCard({ post, job, hideInteractions }) {
     return isMatch;
   };
 
-  // Effects
-  useEffect(() => {
-    const tokenData = getTokenData();
-    if (tokenData?.id) {
-      setUserId(tokenData.id);
-    }
-  }, []);
-
   // Format the date
   const getFormattedDate = (dateString) => {
     try {
@@ -83,7 +90,7 @@ function PostCard({ post, job, hideInteractions }) {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) return "Recently"; // Invalid date
       return formatDistanceToNow(date, { addSuffix: true });
-    } catch (error) {
+    } catch {
       return "Recently";
     }
   };
@@ -96,7 +103,6 @@ function PostCard({ post, job, hideInteractions }) {
   };
 
   const postType = getPostType();
-  const postDate = getFormattedDate(data.createdAt || data.Date || new Date());
 
   const handleLike = async () => {
     const token = localStorage.getItem("authToken");
@@ -137,10 +143,11 @@ function PostCard({ post, job, hideInteractions }) {
           commentText: newComment.trim(),
         },
         {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+          headers:
+            {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
         }
       );
 
@@ -167,8 +174,8 @@ function PostCard({ post, job, hideInteractions }) {
         setComments((prevComments) => [...prevComments, newCommentData]);
         setNewComment("");
       }
-    } catch (error) {
-      console.error("Failed to post comment:", error);
+    } catch {
+      console.error("Failed to post comment.");
       alert("Failed to post comment. Please try again.");
     }
   };
@@ -188,8 +195,8 @@ function PostCard({ post, job, hideInteractions }) {
         }
       );
       setComments(comments.filter((comment) => comment._id !== commentId));
-    } catch (error) {
-      console.error("Failed to delete comment:", error);
+    } catch {
+      console.error("Failed to delete comment.");
       alert("Failed to delete comment. Please try again.");
     }
   };
@@ -231,7 +238,6 @@ function PostCard({ post, job, hideInteractions }) {
   const fullName =
     firstName && lastName ? `${firstName} ${lastName}` : "Anonymous User";
 
-  const [imgError, setImgError] = useState(false);
   // Helper to render job details if it's a job post
   const renderJobDetails = () => {
     if (post.postType === "job" && post.jobDetails) {
@@ -407,7 +413,7 @@ function PostCard({ post, job, hideInteractions }) {
               onError={() => setImgError(true)}
             />
           ) : (
-            initials || <User size={20} />
+            initials || (typeof User !== 'undefined' ? <User size={20} /> : null)
           )}
         </div>
         <div className="flex-1">
@@ -422,7 +428,7 @@ function PostCard({ post, job, hideInteractions }) {
       </div>
 
       {/* Media content - Show first */}
-      {post.mediaUrl ? (
+      {post && post.mediaUrl ? (
         <div className="mt-3">
           {/\.mp4|\.webm|\.ogg|\.mov$/i.test(post.mediaUrl) ? (
             <video
@@ -440,8 +446,7 @@ function PostCard({ post, job, hideInteractions }) {
           )}
         </div>
       ) : (
-        data.media &&
-        data.media.length > 0 && (
+        data.media && Array.isArray(data.media) && data.media.length > 0 && (
           <div className="mt-3">
             {data.media.map((media, index) => (
               <div key={index} className="relative">
@@ -455,7 +460,7 @@ function PostCard({ post, job, hideInteractions }) {
                 ) : media.type?.startsWith("video/") ? (
                   <video
                     src={media.url}
-                    controlsD
+                    controls
                     className="rounded-lg w-full"
                   />
                 ) : (
@@ -473,9 +478,9 @@ function PostCard({ post, job, hideInteractions }) {
       )}
       {/* Post content - Show after media */}
       <div className="mt-3">
-        {post.postType === "job" ? (
+        {post && post.postType === "job" ? (
           renderJobDetails()
-        ) : post.postType === "event" ? (
+        ) : post && post.postType === "event" ? (
           renderEventDetails()
         ) : (
           <p className="text-sm text-gray-800 whitespace-pre-wrap">

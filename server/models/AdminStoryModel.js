@@ -24,6 +24,14 @@ const storySchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    mediaPublicId: {
+      type: String,
+      default: null,
+    },
+    mediaResourceType: {
+      type: String,
+      default: null,
+    },
   },
   { timestamps: true }
 );
