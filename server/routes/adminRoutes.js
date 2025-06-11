@@ -8,7 +8,7 @@ const {
   forgotAdminPassword,
   resetAdminPassword,
   adminProfileUpdate,
-   deleteAdminProfileImage,
+  deleteAdminProfileImage,
 } = require("../controllers/adminController");
 const verifyToken = require("../middlewares/adminAuthMiddleware");
 const upload = require("../middlewares/uploadMiddleware");
@@ -17,7 +17,7 @@ const upload = require("../middlewares/uploadMiddleware");
 router.post("/admin/login", adminLogin);
 
 // register
-router.post("/admin/register",adminRegistration);
+router.post("/admin/register", adminRegistration);
 
 // admin dashboard (profile section)
 router.get("/admin/dashboard", verifyToken, adminDashboard);
@@ -45,6 +45,6 @@ router.put(
 );
 
 // admin deletion profile image
-router.delete('/admin/profile-image', verifyToken, deleteAdminProfileImage);
+router.delete("/admin/profile-image", verifyToken, deleteAdminProfileImage);
 
 module.exports = router;

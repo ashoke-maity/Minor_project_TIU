@@ -17,26 +17,39 @@ const AdminStats = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
+        setLoading(true);
         const token = localStorage.getItem("authToken");
-        const res = await axios.get(
-          `${import.meta.env.VITE_ADMIN_API_URL}/admin/stats`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (res.data.success) {
-          setStats(res.data.stats);
-        }
+        // Fetch all stats in parallel
+        const [userRes, jobRes, eventRes, storyRes] = await Promise.all([
+          axios.get(
+            `${import.meta.env.VITE_ADMIN_API_URL}/user-count`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          ),
+          axios.get(
+            `${import.meta.env.VITE_ADMIN_API_URL}/job-count`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          ),
+          axios.get(
+            `${import.meta.env.VITE_ADMIN_API_URL}/event-count`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          ),
+          axios.get(
+            `${import.meta.env.VITE_ADMIN_API_URL}/story-count`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          ),
+        ]);
+        setStats({
+          totalUsers: userRes.data.userCount + (userRes.data.adminCount || 0),
+          totalJobs: jobRes.data.jobCount,
+          totalEvents: eventRes.data.eventCount,
+          totalStories: storyRes.data.storyCount,
+        });
       } catch (error) {
         console.error("Error fetching stats:", error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchStats();
   }, []);
 
@@ -70,4 +83,4 @@ const AdminStats = () => {
   );
 };
 
-export default AdminStats; 
+export default AdminStats;

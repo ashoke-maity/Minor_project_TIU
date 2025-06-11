@@ -50,7 +50,6 @@ export default function ManageUsersTable() {
           id: user._id,
           name: `${user.FirstName} ${user.LastName}`,
           email: user.Email,
-          passoutYear: user.PassoutYear || "N/A",
           joinedAt: new Date(user.createdAt).toISOString().split("T")[0],
           createdAt: user.createdAt,
           updatedAt: user.updatedAt
@@ -63,6 +62,11 @@ export default function ManageUsersTable() {
             update: false,
             delete: false,
           },
+          profilePic: user.profileImage && user.profileImage.trim() !== ''
+            ? (user.profileImage.startsWith('http')
+                ? user.profileImage
+                : `${import.meta.env.VITE_ADMIN_API_URL.replace(/\/$/, '')}/${user.profileImage.replace(/^\//, '')}`)
+            : null,
         }));
         setUsers(formattedUsers);
         setFilteredUsers(formattedUsers);
@@ -210,7 +214,20 @@ export default function ManageUsersTable() {
           className="bg-white p-3 rounded-lg shadow-sm border border-gray-100"
         >
           <div className="flex justify-between items-start">
-            <h4 className="font-medium">{user.name}</h4>
+            <div className="flex items-center gap-2">
+              {user.profilePic ? (
+                <img
+                  src={user.profilePic}
+                  alt={user.name}
+                  className="w-8 h-8 rounded-full object-cover border border-gray-200"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xs font-bold border border-gray-200">
+                  {user.name ? user.name.charAt(0) : "?"}
+                </div>
+              )}
+              <h4 className="font-medium">{user.name}</h4>
+            </div>
             <span
               className={cn(
                 "text-xs py-1 px-2 rounded",
@@ -294,17 +311,27 @@ export default function ManageUsersTable() {
                 headerText="Name"
                 width="180"
                 textAlign="Left"
+                template={(data) => (
+                  <div className="flex items-center gap-2">
+                    {data.profilePic ? (
+                      <img
+                        src={data.profilePic}
+                        alt={data.name}
+                        className="w-8 h-8 rounded-full object-cover border border-gray-200"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xs font-bold border border-gray-200">
+                        {data.name ? data.name.charAt(0) : "?"}
+                      </div>
+                    )}
+                    <span>{data.name}</span>
+                  </div>
+                )}
               />
               <ColumnDirective
                 field="email"
                 headerText="Email"
                 width="200"
-                textAlign="Left"
-              />
-              <ColumnDirective
-                field="passoutYear"
-                headerText="Passout Year"
-                width="120"
                 textAlign="Left"
               />
               <ColumnDirective

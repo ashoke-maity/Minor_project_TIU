@@ -26,7 +26,7 @@ import {
 import axios from "axios";
 import { io } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
-import { set } from "date-fns";
+import ErrorBoundary from "../../common/ErrorBoundary";
 
 function MainLayout({ loading }) {
   const [firstName, setFirstName] = useState("");
@@ -55,7 +55,6 @@ function MainLayout({ loading }) {
   const [showConnectionsPopup, setShowConnectionsPopup] = useState(false);
   const [showFollowingPopup, setShowFollowingPopup] = useState(false);
   const [filteredPosts, setFilteredPosts] = useState(null);
-  const [filteredPostId, setFilteredPostId] = useState(null);
   const [profileImage, setProfileImage] = useState("");
 
   const navigate = useNavigate();
@@ -219,7 +218,7 @@ function MainLayout({ loading }) {
     return () => {
       socket.off("newPost");
     };
-  }, []);
+  }, [socket]);
 
   // Helper to add newly created post to feed immediately
   const handlePostCreate = async (newPost) => {
@@ -330,18 +329,12 @@ function MainLayout({ loading }) {
 
   const handleShowUserPosts = (userId) => {
     setFilteredPosts(posts.filter((post) => post.userId === userId));
-    setFilteredPostId(null); // Clear any post filter
+    // Clear any post filter
   };
 
   const handleShowPost = (postId) => {
     const selectedPost = posts.find((post) => post.id === postId);
     setFilteredPosts(selectedPost ? [selectedPost] : []);
-    setFilteredPostId(postId);
-  };
-
-  const handleResetFeed = () => {
-    setFilteredPosts(null);
-    setFilteredPostId(null);
   };
 
   return (
@@ -487,9 +480,13 @@ function MainLayout({ loading }) {
                     {filteredPosts !== null ? (
                       filteredPosts.length > 0 ? (
                         <div className="space-y-5">
-                          {filteredPosts.map((post) => (
-                            <PostCard key={post._id} post={post} />
-                          ))}
+                          {filteredPosts
+                            .filter((post) => post && typeof post === "object")
+                            .map((post) => (
+                              <ErrorBoundary>
+                                <PostCard key={post._id} post={post} />
+                              </ErrorBoundary>
+                            ))}
                         </div>
                       ) : (
                         <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-8 text-center">
@@ -500,9 +497,13 @@ function MainLayout({ loading }) {
                       )
                     ) : (
                       <div className="space-y-5">
-                        {posts.map((post) => (
-                          <PostCard key={post._id} post={post} />
-                        ))}
+                        {posts
+                          .filter((post) => post && typeof post === "object")
+                          .map((post) => (
+                            <ErrorBoundary>
+                            <PostCard key={post._id} post={post} />
+                            </ErrorBoundary>
+                          ))}
                       </div>
                     )}
                   </div>
@@ -524,7 +525,9 @@ function MainLayout({ loading }) {
                         key={job._id}
                         className="border-b border-gray-100 pb-4 last:border-0 last:pb-0"
                       >
+                        <ErrorBoundary>
                         <PostCard job={job} />
+                        </ErrorBoundary>
                       </div>
                     ))}
                   </div>

@@ -25,6 +25,14 @@ const eventSchema = new mongoose.Schema({
         type: String,  // URL of uploaded image or video on Cloudinary
         default: null   // optional field, so default null if no media uploaded
     },
+    mediaPublicId: {
+        type: String, // Cloudinary public ID for deletion
+        default: null
+    },
+    mediaResourceType: {
+        type: String, // Cloudinary resource type (image, video, raw)
+        default: null
+    },
     createdAt: {
         type: Date,
         default: Date.now

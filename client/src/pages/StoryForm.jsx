@@ -1,24 +1,36 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-const StoryForm = ({ onSubmitSuccess }) => {
+const StoryForm = ({ story, editMode, onSubmitSuccess, onCancel }) => {
   const [storyData, setStoryData] = useState({
-    title: "",
-    author: "",
-    storyBody: "",
+    title: story?.title || "",
+    author: story?.author || "",
+    storyBody: story?.storyBody || "",
   });
-
   const [tagInput, setTagInput] = useState("");
-  const [tags, setTags] = useState([]);
+  const [tags, setTags] = useState(story?.tags || []);
   const [media, setMedia] = useState(null);
-  const [previewMedia, setPreviewMedia] = useState(null);
+  const [previewMedia, setPreviewMedia] = useState(
+    story?.mediaUrl || story?.media || null
+  );
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (editMode && story) {
+      setStoryData({
+        title: story.title || "",
+        author: story.author || "",
+        storyBody: story.storyBody || "",
+      });
+      setTags(story.tags || []);
+      setPreviewMedia(story.mediaUrl || story.media || null);
+      setMedia(null);
+    }
+  }, [editMode, story]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setStoryData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setStoryData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleFileChange = (e) => {
@@ -26,8 +38,9 @@ const StoryForm = ({ onSubmitSuccess }) => {
     setMedia(file);
     if (file) {
       const previewUrl = URL.createObjectURL(file);
-      console.log("Preview URL:", previewUrl);
       setPreviewMedia(previewUrl);
+    } else if (editMode && story && (story.mediaUrl || story.media)) {
+      setPreviewMedia(story.mediaUrl || story.media);
     } else {
       setPreviewMedia(null);
     }
@@ -49,72 +62,60 @@ const StoryForm = ({ onSubmitSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const token = localStorage.getItem("authToken");
       const formData = new FormData();
-
       formData.append("title", storyData.title);
       formData.append("author", storyData.author);
       formData.append("storyBody", storyData.storyBody);
       formData.append("tags", JSON.stringify(tags));
-
       if (media) {
         formData.append("media", media);
       }
-
-      const response = await axios.post(
-        `${import.meta.env.VITE_ADMIN_API_URL}/admin/write/stories`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      console.log("story posted successfully:", response.data);
-      alert("Story posted successfully!");
-
-      // Create a story object to pass back to parent
+      let response;
+      if (editMode && story && story._id) {
+        response = await axios.put(
+          `${import.meta.env.VITE_ADMIN_API_URL}/admin/edit/story/${story._id}`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+        alert("Story updated successfully!");
+      } else {
+        response = await axios.post(
+          `${import.meta.env.VITE_ADMIN_API_URL}/admin/write/stories`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+        alert("Story posted successfully!");
+      }
       const newStory = response.data.story || {
         ...storyData,
-        _id: Date.now(), // Temporary ID if the backend doesn't return an ID
+        _id: story?._id || Date.now(),
         tags,
         mediaUrl: previewMedia,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       };
-
-      // Save to localStorage for fallback display
-      try {
-        // Get existing stories from localStorage or initialize empty array
-        const existingStories = JSON.parse(localStorage.getItem('createdStories') || '[]');
-        // Add the new story
-        existingStories.unshift(newStory); // Add to beginning of array
-        // Save back to localStorage
-        localStorage.setItem('createdStories', JSON.stringify(existingStories));
-        console.log("Story saved to localStorage for fallback display");
-      } catch (err) {
-        console.error("Could not save story to localStorage:", err);
-      }
-
-      // Pass the story data to parent component
-      if (onSubmitSuccess) {
-        onSubmitSuccess(newStory);
-      }
-
-      setStoryData({
-        title: "",
-        author: "",
-        storyBody: "",
-      });
+      if (onSubmitSuccess) onSubmitSuccess(newStory);
+      setStoryData({ title: "", author: "", storyBody: "" });
       setTags([]);
       setTagInput("");
       setMedia(null);
       setPreviewMedia(null);
-    } catch (error) {
-      console.log("Something went wrong!", error);
+    } catch {
       alert("Something went wrong!");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -222,7 +223,9 @@ const StoryForm = ({ onSubmitSuccess }) => {
           </div>
           {previewMedia && (
             <div className="mt-3 border border-gray-300 rounded-lg overflow-hidden w-full max-w-md">
-              {media?.type?.startsWith("video") ? (
+              {media?.type?.startsWith("video") ||
+              (typeof previewMedia === "string" &&
+                /\/video\/|\.(mp4|webm|ogg)$/i.test(previewMedia)) ? (
                 <video
                   key={previewMedia}
                   controls
@@ -240,13 +243,31 @@ const StoryForm = ({ onSubmitSuccess }) => {
             </div>
           )}
         </div>
-
-        <button
-          type="submit"
-          className="w-full py-3 mt-6 bg-primary-100 text-white font-semibold rounded-lg shadow-md hover:bg-primary-100/80 focus:outline-none focus:ring-2"
-        >
-          Upload Story
-        </button>
+        <div className="flex gap-3">
+          {editMode && (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="py-3 px-6 bg-gray-200 text-gray-700 font-semibold rounded-lg shadow-md hover:bg-gray-300 focus:outline-none focus:ring-2"
+              disabled={loading}
+            >
+              Cancel
+            </button>
+          )}
+          <button
+            type="submit"
+            className="w-full py-3 bg-primary-100 text-white font-semibold rounded-lg shadow-md hover:bg-primary-100/80 focus:outline-none focus:ring-2"
+            disabled={loading}
+          >
+            {loading
+              ? editMode
+                ? "Saving..."
+                : "Uploading..."
+              : editMode
+              ? "Save Changes"
+              : "Upload Story"}
+          </button>
+        </div>
       </form>
     </div>
   );

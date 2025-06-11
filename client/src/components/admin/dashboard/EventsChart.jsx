@@ -19,6 +19,7 @@ const EventsChart = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [totalEvents, setTotalEvents] = useState(0);
+  const [allEvents, setAllEvents] = useState([]); // Store all event details
   const adminRoute = import.meta.env.VITE_ADMIN_ROUTE;
 
   useEffect(() => {
@@ -38,6 +39,7 @@ const EventsChart = () => {
         
         if (res.data && res.data.events) {
           const events = res.data.events;
+          setAllEvents(events); // Save all events for details table
           setTotalEvents(events.length);
           
           // Process event data by month and category
@@ -228,8 +230,48 @@ const EventsChart = () => {
           </ChartComponent>
         </>
       )}
+
+      {/* Event Details Table */}
+      {allEvents.length > 0 && (
+        <div className="overflow-x-auto mt-6">
+          <table className="min-w-full text-sm text-left border rounded-lg">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="px-3 py-2">Name</th>
+                <th className="px-3 py-2">Date</th>
+                <th className="px-3 py-2">Location</th>
+                <th className="px-3 py-2">Summary</th>
+                <th className="px-3 py-2">Description</th>
+                <th className="px-3 py-2">Media</th>
+              </tr>
+            </thead>
+            <tbody>
+              {allEvents.map(event => (
+                <tr key={event._id} className="border-b hover:bg-gray-50">
+                  <td className="px-3 py-2 font-medium">{event.eventName}</td>
+                  <td className="px-3 py-2">{event.eventDate ? new Date(event.eventDate).toLocaleDateString() : '-'}</td>
+                  <td className="px-3 py-2">{event.eventLocation}</td>
+                  <td className="px-3 py-2">{event.eventSummary}</td>
+                  <td className="px-3 py-2 max-w-xs truncate" title={event.eventDescription}>{event.eventDescription}</td>
+                  <td className="px-3 py-2">
+                    {event.mediaUrl ? (
+                      event.mediaResourceType === 'video' ? (
+                        <video src={event.mediaUrl} controls className="w-20 h-12 object-cover rounded" />
+                      ) : (
+                        <img src={event.mediaUrl} alt="event media" className="w-20 h-12 object-cover rounded" />
+                      )
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };
 
-export default EventsChart; 
+export default EventsChart;

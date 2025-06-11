@@ -18,6 +18,7 @@ const JobOpeningsChart = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [totalJobs, setTotalJobs] = useState(0);
+  const [jobs, setJobs] = useState([]); // Store all job details
   const adminRoute = import.meta.env.VITE_ADMIN_ROUTE;
 
   useEffect(() => {
@@ -37,6 +38,7 @@ const JobOpeningsChart = () => {
         
         if (res.data && res.data.jobs) {
           const jobs = res.data.jobs;
+          setJobs(jobs); // Save all jobs for details table
           setTotalJobs(jobs.length);
           
           // Process job data to group by job type
@@ -154,8 +156,46 @@ const JobOpeningsChart = () => {
           </AccumulationChartComponent>
         </>
       )}
+
+      {/* Job Details Table */}
+      {jobs.length > 0 && (
+        <div className="overflow-x-auto mt-6">
+          <table className="min-w-full text-sm text-left border rounded-lg">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="px-3 py-2">Title</th>
+                <th className="px-3 py-2">Company</th>
+                <th className="px-3 py-2">Type</th>
+                <th className="px-3 py-2">Location</th>
+                <th className="px-3 py-2">Deadline</th>
+                <th className="px-3 py-2">Posted</th>
+                <th className="px-3 py-2">Logo</th>
+              </tr>
+            </thead>
+            <tbody>
+              {jobs.map(job => (
+                <tr key={job._id} className="border-b hover:bg-gray-50">
+                  <td className="px-3 py-2 font-medium">{job.jobTitle}</td>
+                  <td className="px-3 py-2">{job.companyName}</td>
+                  <td className="px-3 py-2">{job.jobType}</td>
+                  <td className="px-3 py-2">{job.location}</td>
+                  <td className="px-3 py-2">{job.deadline ? new Date(job.deadline).toLocaleDateString() : '-'}</td>
+                  <td className="px-3 py-2">{job.createdAt ? new Date(job.createdAt).toLocaleDateString() : '-'}</td>
+                  <td className="px-3 py-2">
+                    {job.logo ? (
+                      <img src={job.logo} alt="logo" className="w-16 h-10 object-contain rounded" />
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };
 
-export default JobOpeningsChart; 
+export default JobOpeningsChart;

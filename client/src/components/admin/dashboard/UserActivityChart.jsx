@@ -20,31 +20,32 @@ const UserActivityChart = () => {
       try {
         setLoading(true);
         const token = localStorage.getItem("authToken");
-        
-        // Simulate API call for now - would be replaced with real endpoint
-        // const res = await axios.get(`${import.meta.env.VITE_ADMIN_API_URL}/admin/user-activity`, {
-        //   headers: { Authorization: `Bearer ${token}` },
-        // });
-        
-        // Mock data
-        const mockData = [
-          { month: new Date(2023, 0, 1), registrations: 12, logins: 45 },
-          { month: new Date(2023, 1, 1), registrations: 19, logins: 54 },
-          { month: new Date(2023, 2, 1), registrations: 25, logins: 64 },
-          { month: new Date(2023, 3, 1), registrations: 22, logins: 70 },
-          { month: new Date(2023, 4, 1), registrations: 28, logins: 85 },
-          { month: new Date(2023, 5, 1), registrations: 32, logins: 92 },
-          { month: new Date(2023, 6, 1), registrations: 35, logins: 105 },
-          { month: new Date(2023, 7, 1), registrations: 40, logins: 110 },
-          { month: new Date(2023, 8, 1), registrations: 42, logins: 124 },
-          { month: new Date(2023, 9, 1), registrations: 45, logins: 130 },
-          { month: new Date(2023, 10, 1), registrations: 50, logins: 142 },
-          { month: new Date(2023, 11, 1), registrations: 55, logins: 155 },
-        ];
-        
-        setUserData(mockData);
+        const res = await axios.get('/api/admin-stat/user-activity', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        // Group activities by month and count registrations and logins
+        const activities = res.data.userActivities || [];
+        // Assume activities have a createdAt and type (e.g., 'registration', 'login')
+        const monthlyStats = {};
+        activities.forEach(act => {
+          const date = new Date(act.createdAt);
+          const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+          if (!monthlyStats[monthKey]) {
+            monthlyStats[monthKey] = {
+              month: new Date(date.getFullYear(), date.getMonth(), 1),
+              registrations: 0,
+              logins: 0
+            };
+          }
+          if (act.type === 'registration') monthlyStats[monthKey].registrations++;
+          if (act.type === 'login') monthlyStats[monthKey].logins++;
+        });
+        // Convert to array and sort by month
+        const chartData = Object.values(monthlyStats).sort((a, b) => a.month - b.month);
+        setUserData(chartData);
       } catch (error) {
         console.error("Error fetching user activity data:", error);
+        setUserData([]);
       } finally {
         setLoading(false);
       }
@@ -128,4 +129,4 @@ const UserActivityChart = () => {
   );
 };
 
-export default UserActivityChart; 
+export default UserActivityChart;

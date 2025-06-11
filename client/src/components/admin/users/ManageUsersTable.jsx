@@ -50,7 +50,6 @@ export default function ManageUsersTable() {
           id: user._id,
           name: `${user.FirstName} ${user.LastName}`,
           email: user.Email,
-          passoutYear: user.PassoutYear || "N/A",
           joinedAt: new Date(user.createdAt).toISOString().split("T")[0],
           createdAt: user.createdAt,
           updatedAt: user.updatedAt
@@ -226,10 +225,6 @@ export default function ManageUsersTable() {
 
           <div className="grid grid-cols-2 gap-2 mt-3 text-xs">
             <div>
-              <p className="text-gray-500">Passout Year</p>
-              <p className="font-medium">{user.passoutYear}</p>
-            </div>
-            <div>
               <p className="text-gray-500">Joined</p>
               <p className="font-medium">{formatDate(user.createdAt)}</p>
             </div>
@@ -299,12 +294,6 @@ export default function ManageUsersTable() {
                 field="email"
                 headerText="Email"
                 width="200"
-                textAlign="Left"
-              />
-              <ColumnDirective
-                field="passoutYear"
-                headerText="Passout Year"
-                width="120"
                 textAlign="Left"
               />
               <ColumnDirective

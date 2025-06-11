@@ -42,7 +42,7 @@ function Sidebar() {
     },
     {
       id: 7,
-      icon: "/icons/settings.svg",
+      icon: "/icons/icons8-settings-50.png",
       label: "Settings",
       href: `${adminRoute}/admin/dashboard/settings`,
     },
