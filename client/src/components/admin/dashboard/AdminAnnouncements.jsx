@@ -28,22 +28,19 @@ const AdminAnnouncements = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("authToken");
-      
       const res = await axios.get(
-        `${import.meta.env.VITE_ADMIN_API_URL}/admin/announcements`,
+        `${import.meta.env.VITE_ADMIN_API_URL}/admin/get-announcements`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      
       if (res.data && res.data.announcements) {
         setAnnouncements(res.data.announcements);
       } else {
         setAnnouncements([]);
       }
     } catch (error) {
-      console.error("Error fetching announcements:", error);
-      setError("Failed to load announcements");
+      setError("No announcements yet");
     } finally {
       setLoading(false);
     }
@@ -62,30 +59,46 @@ const AdminAnnouncements = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormProcessing(true);
-    
     try {
       const token = localStorage.getItem("authToken");
-      const endpoint = editingId ? 
-        `${import.meta.env.VITE_ADMIN_API_URL}/admin/announcements/${editingId}` : 
-        `${import.meta.env.VITE_ADMIN_API_URL}/admin/announcements`;
-      
-      const method = editingId ? 'put' : 'post';
-      
-      const res = await axios({
-        method,
-        url: endpoint,
-        data: formData,
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      if (res.status === 200 || res.status === 201) {
-        Toast.success(editingId ? "Announcement updated" : "Announcement posted");
-        setShowForm(false);
-        resetForm();
-        fetchAnnouncements();
+      if (editingId) {
+        // Edit mode: update the announcement
+        const res = await axios.put(
+          `${import.meta.env.VITE_ADMIN_API_URL}/admin/update-announcement/${editingId}`,
+          {
+            title: formData.title,
+            content: formData.content,
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        if (res.status === 200) {
+          Toast.success("Announcement updated");
+          setShowForm(false);
+          setAnnouncements(prev => prev.map(a => a._id === editingId ? res.data.announcement : a));
+          resetForm();
+        }
+      } else {
+        // Create mode: create a new announcement
+        const res = await axios.post(
+          `${import.meta.env.VITE_ADMIN_API_URL}/admin/create-announcement`,
+          {
+            title: formData.title,
+            content: formData.content,
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        if (res.status === 201 || res.status === 200) {
+          Toast.success("Announcement posted");
+          setShowForm(false);
+          setAnnouncements(prev => [res.data.announcement, ...prev]);
+          resetForm();
+        }
       }
     } catch (error) {
-      console.error("Error saving announcement:", error);
       Toast.error("Failed to save announcement");
     } finally {
       setFormProcessing(false);
@@ -108,20 +121,17 @@ const AdminAnnouncements = () => {
     if (!window.confirm("Are you sure you want to delete this announcement?")) {
       return;
     }
-    
     try {
       const token = localStorage.getItem("authToken");
       await axios.delete(
-        `${import.meta.env.VITE_ADMIN_API_URL}/admin/announcements/${id}`,
+        `${import.meta.env.VITE_ADMIN_API_URL}/admin/delete-announcement/${id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      
       Toast.success("Announcement deleted");
       fetchAnnouncements();
     } catch (error) {
-      console.error("Error deleting announcement:", error);
       Toast.error("Failed to delete announcement");
     }
   };
@@ -197,17 +207,6 @@ const AdminAnnouncements = () => {
                 placeholder="Announcement content"
                 required
               ></textarea>
-            </div>
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1 text-gray-700">Link (optional)</label>
-              <input
-                type="url"
-                name="link"
-                value={formData.link}
-                onChange={handleInputChange}
-                className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                placeholder="https://example.com"
-              />
             </div>
             <div className="flex justify-end">
               <Button
@@ -292,4 +291,4 @@ const AdminAnnouncements = () => {
   );
 };
 
-export default AdminAnnouncements; 
+export default AdminAnnouncements;

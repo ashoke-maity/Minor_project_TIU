@@ -18,15 +18,21 @@ const StoriesOverview = () => {
         
         // Fetch stories data
         const res = await axios.get(
-          `${import.meta.env.VITE_ADMIN_API_URL}/admin/stories`,
+          `${import.meta.env.VITE_ADMIN_API_URL}/admin/view/stories`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        
-        if (res.data && res.data.stories) {
+        // Accept both array and object response
+        let storiesArr = [];
+        if (Array.isArray(res.data)) {
+          storiesArr = res.data;
+        } else if (res.data && Array.isArray(res.data.stories)) {
+          storiesArr = res.data.stories;
+        }
+        if (storiesArr.length > 0) {
           // Show only the latest 5 stories
-          const latestStories = res.data.stories
+          const latestStories = storiesArr
             .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
             .slice(0, 5);
           
@@ -34,9 +40,8 @@ const StoriesOverview = () => {
         } else {
           setStories([]);
         }
-      } catch (error) {
-        console.error("Error fetching stories:", error);
-        setError("Failed to load stories");
+      } catch {
+        setError("Failed to fetch stories");
         Toast.error("Failed to load stories");
       } finally {
         setLoading(false);
@@ -107,12 +112,20 @@ const StoriesOverview = () => {
               className="border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow"
             >
               <div className="flex gap-3">
-                {story.coverImage ? (
-                  <img 
-                    src={story.coverImage.startsWith('http') ? story.coverImage : `${import.meta.env.VITE_ADMIN_API_URL}/${story.coverImage}`} 
-                    alt={story.title}
-                    className="w-16 h-16 object-cover rounded-md flex-shrink-0"
-                  />
+                {story.coverImage || story.mediaUrl ? (
+                  story.mediaResourceType === 'video' ? (
+                    <video 
+                      src={story.mediaUrl || story.coverImage} 
+                      controls 
+                      className="w-16 h-16 object-cover rounded-md flex-shrink-0" 
+                    />
+                  ) : (
+                    <img 
+                      src={(story.mediaUrl || story.coverImage).startsWith('http') ? (story.mediaUrl || story.coverImage) : `${import.meta.env.VITE_ADMIN_API_URL}/${story.mediaUrl || story.coverImage}`} 
+                      alt={story.title}
+                      className="w-16 h-16 object-cover rounded-md flex-shrink-0"
+                    />
+                  )
                 ) : (
                   <div className="w-16 h-16 bg-gray-200 rounded-md flex items-center justify-center flex-shrink-0">
                     <img src="/icons/story.png" alt="Story" className="w-8 h-8 opacity-40" />
@@ -121,9 +134,9 @@ const StoriesOverview = () => {
                 
                 <div className="flex-1 min-w-0">
                   <h4 className="font-medium text-gray-800 truncate">{story.title}</h4>
-                  <p className="text-sm text-gray-500 mt-1">{truncateText(story.content)}</p>
+                  <p className="text-sm text-gray-500 mt-1">{truncateText(story.storyBody)}</p>
                   <div className="flex justify-between items-center mt-2">
-                    <span className="text-xs text-primary-100">{story.author?.name || 'Anonymous'}</span>
+                    <span className="text-xs text-primary-100">{story.author || 'Anonymous'}</span>
                     <span className="text-xs text-gray-400">{formatDate(story.createdAt)}</span>
                   </div>
                 </div>
@@ -151,4 +164,4 @@ const StoriesOverview = () => {
   );
 };
 
-export default StoriesOverview; 
+export default StoriesOverview;

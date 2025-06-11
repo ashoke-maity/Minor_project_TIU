@@ -9,7 +9,8 @@ const adminJobSchema = new mongoose.Schema({
   description: { type: String, required: true },
   requirements: { type: String, required: true },
   deadline: { type: Date, required: true },
-  logo: { type: String }, // 🔥 Add this line to store logo path
+  logo: { type: String }, // URL to logo image
+  logoPublicId: { type: String }, // Cloudinary public ID for deletion
   postedByAdmin: { type: mongoose.Schema.Types.ObjectId, ref: "Admin" } // Optional: to track who posted
 }, { timestamps: true });
 
