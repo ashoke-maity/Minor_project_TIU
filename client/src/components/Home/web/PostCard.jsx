@@ -613,7 +613,7 @@ function PostCard({ post, job, hideInteractions }) {
 
       {/* Likes Modal */}
       {showLikesModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl w-full max-w-md mx-4 max-h-[80vh] overflow-hidden">
             <div className="p-4 border-b flex justify-between items-center">
               <h3 className="text-lg font-semibold flex items-center">
