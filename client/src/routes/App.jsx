@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Home from '../pages/Home';
@@ -41,13 +41,17 @@ function App() {
 // Separate component to use router hooks
 function AppContent() {
   // Using the current location from React Router
-  const location = window.location;
+  const location = useLocation();
   
   // Determine if the current route is an admin route
   const isAdminRoute = location.pathname.includes('/admin');
   
-  // Hide chatbot on login page as well
-  const isLoginPage = location.pathname === '/';
+  // Hide chatbot on all sign-in related pages
+  const isAuthPage = location.pathname === '/' || 
+                    location.pathname.includes('/login') || 
+                    location.pathname.includes('/forgotpass') || 
+                    location.pathname.includes('/reset-password') || 
+                    location.pathname.includes('/register');
 
   return (
     <>
@@ -64,8 +68,8 @@ function AppContent() {
         theme="light"
       />
       
-      {/* Only show the chatbot on user routes (not admin routes or login page) */}
-      {!isAdminRoute && !isLoginPage && <ChatBot />}
+      {/* Only show the chatbot on user routes (not admin routes or any auth-related pages) */}
+      {!isAdminRoute && !isAuthPage && <ChatBot />}
       
       <Routes>
         {/* User Routes */}

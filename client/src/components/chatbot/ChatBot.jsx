@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { X, Send } from "lucide-react";
 import { gsap } from "gsap";
+import { useLocation } from "react-router-dom";
 
 // Predefined responses for common questions
 const botResponses = {
@@ -33,6 +34,7 @@ const botResponses = {
 };
 
 function ChatBot() {
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     { 
@@ -99,7 +101,7 @@ function ChatBot() {
   // Show welcome message on new pages
   useEffect(() => {
     // Check if we've shown the welcome message for this page
-    const currentPath = window.location.pathname;
+    const currentPath = location.pathname;
     const welcomeShownForPaths = JSON.parse(localStorage.getItem('chatbotWelcomeShown') || '{}');
     
     if (!welcomeShownForPaths[currentPath]) {
@@ -115,7 +117,7 @@ function ChatBot() {
         setShowNotification(false);
       }, 5000);
     }
-  }, []);
+  }, [location.pathname]);
   
   // Clear notification when chat is opened
   useEffect(() => {
@@ -237,15 +239,15 @@ function ChatBot() {
                        ${isMobile ? 'max-w-[calc(100vw-4rem)]' : 'max-w-xs'} 
                        animate-fade-in-up mb-2 border border-teal-100`}>
           <p className="text-xs sm:text-sm font-medium text-gray-700">
-            {window.location.pathname === '/home' 
+            {location.pathname === '/home' 
               ? 'Welcome to your feed!' 
-              : window.location.pathname === '/network'
+              : location.pathname === '/network'
                 ? 'Looking to connect with alumni?'
-                : window.location.pathname === '/settings'
+                : location.pathname === '/settings'
                   ? 'Need help updating your profile?'
-                  : window.location.pathname === '/get-events'
+                  : location.pathname === '/get-events'
                     ? 'Interested in upcoming events?'
-                    : window.location.pathname === '/get-jobs'
+                    : location.pathname === '/get-jobs'
                       ? 'Looking for career opportunities?'
                       : 'Need help with something?'
             }
