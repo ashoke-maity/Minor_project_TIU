@@ -163,23 +163,24 @@ function UserSettings() {
   return (
     <>
       {loading && <LoadingScreen />}
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-8">
+      <div className="min-h-screen bg-white-50 py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-green-100/50 overflow-hidden">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 transition-all duration-300">
             {/* Header */}
-            <div className="border-b border-green-100/50 px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-500">
+            <div className="px-6 py-5 bg-gradient-to-r from-teal-500 to-green-500 shadow-md">
               <div className="flex items-center">
                 <button
                   onClick={() => {
                     if (window.history.length > 2) {
                       navigate(-1);
                     } else {
-                      navigate("/dashboard"); // or your preferred default page
+                      navigate("/dashboard"); 
                     }
                   }}
-                  className="mr-4 text-white hover:text-green-100 transition-colors"
+                  className="flex items-center px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg shadow-md mr-4 transition-all duration-300 hover:translate-x-[-3px]"
                 >
-                  <ChevronLeft size={24} />
+                  <ChevronLeft size={20} />
+                  <span className="ml-1 font-medium">Back</span>
                 </button>
                 <div>
                   <h1 className="text-2xl font-bold text-white">
@@ -195,12 +196,12 @@ function UserSettings() {
             {/* Content */}
             <div className="p-6">
               {error && (
-                <div className="mb-4 p-3 bg-red-50/80 text-red-600 text-sm rounded-lg border border-red-200 backdrop-blur-sm">
+                <div className="mb-4 p-4 bg-red-50/90 text-red-600 text-sm rounded-lg shadow-md bashadow-md shadow-md backdrop-blur-sm flex items-start flex items-start flex items-start">
                   {error}
                 </div>
               )}
               {success && (
-                <div className="mb-4 p-3 bg-green-50/80 text-green-600 text-sm rounded-lg border border-green-200 backdrop-blur-sm">
+                <div className="mb-4 p-4 bg-green-50/90 text-green-600 text-sm rounded-lg shadow-md backdrop-blur-sm flex items-start">
                   {success}
                 </div>
               )}
@@ -266,7 +267,7 @@ function UserSettings() {
                         value={firstName}
                         disabled
                         onChange={(e) => setFirstName(e.target.value)}
-                        className="w-full px-4 py-2 border border-green-100 rounded-lg bg-green-50/50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent backdrop-blur-sm text-gray-500"
+                        className="w-full px-4 py-3 rounded-lg bg-white/90 focus:outline-none focus:ring-2 focus:ring-green-500 shadow-md hover:shadow-lg transition-all duration-300 backdrop-blur-sm text-gray-600"
                         placeholder="Enter your first name"
                       />
                       <p className="mt-1 text-sm text-gray-500">
@@ -282,10 +283,10 @@ function UserSettings() {
                         value={lastName}
                         disabled
                         onChange={(e) => setLastName(e.target.value)}
-                        className="w-full px-4 py-2 border border-green-100 rounded-lg bg-green-50/50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent backdrop-blur-sm text-gray-500"
+                        className="w-full px-4 py-3 rounded-lg bg-white/90 focus:outline-none focus:ring-2 focus:ring-green-500 shadow-md hover:shadow-lg transition-all duration-300 backdrop-blur-sm text-gray-600"
                         placeholder="Enter your last name"
                       />
-                      <p className="mt-1 text-sm text-gray-500">
+                      <p className="mt-1 text-sm text-gray-600">
                         You cannot change your last name
                       </p>
                     </div>
@@ -299,7 +300,7 @@ function UserSettings() {
                       type="email"
                       value={email}
                       disabled
-                      className="w-full px-4 py-2 border border-green-100 rounded-lg bg-green-50/50 text-gray-500"
+                      className="w-full px-4 py-3 rounded-lg bg-white/90 focus:outline-none focus:ring-2 focus:ring-green-500 shadow-md hover:shadow-lg transition-all duration-300 backdrop-blur-sm text-gray-600"
                     />
                     <p className="mt-1 text-sm text-gray-500">
                       You cannot change your email address
@@ -320,7 +321,7 @@ function UserSettings() {
                   )}
 
                   {/* account deletion */}
-                  <div className="border-t border-green-100/50 pt-6">
+                  <div className="mt-8 pt-6 bg-white/50 rounded-lg shadow-inner p-6">
                     <h3 className="text-lg font-medium text-red-600 mb-4">
                       Delete Account
                     </h3>

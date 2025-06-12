@@ -135,26 +135,28 @@ function UserSettings() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
+    <div className="min-h-screen bg-gradient-to-r from-teal-500 to-green-500">
       {/* Mobile Header */}
-      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-sm shadow-sm">
-        <div className="px-4 py-3 flex items-center border-b border-green-100/50">
+      <div className="sticky top-0 z-10 bg-gradient-to-r from-teal-500 to-green-500 backdrop-blur-sm shadow-dmd">
+        <div className="px-4 py-4 flex items-center">
           <button 
             onClick={() => navigate(-1)} 
-            className="mr-2 text-green-600"
+            className="flex items-center bg-white/20 text-white px-3 py-2 rounded-lg shadow-md mr-3 hover:bg-white/30 transition-all duration-300"
           >
-            <ChevronLeft size={24} />
+            <ChevronLeft size={20} />
+            <span className="ml-1 font-medium">Back</span>
+            <span className="ml-1 font-medium">Back</span>
           </button>
-          <h1 className="text-lg font-bold text-gray-800">Settings</h1>
+          <h1 className="text-lg font-bold text-white">Settings</h1>
         </div>
 
         {/* Mobile Tabs */}
-        <div className="flex border-b border-green-100/50 overflow-x-auto scrollbar-hide bg-white/50">
+        <div className="flex overflow-x-auto scrollbar-hide bg-white shadow-md">
           <button
             className={`flex-1 py-3 text-sm font-medium ${
               activeTab === "profile" 
-                ? "text-green-600 border-b-2 border-green-500" 
-                : "text-gray-600 hover:text-green-600"
+                ? "text-green-600 bg-green-50 shadow-sm rounded-t-lg" 
+                : "text-gray-600 hover:text-green-600 hover:bg-gray-50 hover:bg-gray-50"
             }`}
             onClick={() => setActiveTab("profile")}
           >
@@ -164,8 +166,8 @@ function UserSettings() {
           <button
             className={`flex-1 py-3 text-sm font-medium ${
               activeTab === "notifications" 
-                ? "text-green-600 border-b-2 border-green-500" 
-                : "text-gray-600 hover:text-green-600"
+                ? "text-green-600 bg-green-50 shadow-sm rounded-t-lg" 
+                : "text-gray-600 hover:text-green-600 hover:bg-gray-50 hover:bg-gray-50"
             }`}
             onClick={() => setActiveTab("notifications")}
           >
@@ -178,12 +180,12 @@ function UserSettings() {
       {/* Content */}
       <div className="p-4">
         {error && (
-          <div className="mb-4 p-3 bg-red-50/80 text-red-600 text-sm rounded-lg border border-red-200 backdrop-blur-sm">
+          <div className="mb-4 p-4 bg-red-50/90 text-red-600 text-sm rounded-lg shadow-md bashadow-md backdrop-blur-sm flex items-start flex items-start">
             {error}
           </div>
         )}
         {success && (
-          <div className="mb-4 p-3 bg-green-50/80 text-green-600 text-sm rounded-lg border border-green-200 backdrop-blur-sm">
+          <div className="mb-4 p-4 bg-green-50/90 text-green-600 text-sm rounded-lg shadow-md shadow-md backdrop-blur-sm flex items-start flex items-start">
             {success}
           </div>
         )}
@@ -239,7 +241,7 @@ function UserSettings() {
                     type="text"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    className="w-full border border-green-100 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white/50 backdrop-blur-sm"
+                    className="w-full rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white/80 shadow-md hover:shadow-lg transition-all duration-300 shadow-md hover:shadow-lg transition-all duration-300 backdrop-blur-sm"
                     placeholder="Enter your first name"
                   />
                 </div>
@@ -251,7 +253,7 @@ function UserSettings() {
                     type="text"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className="w-full border border-green-100 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white/50 backdrop-blur-sm"
+                    className="w-full rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white/80 shadow-md hover:shadow-lg transition-all duration-300 shadow-md hover:shadow-lg transition-all duration-300 backdrop-blur-sm"
                     placeholder="Enter your last name"
                   />
                 </div>
@@ -265,7 +267,7 @@ function UserSettings() {
                   type="email"
                   value={email}
                   disabled
-                  className="w-full border border-green-100 rounded-lg p-3 text-sm bg-green-50/50"
+                  className="w-full rounded-lg p-3 text-sm bg-white/80 shadow-md backdrop-blur-sm"
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   You cannot change your email address

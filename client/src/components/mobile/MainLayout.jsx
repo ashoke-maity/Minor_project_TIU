@@ -388,13 +388,13 @@ function MobileMainLayout({ loading }) {
         followingLoading={followingLoading}
         followersLoading={followersLoading}
       />
-      <div className="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen font-sans pb-16 pt-0">
+      <div className="bg-gray-50 min-h-screen font-sans pb-16 pt-0">
 
         {/* Create Post Button - Fixed */}
         <div className="fixed bottom-20 right-4 z-10">
           <button
             onClick={() => openPostModal("regular")}
-            className="bg-gradient-to-r from-teal-500 to-emerald-400 hover:from-teal-600 hover:to-emerald-500 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg"
+            className="bg-gray-50 hover:from-teal-600 hover:to-emerald-500 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg"
           >
             <Plus size={24} />
           </button>

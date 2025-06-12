@@ -340,7 +340,7 @@ function MainLayout({ loading }) {
   return (
     <>
       <Header onUserClick={handleShowUserPosts} onPostClick={handleShowPost} />
-      <div className="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen font-sans">
+      <div className="bg-gra-gray-50 min-h-screen font-sans">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex flex-col lg:flex-row py-6 gap-6">
             {/* Left Sidebar */}
