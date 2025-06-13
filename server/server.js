@@ -18,6 +18,7 @@ const UserPostRouter = require('./routes/UserPostRoutes');
 const NotificationRouter = require('./routes/notificationRoutes');
 const UserSearchRouter = require('./routes/UserSearchRoutes');
 const AnnouncementRouter = require('./routes/AdminAnnouncementRoutes');
+const FetchAnnouncementByUserRouter = require('./routes/FetchAnnouncementByUserRoutes');
 const StatRouter = require('./routes/AdminStatRoutes');
 const { initializeSocket } = require('./middlewares/Socket');
 const server = http.createServer(app);
@@ -40,7 +41,6 @@ app.use(process.env.ADMIN_ROUTE, adminjobRouter); // admin job URL
 app.use(process.env.ADMIN_ROUTE, AdminEventRouter); // admin event route
 app.use(process.env.ADMIN_ROUTE, AdminStoryRouter) // admin success story post
 app.use(process.env.USER_ROUTE, UserPostRouter) // user can post anything
-app.use(process.env.USER_ROUTE, AnnouncementRouter); // user can see announcements
 app.use(process.env.ADMIN_ROUTE, AnnouncementRouter); // admin can see announcements
 app.use(process.env.ADMIN_ROUTE, StatRouter); // admin can see stats
 
@@ -51,6 +51,7 @@ app.use(process.env.USER_ROUTE, fetchAdminEventRouter); // user can fetch events
 app.use(process.env.USER_ROUTE, fetchAdminStoryRouter); // user can fetch success stories posted by admin
 app.use(process.env.USER_ROUTE, NotificationRouter); // user can get the notification
 app.use(process.env.USER_ROUTE, UserSearchRouter); // user search route
+app.use(process.env.USER_ROUTE, FetchAnnouncementByUserRouter); // user can see announcements
 
 // image upload route
 app.use(process.env.ADMIN_ROUTE, AdminImageUploadRouter); // admin image upload

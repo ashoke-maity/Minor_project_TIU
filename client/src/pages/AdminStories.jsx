@@ -9,16 +9,6 @@ import StoryForm from './StoryForm'
 const adminRoute = import.meta.env.VITE_ADMIN_ROUTE
 const apiBaseUrl = import.meta.env.VITE_ADMIN_API_URL
 
-// Function to ensure URL is properly formed
-const ensureValidUrl = (baseUrl, path) => {
-  // Remove trailing slash from base URL if present
-  const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl
-  // Remove leading slash from path if present
-  const cleanPath = path.startsWith('/') ? path.slice(1) : path
-  // Combine with a slash
-  return `${cleanBaseUrl}/${cleanPath}`
-}
-
 const AdminStories = () => {
   const navigate = useNavigate()
   const [stories, setStories] = useState([])
@@ -55,13 +45,12 @@ const AdminStories = () => {
     
     // Clear interval on component unmount
     return () => clearInterval(intervalId);
-  }, [stories]); // Depend on stories to prevent unnecessary re-renders
+  }, [stories]);
 
   const fetchStories = async () => {
     try {
       setLoading(true)
       const token = localStorage.getItem("authToken")
-      
       // First check localStorage for stories
       const savedStories = localStorage.getItem('createdStories');
       if (savedStories) {
@@ -73,45 +62,10 @@ const AdminStories = () => {
           return;
         }
       }
-      
-      // Try different API endpoint patterns
-      let response;
-      let success = false;
-      
-      // Possible API endpoints to try
-      const endpoints = [
-        ensureValidUrl(apiBaseUrl, 'admin/view/stories'),
-        ensureValidUrl(apiBaseUrl, 'admin/stories'),
-        ensureValidUrl(apiBaseUrl, 'admin/write/stories'),
-        ensureValidUrl(apiBaseUrl, 'stories'),
-        ensureValidUrl(apiBaseUrl, 'api/stories'),
-      ];
-      
-      // Try each endpoint until one succeeds
-      for (const endpoint of endpoints) {
-        try {
-          console.log(`Trying endpoint: ${endpoint}`);
-          response = await axios.get(endpoint, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          success = true;
-          console.log(`Success with endpoint: ${endpoint}`);
-          break; // Exit loop if successful
-        } catch (err) {
-          console.log(`Failed with endpoint: ${endpoint} - ${err.message}`);
-          // Continue to next endpoint
-        }
-      }
-      
-      // If all endpoints failed, there are no stories to display
-      if (!success) {
-        console.log("All API endpoints failed, no stories found");
-        setStories([]);
-        setError(null);
-        setLoading(false);
-        return;
-      }
-      
+      // Fetch from API
+      const response = await axios.get(`${apiBaseUrl}/admin/view/stories`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       // Handle different possible response structures
       let storiesData = []
       if (response.data.stories) {
@@ -149,7 +103,6 @@ const AdminStories = () => {
     
     try {
       const token = localStorage.getItem("authToken")
-      
       // Try to delete from API
       try {
         await axios.delete(
@@ -160,8 +113,9 @@ const AdminStories = () => {
             }
           }
         )
-      } catch (apiError) {
-        console.error("API delete failed, removing from local state only:", apiError);
+      } catch (error) {
+        console.error("API delete failed, removing from local state only:", error);
+        return { success: false, msg: error.message };
       }
       
       // Remove from state regardless of API success

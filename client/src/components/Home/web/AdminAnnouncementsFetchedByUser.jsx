@@ -15,14 +15,14 @@ const AdminAnnouncements = () => {
         
         // Fetch announcements from the API
         const res = await axios.get(
-          `${import.meta.env.VITE_USER_API_URL}/announcements`,
+          `${import.meta.env.VITE_USER_API_URL}/view/admin/announcements`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
         
-        if (res.data && res.data.announcements) {
-          setAnnouncements(res.data.announcements);
+        if (res.data && res.data.data) {
+          setAnnouncements(res.data.data);
         } else {
           setAnnouncements([]);
         }
@@ -124,4 +124,4 @@ const AdminAnnouncements = () => {
   );
 };
 
-export default AdminAnnouncements; 
+export default AdminAnnouncements;
