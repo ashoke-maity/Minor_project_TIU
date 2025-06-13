@@ -1,22 +1,17 @@
 import { React, useEffect, useState } from "react";
 import PostCard from "./PostCard";
 import PostModal from "./PostModal";
-import AdminAnnouncements from "./AdminAnnouncements";
+import AdminAnnouncements from "./AdminAnnouncementsFetchedByUser";
 import ProfileSidebar from "../../layout/ProfileSidebar";
 import Header from "../../layout/Header";
 import ChatBot from "../../chatbot/ChatBot";
 import {
   Users,
   IndianRupee,
-  Bookmark,
   Calendar,
   MailPlus,
   Plus,
   Briefcase,
-  ChevronRight,
-  Heart,
-  MessageCircle,
-  Save,
   Image,
   UserPlus,
   UserCheck,
@@ -160,11 +155,12 @@ function MainLayout({ loading }) {
   useEffect(() => {
     const fetchAdminJob = async () => {
       try {
+        const token = localStorage.getItem("authToken");
         const response = await axios.get(
-          `${import.meta.env.VITE_USER_API_URL}/jobs`,
+          `${import.meta.env.VITE_USER_API_URL}/view/admin/jobs`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+              Authorization: `Bearer ${token}`,
             },
           }
         );
@@ -181,11 +177,11 @@ function MainLayout({ loading }) {
   useEffect(() => {
     const fetchAdminEvents = async () => {
       try {
-        const response = await axios(
-          `${import.meta.env.VITE_USER_API_URL}/admin-events`,
+        const token = localStorage.getItem("authToken");
+        const response = await axios.get(`${import.meta.env.VITE_USER_API_URL}/admin-events`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+              Authorization: `Bearer ${token}`,
             },
           }
         );
