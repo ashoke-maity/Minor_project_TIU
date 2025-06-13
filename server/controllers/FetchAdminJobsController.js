@@ -1,4 +1,4 @@
-// controllers/fetchAdminJobs.js
+const mongoose = require("mongoose");
 const AdminJob = require("../models/AdminJobModel");
 
 const getAllAdminJobsPublic = async (req, res) => {
@@ -10,4 +10,4 @@ const getAllAdminJobsPublic = async (req, res) => {
   }
 };
 
-module.exports = { getAllAdminJobsPublic };
+module.exports = getAllAdminJobsPublic;

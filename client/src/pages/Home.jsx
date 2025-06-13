@@ -2,12 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import MainLayout from "../components/Home/web/MainLayout";
 import MobileMainLayout from "../components/mobile/MainLayout";
-import axios from "axios";
+
 
 function Home() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [jobs, setJobs] = useState([]);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
@@ -18,29 +16,6 @@ function Home() {
       return;
     }
   }, [navigate]);
-
-  useEffect(() => {
-    // Fetch jobs posted by admin
-    const fetchJobs = async () => {
-      try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_ADMIN_API_URL}/view/jobs`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-            },
-          }
-        );
-        setJobs(response.data);
-      } catch (error) {
-        console.error("Error fetching jobs:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchJobs();
-  }, []);
 
   // Handle window resize for responsive layout
   useEffect(() => {
@@ -55,9 +30,9 @@ function Home() {
   return (
     <div>
       {isMobile ? (
-        <MobileMainLayout jobs={jobs} loading={loading} />
+        <MobileMainLayout />
       ) : (
-        <MainLayout jobs={jobs} loading={loading} />
+        <MainLayout />
       )}
     </div>
   );
